@@ -29,9 +29,11 @@
     "@eslint/json": "^1.2.0",
     "@eslint/markdown": "^8.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/jest": "^30.0.0",
     "eslint": "^10.2.0",
     "globals": "^17.4.0",
     "jiti": "^2.6.1",
+    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript-eslint": "^8.58.0"
   }
