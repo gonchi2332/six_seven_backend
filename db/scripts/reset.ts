@@ -1,6 +1,6 @@
 import * as readline from "readline";
 import * as dotenv from "dotenv";
-import pool from "../../src/config/database";
+import pool from "../../src/config/database.config";
 
 dotenv.config();
 
