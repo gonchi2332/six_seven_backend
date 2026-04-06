@@ -9,19 +9,28 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   // 1. Configuración para JS y TS
-  { 
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], 
-    plugins: { 
+  {
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "package-lock.json",
+      "build/**"
+    ]
+  },
+  
+  {
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    plugins: {
       js,
-      "@stylistic": stylistic 
-    }, 
+      "@stylistic": stylistic
+    },
     // Combinamos las recomendaciones de JS y TS
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
     ],
-    languageOptions: { 
-      globals: { ...globals.browser, ...globals.node } 
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node }
     },
     rules: {
       // --- BUENAS PRÁCTICAS ---
@@ -36,26 +45,26 @@ export default defineConfig([
   },
 
   // 2. Archivos JSON
-  { 
-    files: ["**/*.json"], 
-    plugins: { json }, 
-    language: "json/json", 
-    extends: ["json/recommended"] 
+  {
+    files: ["**/*.json"],
+    plugins: { json },
+    language: "json/json",
+    extends: ["json/recommended"]
   },
 
   // 3. Archivos Markdown
-  { 
-    files: ["**/*.md"], 
-    plugins: { markdown }, 
-    language: "markdown/commonmark", 
-    extends: ["markdown/recommended"] 
+  {
+    files: ["**/*.md"],
+    plugins: { markdown },
+    language: "markdown/commonmark",
+    extends: ["markdown/recommended"]
   },
 
   // 4. Archivos CSS
-  { 
-    files: ["**/*.css"], 
-    plugins: { css }, 
-    language: "css/css", 
-    extends: ["css/recommended"] 
+  {
+    files: ["**/*.css"],
+    plugins: { css },
+    language: "css/css",
+    extends: ["css/recommended"]
   },
 ]);
