@@ -1,0 +1,243 @@
+-- CATALOG TABLES: role, function, language, language_level, skill, residence_country,
+-- external_platform, academic_degree, session_report, link, interface
+
+CREATE TABLE "role" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE "function" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(50) NOT NULL
+);
+
+CREATE TABLE "language" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(20) UNIQUE NOT NULL
+);
+
+CREATE TABLE "language_level" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "level" varchar(20) UNIQUE NOT NULL
+);
+
+CREATE TABLE "skill" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(50) UNIQUE NOT NULL,
+  "type" varchar(20) NOT NULL DEFAULT 'soft'
+);
+
+CREATE TABLE "residence_country" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(20) NOT NULL
+);
+
+CREATE TABLE "external_platform" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(100) NOT NULL
+);
+
+CREATE TABLE "academic_degree" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE "session_report" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(20) NOT NULL
+);
+
+CREATE TABLE "link" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "link" text
+);
+
+CREATE TABLE "interface" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "name" varchar(50) NOT NULL
+);
+
+-- CORE TABLES: user, user_detail, role_function, function_interface 
+
+CREATE TABLE "user" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "email" varchar(200) NOT NULL,
+  "password" varchar(100) NOT NULL,
+  "state" varchar(50) NOT NULL DEFAULT 'active',
+  "role_id" int NOT NULL,
+  "public_profile_link" text
+);
+
+CREATE TABLE "user_detail" (
+  "user_id" int PRIMARY KEY NOT NULL,
+  "phone" varchar,
+  "names" varchar(100) NOT NULL,
+  "paternal_surname" varchar(100) NOT NULL,
+  "maternal_surname" varchar(100),
+  "direction" varchar(200),
+  "residence_country_id" int,
+  "contact_email" varchar(200),
+  "profile_picture" text
+);
+
+CREATE TABLE "role_function" (
+  "role_id" int NOT NULL,
+  "function_id" int NOT NULL,
+  "active" bool NOT NULL DEFAULT true,
+  PRIMARY KEY ("role_id", "function_id")
+);
+
+CREATE TABLE "function_interface" (
+  "function_id" int NOT NULL,
+  "interface_id" int NOT NULL,
+  "active" boolean NOT NULL DEFAULT true,
+  PRIMARY KEY ("function_id", "interface_id")
+);
+
+-- CONTENT TABLES: project, laboral_experience, academic_training, certificate, 
+-- session_report_user
+
+CREATE TABLE "project" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "user_id" int NOT NULL,
+  "topic" varchar(100),
+  "description" text,
+  "status" varchar(100) NOT NULL DEFAULT 'in progress',
+  "visible" bool NOT NULL DEFAULT true,
+  "image" text
+);
+
+CREATE TABLE "laboral_experience" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "user_id" int NOT NULL,
+  "position" varchar(100) NOT NULL,
+  "company_name" varchar(200) NOT NULL,
+  "description" text,
+  "visible" bool NOT NULL DEFAULT true,
+  "start_date" date NOT NULL,
+  "end_date" date
+);
+
+CREATE TABLE "academic_training" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "user_id" int NOT NULL,
+  "name" text NOT NULL,
+  "academic_degree_id" int,
+  "institution" varchar(100) NOT NULL,
+  "visible" bool NOT NULL DEFAULT true,
+  "start_date" date NOT NULL,
+  "end_date" date
+);
+
+CREATE TABLE "certificate" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "user_id" int NOT NULL,
+  "title" varchar(100) NOT NULL,
+  "description" text NOT NULL,
+  "area" varchar(100) NOT NULL,
+  "file" text,
+  "issue_date" date NOT NULL
+);
+
+CREATE TABLE "session_report_user" (
+  "id" SERIAL UNIQUE PRIMARY KEY NOT NULL,
+  "user_id" int NOT NULL,
+  "action_id" int NOT NULL,
+  "registered_date" timestamp NOT NULL DEFAULT (now())
+);
+
+-- RELATIONSHIP TABLES: user_skill, user_language_level, user_platform, project_skill,
+-- project_link, laboral_experience_skill
+
+CREATE TABLE "user_skill" (
+  "skill_id" int NOT NULL,
+  "user_id" int NOT NULL,
+  "punctuation" smallint,
+  PRIMARY KEY ("skill_id", "user_id")
+);
+
+CREATE TABLE "user_language_level" (
+  "language_id" int NOT NULL,
+  "user_id" int NOT NULL,
+  "language_level_id" int NOT NULL,
+  PRIMARY KEY ("language_id", "user_id")
+);
+
+CREATE TABLE "user_platform" (
+  "user_id" int NOT NULL,
+  "external_platform_id" int NOT NULL,
+  "link" varchar(300) NOT NULL,
+  "visit_count" smallint NOT NULL DEFAULT 0,
+  PRIMARY KEY ("user_id", "external_platform_id")
+);
+
+CREATE TABLE "project_skill" (
+  "skill_id" int NOT NULL,
+  "project_id" int NOT NULL,
+  PRIMARY KEY ("skill_id", "project_id")
+);
+
+CREATE TABLE "project_link" (
+  "project_id" int NOT NULL,
+  "link_id" int NOT NULL,
+  "visit_count" smallint NOT NULL DEFAULT 0,
+  PRIMARY KEY ("project_id", "link_id")
+);
+
+CREATE TABLE "laboral_experience_skill" (
+  "skill_id" int NOT NULL,
+  "experience_id" int NOT NULL,
+  PRIMARY KEY ("skill_id", "experience_id")
+);
+
+ALTER TABLE "user_detail" ADD CONSTRAINT "Resides" FOREIGN KEY ("residence_country_id") REFERENCES "residence_country" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "session_report_user" ADD CONSTRAINT "Generates_1" FOREIGN KEY ("action_id") REFERENCES "session_report" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "session_report_user" ADD CONSTRAINT "Generates_2" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "academic_training" ADD CONSTRAINT "Owns" FOREIGN KEY ("academic_degree_id") REFERENCES "academic_degree" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "laboral_experience_skill" ADD CONSTRAINT "Has" FOREIGN KEY ("experience_id") REFERENCES "laboral_experience" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "laboral_experience_skill" ADD CONSTRAINT "Requires" FOREIGN KEY ("skill_id") REFERENCES "skill" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user" ADD CONSTRAINT "User_Has_Role" FOREIGN KEY ("role_id") REFERENCES "role" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "role_function" ADD CONSTRAINT "Plays_1" FOREIGN KEY ("role_id") REFERENCES "role" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "role_function" ADD CONSTRAINT "Plays_2" FOREIGN KEY ("function_id") REFERENCES "function" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "function_interface" ADD CONSTRAINT "Dispose_1" FOREIGN KEY ("interface_id") REFERENCES "interface" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "function_interface" ADD CONSTRAINT "Dispose_2" FOREIGN KEY ("function_id") REFERENCES "function" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "project_skill" ADD CONSTRAINT "Applies_1" FOREIGN KEY ("project_id") REFERENCES "project" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "project_skill" ADD CONSTRAINT "Applies_2" FOREIGN KEY ("skill_id") REFERENCES "skill" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "project_link" ADD CONSTRAINT "References_1" FOREIGN KEY ("project_id") REFERENCES "project" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "project_link" ADD CONSTRAINT "References_2" FOREIGN KEY ("link_id") REFERENCES "link" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "project" ADD CONSTRAINT "Publishes" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "laboral_experience" ADD CONSTRAINT "Laboral_Experience_Belongs_To_User" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_skill" ADD CONSTRAINT "Masters_1" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_skill" ADD CONSTRAINT "Masters_2" FOREIGN KEY ("skill_id") REFERENCES "skill" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_platform" ADD CONSTRAINT "Interacts_1" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_language_level" ADD CONSTRAINT "User_Language_Level_Belongs_To_User" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_language_level" ADD CONSTRAINT "Speaks" FOREIGN KEY ("language_id") REFERENCES "language" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_language_level" ADD CONSTRAINT "User_Language_Level_Has_Level" FOREIGN KEY ("language_level_id") REFERENCES "language_level" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_platform" ADD CONSTRAINT "Interacts_2" FOREIGN KEY ("external_platform_id") REFERENCES "external_platform" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "user_detail" ADD CONSTRAINT "User_Detail_Belongs_To_User" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "certificate" ADD CONSTRAINT "Holds" FOREIGN KEY ("user_id") REFERENCES "user" ("id") DEFERRABLE INITIALLY IMMEDIATE;
