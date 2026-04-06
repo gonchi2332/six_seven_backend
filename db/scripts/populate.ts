@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import pool from "../../src/config/database";
+import pool from "../../src/config/database.config";
 
 async function verifyTablesExistence() {
   const { rows } = await pool.query(`
