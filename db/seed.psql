@@ -40,11 +40,12 @@ INSERT INTO session_report VALUES
 INSERT INTO link VALUES
 (1,'https://github.com/demo');
 
-INSERT INTO "user" (id,email,password,role_id,public_profile_link)
-VALUES (1,'admin@mail.com','123',1,'perfil/admin');
+INSERT INTO "user" (id,username,email,password,role_id,public_profile_link)
+VALUES (1,'admin','admin@mail.com','123',1,'perfil/admin');
 
-INSERT INTO "user" (id,email,password,role_id,public_profile_link)
+INSERT INTO "user" (id,username,email,password,role_id,public_profile_link)
 SELECT i,
+       'user'||i,
        'user'||i||'@mail.com',
        '123',
        2,
