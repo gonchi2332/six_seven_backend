@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
-import pool from "../../src/config/database";
+import pool from "../../src/config/database.config";
 
 dotenv.config();
 
@@ -10,10 +10,8 @@ async function extractExecutedFiles() {
         SELECT file_name FROM migrations_history
     `);
   const executedFiles: string[] = [];
-  let currentExecutedFile;
   for (const row of rows) {
-    currentExecutedFile = row.file_name;
-    executedFiles.push(currentExecutedFile);
+    executedFiles.push(row.file_name);
   }
   return executedFiles;
 }
