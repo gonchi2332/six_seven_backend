@@ -1,10 +1,4 @@
-export interface UserTokenPayload {
-  userId: number;
-  username: string;
-}
-
 export interface UserPersonalInfo {
-  userTokenPayload: UserTokenPayload;
   phone: string;
   names: string;
   paternalSurname: string;

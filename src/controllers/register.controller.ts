@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import * as UserTypes from "../types/user.types";
+import * as TokenTypes from "../types/token.types";
 import * as RegisterPersonalInfoService from "../services/register.service";
 
 export async function registerPersonalInfo(req: Request, res: Response) {
   try {
-    const { userId, username } = req.user as UserTypes.UserTokenPayload;
+    const { id, username, roleId, state } = req.user as TokenTypes.TokenPayload;
     const userPersonalInfo = req.body;
 
-    if (!userId || typeof userId !== "number") {
+    if (!id || typeof id !== "number") {
       return res.status(400).json({
         success: false,
         message: "Id de usuario inexistente o invalido."
@@ -19,6 +19,18 @@ export async function registerPersonalInfo(req: Request, res: Response) {
         message: "Nombre de usuario faltante o invalido."
       });
     }
+    if (!roleId || typeof roleId !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "Id de rol de usuario inexistente o invalido."
+      });
+    }
+    if (!state || !Object.values(TokenTypes.VerificationState).includes(state)) {
+      return res.status(400).json({
+        success: false,
+        message: "Estado de verificacion invalido."
+      });
+    }
     if (!userPersonalInfo || Object.keys(userPersonalInfo).length === 0) {
       return res.status(400).json({
         success: false,
@@ -26,7 +38,7 @@ export async function registerPersonalInfo(req: Request, res: Response) {
       });
     }
 
-    const { result, messageState } = await RegisterPersonalInfoService.registerUserPersonalInfo(userId, username, userPersonalInfo);
+    const { result, messageState } = await RegisterPersonalInfoService.registerUserPersonalInfo(id, username, userPersonalInfo);
     if (!result) {
       if (messageState === "Usuario no encontrado.") {
         return res.status(400).json({
@@ -48,7 +60,7 @@ export async function registerPersonalInfo(req: Request, res: Response) {
       }
       return res.status(400).json({
         success: false,
-        message: "No es posible registrar la informacion personal del usuario, credenciales incompletas o invalidas."
+        message: messageState
       });
     }
     return res.status(200).json({

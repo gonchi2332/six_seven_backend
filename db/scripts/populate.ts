@@ -20,6 +20,10 @@ export async function populateDatabase(): Promise<void> {
 
     const populateSQL: string = fs.readFileSync(path.join(__dirname, "../seed.psql"), "utf-8");
     await pool.query(populateSQL);
+    await pool.query(`
+      SELECT setval(pg_get_serial_sequence('"user"', 'id'),
+      (SELECT MAX(id) FROM "user"));
+    `);
     console.log("La Base de Datos se ha poblado correctamente.");
     await pool.end();
     process.exit(0);
