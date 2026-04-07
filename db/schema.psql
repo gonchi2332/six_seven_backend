@@ -75,7 +75,7 @@ CREATE TABLE "user_detail" (
   "names" varchar(100) NOT NULL,
   "paternal_surname" varchar(100) NOT NULL,
   "maternal_surname" varchar(100),
-  "direction" varchar(200),
+  "address" varchar(200),
   "residence_country_id" int,
   "contact_email" varchar(200),
   "profile_picture" text
