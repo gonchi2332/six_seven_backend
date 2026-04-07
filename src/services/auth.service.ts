@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import pool from "../config/database.config";
 import { generateToken } from "../utils/jwt";
+import * as TokenTypes from "../types/token.types";
 
 export async function registerUserService(username: string, email: string, password: string) {
   const checkQuery = "SELECT id, email FROM \"user\" WHERE email = $1 OR username = $2";
@@ -15,23 +16,24 @@ export async function registerUserService(username: string, email: string, passw
 
   const roleQuery = "SELECT id FROM \"role\" WHERE name = $1";
   const roleResult = await pool.query(roleQuery, ["Usuario"]);
-  const rolId = roleResult.rows.length > 0 ? roleResult.rows[0].id : 1; 
+  const roleId = roleResult.rows.length > 0 ? roleResult.rows[0].id : 1; 
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
   const insertQuery = `
     INSERT INTO "user" (username, email, password, state, role_id)
     VALUES ($1, $2, $3, $4, $5)
     RETURNING id, username, email, state, role_id, public_profile_link
   `;
-  const values = [username, email, hashedPassword, "no verificado", rolId];
+  const values = [username, email, hashedPassword, TokenTypes.VerificationState.NO_VERIFICADO, roleId];
   const { rows: newUsers } = await pool.query(insertQuery, values);
   const newUser = newUsers[0];
 
   const token = generateToken({
     id: newUser.id,
     username: newUser.username,
-    role_id: newUser.role_id,
+    roleId: newUser.role_id,
     state: newUser.state
   });
 

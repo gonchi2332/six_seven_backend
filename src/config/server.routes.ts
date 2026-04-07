@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import RegisterRoutes from "../routes/register.route";
-import authRoutes from "../routes/auth.routes";
+import AuthRoutes from "../routes/auth.routes";
 
 const router = Router();
 
@@ -11,9 +11,8 @@ router.get("/health", (req: Request, res: Response) => {
   });
 });
 
-router.use("api/v1/register", RegisterRoutes);
-
-router.use("/api/auth", authRoutes);
+router.use("/api/v1/auth", AuthRoutes);
+router.use("/api/v1/register", RegisterRoutes);
 
 router.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Ruta no encontrada..." });

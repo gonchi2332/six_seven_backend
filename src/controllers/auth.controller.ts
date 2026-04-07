@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUserService } from "../services/auth.service";
+import * as AuthService from "../services/auth.service";
 
 export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
@@ -21,20 +21,21 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const { user, token } = await registerUserService(username, email, password);
+    const { user, token } = await AuthService.registerUserService(username, email, password);
 
     res.status(201).json({
       user,
       token
     });
 
-  } catch (error: any) {
-    if (error.name === "ConflictError") {
-      res.status(409).json({ error: error.message });
+  } catch (error) {
+    if ((error as Error).name === "ConflictError") {
+      res.status(409).json({ error: (error as Error).message });
       return;
     }
-
-    console.error("Error en registerUser:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    res.status(500).json({ 
+      message: `Error en registerUser: ${(error as Error).message}`,
+      error: "Error interno del servidor" 
+    });
   }
 }

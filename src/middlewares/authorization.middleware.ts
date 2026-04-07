@@ -2,13 +2,7 @@ import "../config/env.config";
 import { env } from "../config/env.config";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import * as UserTypes from "../types/user.types";
-
-declare module "express-serve-static-core" {
-  interface Request {
-    user?: UserTypes.UserTokenPayload;
-  }
-}
+import * as TokenTypes from "../types/token.types";
 
 export function onlyRegisteredUsers(req: Request, res: Response, next: NextFunction) {
   try {
@@ -26,7 +20,7 @@ export function onlyRegisteredUsers(req: Request, res: Response, next: NextFunct
           message: "Acceso denegado, token de autenticacion invalido."
         });
       } else {
-        req.user = user as UserTypes.UserTokenPayload;
+        req.user = user as TokenTypes.TokenPayload;
         next();
       }
     });
