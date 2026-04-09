@@ -10,4 +10,9 @@ const pool = new Pool({
     : false,
 });
 
+export async function getClient() {
+  const client = await pool.connect();
+  return client;
+}
+
 export default pool;

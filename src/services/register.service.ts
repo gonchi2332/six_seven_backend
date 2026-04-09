@@ -1,5 +1,6 @@
 import "../config/env.config";
 import pool from "../config/database.config";
+import { processQuery } from "../utils/process-query";
 import * as UserTypes from "../types/user.types";
 
 export async function registerUserPersonalInfo(
@@ -81,7 +82,7 @@ export async function registerUserPersonalInfo(
       WHERE user_id = $7
     `;
     values = [phone, maternalSurname, address, residenceCountryId, contactEmail, profilePicture, userId];
-    await pool.query(updateQuery, values);
+    await processQuery(updateQuery, values);
     return {
       result: true,
       messageState: "Datos de informacion personal del usuario registrados exitosamente."

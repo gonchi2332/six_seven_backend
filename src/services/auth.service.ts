@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import pool from "../config/database.config";
+import { processReturnQuery } from "../utils/process-query";
 import { generateToken } from "../utils/jwt";
 import * as TokenTypes from "../types/token.types";
 
@@ -8,6 +9,7 @@ export async function registerUserService(
   password: string, 
   names: string, 
   paternalSurname: string) {
+
   const checkQuery = `
     SELECT id FROM "user" 
     WHERE username = $1`;
@@ -28,13 +30,16 @@ export async function registerUserService(
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  let insertQuery = `
-    INSERT INTO "user" (username, password, state, role_id)
-    VALUES ($1, $2, $3, $4)
-    RETURNING id, username, state
-  `;
+  let insertQuery;
+
+  insertQuery = `
+      INSERT INTO "user" (username, password, state, role_id)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, username, state
+    `;
   let values = [username, hashedPassword, TokenTypes.VerificationState.NO_VERIFICADO, roleId];
-  const { rows: newUsers } = await pool.query(insertQuery, values);
+  const { rows: newUsers } = await processReturnQuery(insertQuery, values);
+  
   const newUser = newUsers[0];
 
   insertQuery = `
@@ -43,7 +48,7 @@ export async function registerUserService(
     RETURNING names, paternal_surname
   `;
   values = [newUser.id, names, paternalSurname];
-  const { rows: newUsersDetails } = await pool.query(insertQuery, values);
+  const { rows: newUsersDetails } = await processReturnQuery(insertQuery, values);
   const newUserDetail = newUsersDetails[0];
 
   const token = generateToken({
