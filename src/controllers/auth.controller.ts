@@ -5,7 +5,10 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
     const { username, password, names, paternalSurname } = req.body;
 
-    if (!username || !password || !names || !paternalSurname) {
+    if (!username || typeof username !== "string" ||
+      !password || typeof password !== "string" ||
+      !names || typeof names !== "string" ||
+      !paternalSurname || typeof paternalSurname !== "string") {
       res.status(400).json({ error: "Faltan campos obligatorios." });
       return;
     }
