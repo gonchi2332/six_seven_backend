@@ -4,31 +4,13 @@ import * as RegisterPersonalInfoService from "../services/register.service";
 
 export async function registerPersonalInfo(req: Request, res: Response) {
   try {
-    const { id, username, roleId, state } = req.user as TokenTypes.TokenPayload;
+    const { username } = req.user as TokenTypes.TokenPayload;
     const userPersonalInfo = req.body;
 
-    if (!id || typeof id !== "number") {
-      return res.status(400).json({
-        success: false,
-        message: "Id de usuario inexistente o invalido."
-      });
-    }
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
         message: "Nombre de usuario faltante o invalido."
-      });
-    }
-    if (!roleId || typeof roleId !== "number") {
-      return res.status(400).json({
-        success: false,
-        message: "Id de rol de usuario inexistente o invalido."
-      });
-    }
-    if (!state || !Object.values(TokenTypes.VerificationState).includes(state)) {
-      return res.status(400).json({
-        success: false,
-        message: "Estado de verificacion invalido."
       });
     }
     if (!userPersonalInfo || Object.keys(userPersonalInfo).length === 0) {
@@ -38,7 +20,7 @@ export async function registerPersonalInfo(req: Request, res: Response) {
       });
     }
 
-    const { result, messageState } = await RegisterPersonalInfoService.registerUserPersonalInfo(id, username, userPersonalInfo);
+    const { result, messageState } = await RegisterPersonalInfoService.registerUserPersonalInfo(username, userPersonalInfo);
     if (!result) {
       if (messageState === "Usuario no encontrado.") {
         return res.status(400).json({
