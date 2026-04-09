@@ -3,7 +3,7 @@ import * as AuthService from "../services/auth.service";
 
 export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
-    const { username, password, names, paternalSurname } = req.body;
+    const { username, password, names, paternalSurname, maternalSurname } = req.body;
 
     if (!username || typeof username !== "string" ||
       !password || typeof password !== "string" ||
@@ -13,12 +13,17 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    if (maternalSurname !== null && maternalSurname !== undefined && typeof maternalSurname !== "string") {
+      res.status(400).json({ error: "Faltan campos obligatorios."});
+      return;
+    }
+
     if (password.length < 8) {
       res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
       return;
     }
 
-    const { user, token } = await AuthService.registerUserService(username, password, names, paternalSurname);
+    const { user, token } = await AuthService.registerUserService(username, password, names, paternalSurname, maternalSurname);
 
     res.status(201).json({
       user,

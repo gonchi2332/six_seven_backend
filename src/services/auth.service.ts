@@ -8,7 +8,8 @@ export async function registerUserService(
   username: string, 
   password: string, 
   names: string, 
-  paternalSurname: string) {
+  paternalSurname: string,
+  maternalSurname: string) {
 
   const checkQuery = `
     SELECT id FROM "user" 
@@ -43,11 +44,11 @@ export async function registerUserService(
   const newUser = newUsers[0];
 
   insertQuery = `
-    INSERT INTO "user_detail" (user_id, names, paternal_surname)
-    VALUES ($1, $2, $3)
-    RETURNING names, paternal_surname
+    INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
+    VALUES ($1, $2, $3, $4)
+    RETURNING names, paternal_surname, maternal_surname
   `;
-  values = [newUser.id, names, paternalSurname];
+  values = [newUser.id, names, paternalSurname, maternalSurname];
   const { rows: newUsersDetails } = await processReturnQuery(insertQuery, values);
   const newUserDetail = newUsersDetails[0];
 

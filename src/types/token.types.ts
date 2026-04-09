@@ -8,6 +8,7 @@ export interface TokenPayload {
   state: VerificationState;
   names: string;
   paternalSurname: string;
+  maternalSurname?: string;
 }
 
 declare module "express-serve-static-core" {

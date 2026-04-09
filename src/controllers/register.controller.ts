@@ -16,7 +16,7 @@ export async function registerPersonalInfo(req: Request, res: Response) {
     if (!userPersonalInfo || Object.keys(userPersonalInfo).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Parametros de informacion personal del usuario insuficientes."  
+        message: "Parametros de informacion personal del usuario insuficientes."
       });
     }
 
