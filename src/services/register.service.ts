@@ -3,23 +3,22 @@ import pool from "../config/database.config";
 import * as UserTypes from "../types/user.types";
 
 export async function registerUserPersonalInfo(
-  id: number,
   username: string,
   userPersonalInfo: UserTypes.UserPersonalInfo) {
   try {
     const phone = userPersonalInfo.phone || null;
-    const names = userPersonalInfo.names;
-    const paternalSurname = userPersonalInfo.paternalSurname;
     const maternalSurname = userPersonalInfo.maternalSurname || null;
     const address = userPersonalInfo.address || null;
     const residenceCountryId = userPersonalInfo.residenceCountryId || null;
     const contactEmail = userPersonalInfo.contactEmail || null;
     const profilePicture = userPersonalInfo.profilePicture || null;
 
-    const { rows: userFounded } = await pool.query(`
-        SELECT * FROM "user"
-        WHERE id = $1 AND username = $2
-    `, [id, username]);
+    let checkQuery = `
+      SELECT * FROM "user"
+      WHERE username = $1
+    `;
+    let values = [username];
+    const { rows: userFounded } = await pool.query(checkQuery, values);
 
     if (userFounded.length === 0) {
       return {
@@ -33,11 +32,11 @@ export async function registerUserPersonalInfo(
         messageState: "Existen muchos usuarios con la misma identificacion."
       };
     }
-    if (!paternalSurname || typeof paternalSurname !== "string"|| 
-        !names || typeof names !== "string") {
+    const phoneRegex = /^\+?[-\d\s()]{7,15}$/;
+    if (phone !== null && !phoneRegex.test(phone)) {
       return {
         result: false,
-        messageState: "No se pudo registrar la informacion del usuario, hace falta campos."
+        messageState: "No se pudo registrar la informacion del usuario, numero de telefono invalido."
       };
     }
     if (maternalSurname !== null && typeof maternalSurname !== "string" ||
@@ -55,18 +54,13 @@ export async function registerUserPersonalInfo(
         messageState: "No se pudo registrar la informacion del usuario, correo de contacto invalido."
       };
     }
-    const phoneRegex = /^\+?[-\d\s()]{7,15}$/;
-    if (phone !== null && !phoneRegex.test(phone)) {
-      return {
-        result: false,
-        messageState: "No se pudo registrar la informacion del usuario, numero de telefono invalido."
-      };
-    }
 
-    const { rows: userDetailFounded } = await pool.query(`
-        SELECT * FROM "user_detail"
-        WHERE user_id = $1
-    `, [id]);
+    checkQuery = `
+      SELECT * FROM "user_detail"
+      WHERE user_id = $1
+    `;
+    const userId = userFounded[0].id;
+    const { rows: userDetailFounded } = await pool.query(checkQuery, [userId]);
 
     if (userDetailFounded.length > 1) {
       return {
@@ -75,12 +69,19 @@ export async function registerUserPersonalInfo(
       };
     }
 
-    await pool.query(`
-        INSERT INTO "user_detail" (user_id, phone, names, paternal_surname, maternal_surname, address, 
-        residence_country_id, contact_email, profile_picture)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      `, [id, phone, names, paternalSurname, maternalSurname, address, residenceCountryId, 
-      contactEmail, profilePicture]);
+    const updateQuery = `
+      UPDATE "user_detail" 
+      SET 
+        phone = $1, 
+        maternal_surname = $2, 
+        address = $3, 
+        residence_country_id = $4, 
+        contact_email = $5, 
+        profile_picture = $6
+      WHERE user_id = $7
+    `;
+    values = [phone, maternalSurname, address, residenceCountryId, contactEmail, profilePicture, userId];
+    await pool.query(updateQuery, values);
     return {
       result: true,
       messageState: "Datos de informacion personal del usuario registrados exitosamente."

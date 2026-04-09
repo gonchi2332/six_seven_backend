@@ -3,25 +3,19 @@ import * as AuthService from "../services/auth.service";
 
 export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
-    const { username, email, password } = req.body;
+    const { username, password, names, paternalSurname } = req.body;
 
-    if (!username || !email || !password) {
-      res.status(400).json({ error: "Faltan campos obligatorios" });
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      res.status(400).json({ error: "Correo electrónico no válido" });
+    if (!username || !password || !names || !paternalSurname) {
+      res.status(400).json({ error: "Faltan campos obligatorios." });
       return;
     }
 
     if (password.length < 8) {
-      res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres" });
+      res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
       return;
     }
 
-    const { user, token } = await AuthService.registerUserService(username, email, password);
+    const { user, token } = await AuthService.registerUserService(username, password, names, paternalSurname);
 
     res.status(201).json({
       user,
@@ -35,7 +29,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     }
     res.status(500).json({ 
       message: `Error en registerUser: ${(error as Error).message}`,
-      error: "Error interno del servidor" 
+      error: "Error interno del servidor." 
     });
   }
 }

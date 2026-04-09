@@ -3,38 +3,54 @@ import pool from "../config/database.config";
 import { generateToken } from "../utils/jwt";
 import * as TokenTypes from "../types/token.types";
 
-export async function registerUserService(username: string, email: string, password: string) {
-  const checkQuery = "SELECT id, email FROM \"user\" WHERE email = $1 OR username = $2";
-  const { rows: existingUsers } = await pool.query(checkQuery, [email, username]);
+export async function registerUserService(
+  username: string, 
+  password: string, 
+  names: string, 
+  paternalSurname: string) {
+  const checkQuery = `
+    SELECT id FROM "user" 
+    WHERE username = $1`;
+  const { rows: existingUsers } = await pool.query(checkQuery, [username]);
   
   if (existingUsers.length > 0) {
-    const isEmail = existingUsers.some(u => u.email === email);
-    const error = new Error(isEmail ? "Este correo electrónico ya está en uso" : "El nombre de usuario ya está en uso");
+    const error = new Error("El nombre de usuario ya está en uso");
     error.name = "ConflictError";
     throw error;
   }
 
-  const roleQuery = "SELECT id FROM \"role\" WHERE name = $1";
+  const roleQuery = `
+    SELECT id FROM "role"
+    WHERE name = $1`;
   const roleResult = await pool.query(roleQuery, ["Usuario"]);
   const roleId = roleResult.rows.length > 0 ? roleResult.rows[0].id : 1; 
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const insertQuery = `
-    INSERT INTO "user" (username, email, password, state, role_id)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING id, username, email, state, role_id, public_profile_link
+  let insertQuery = `
+    INSERT INTO "user" (username, password, state, role_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, username, state
   `;
-  const values = [username, email, hashedPassword, TokenTypes.VerificationState.NO_VERIFICADO, roleId];
+  let values = [username, hashedPassword, TokenTypes.VerificationState.NO_VERIFICADO, roleId];
   const { rows: newUsers } = await pool.query(insertQuery, values);
   const newUser = newUsers[0];
 
+  insertQuery = `
+    INSERT INTO "user_detail" (user_id, names, paternal_surname)
+    VALUES ($1, $2, $3)
+    RETURNING names, paternal_surname
+  `;
+  values = [newUser.id, names, paternalSurname];
+  const { rows: newUsersDetails } = await pool.query(insertQuery, values);
+  const newUserDetail = newUsersDetails[0];
+
   const token = generateToken({
-    id: newUser.id,
     username: newUser.username,
-    roleId: newUser.role_id,
-    state: newUser.state
+    state: newUser.state,
+    names: newUserDetail.names,
+    paternalSurname: newUserDetail.paternal_surname
   });
 
   return { user: newUser, token };

@@ -4,10 +4,10 @@ export enum VerificationState {
 }
 
 export interface TokenPayload {
-  id: number;
   username: string;
-  roleId: number;
   state: VerificationState;
+  names: string;
+  paternalSurname: string;
 }
 
 declare module "express-serve-static-core" {
