@@ -5,5 +5,6 @@ import * as RegisterPersonalInfoController from "../controllers/register.control
 const router = Router();
 
 router.post("/users/personal-info", Authorization.onlyRegisteredUsers, RegisterPersonalInfoController.registerPersonalInfo);
+router.put("/users/personal-info", Authorization.onlyRegisteredUsers, RegisterPersonalInfoController.updatePersonalInfo);
 
 export default router;

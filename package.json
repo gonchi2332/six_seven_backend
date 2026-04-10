@@ -3,18 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "jest",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "tsc",
-    "start": "node dist/app.js",
-    "setup-db": "ts-node db/scripts/setup.ts",
-    "populate-db": "ts-node db/scripts/populate.ts",
-    "migrate-db": "ts-node db/scripts/migrate.ts",
-    "reset-db": "ts-node db/scripts/reset.ts"
-  },
+"scripts": {
+  "test": "jest",
+  "lint": "eslint .",
+  "lint:fix": "eslint . --fix",
+  "dev": "tsx watch src/app.ts",
+  "build": "tsc",
+  "start": "node dist/app.js",
+  "setup-db": "tsx db/scripts/setup.ts",
+  "populate-db": "tsx db/scripts/populate.ts",
+  "migrate-db": "tsx db/scripts/migrate.ts",
+  "reset-db": "tsx db/scripts/reset.ts"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gonchi2332/six_seven_backend.git"
@@ -32,7 +32,6 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
-    "jest": "^30.3.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.20.0"
   },
@@ -53,9 +52,10 @@
     "eslint": "^10.2.0",
     "globals": "^17.4.0",
     "jiti": "^2.6.1",
+    "jest": "^30.3.0",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.0"
   }
