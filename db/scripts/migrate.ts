@@ -44,10 +44,11 @@ async function executeMigrations(executedFiles: string[]) {
 }
 
 async function verifyTablesExistence() {
-  const { rows: countRows } = await pool.query(`
-            SELECT COUNT(*) AS count FROM pg_stat_user_tables
-    `);
-  if (parseInt(countRows[0].count) === 0) {
+  const { rows: rows } = await pool.query(`
+    SELECT COUNT(*) AS count FROM pg_stat_user_tables
+    WHERE schemaname = 'public'
+  `);
+  if (parseInt(rows[0].count) === 0) {
     console.log("La Base de Datos no tiene tablas creadas.");
     console.log("Para configurar la Base de Datos introducir el comando npm run setup-db.");
     await pool.end();
