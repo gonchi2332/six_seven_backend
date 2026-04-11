@@ -14,6 +14,7 @@ export default defineConfig([
       "**/node_modules/**",
       "**/dist/**",
       "package-lock.json",
+      "coverage/",
       "build/**"
     ]
   },

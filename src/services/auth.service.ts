@@ -1,21 +1,26 @@
 import bcrypt from "bcrypt";
-import pool from "../config/database.config";
-import { processReturnQuery } from "../utils/process-query";
-import { generateToken } from "../utils/jwt";
+import { PoolClient } from "pg";
+import { processTransaction, processReturnQuery } from "../utils/process-query";
+import { generateToken,  } from "../utils/jwt";
 import * as TokenTypes from "../types/token.types";
+import {  } from "../types/user.types";
 
 export async function registerUserService(
-  username: string, 
-  password: string, 
-  names: string, 
+  username: string,
+  password: string,
+  names: string,
   paternalSurname: string,
-  maternalSurname: string) {
+  maternalSurname: string
+) {
+  if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
+    throw new Error("Datos de entrada inválidos o incompletos.");
+  }
 
   const checkQuery = `
     SELECT id FROM "user" 
     WHERE username = $1`;
-  const { rows: existingUsers } = await pool.query(checkQuery, [username]);
-  
+  const existingUsers = await processReturnQuery(checkQuery,[username]);
+
   if (existingUsers.length > 0) {
     const error = new Error("El nombre de usuario ya está en uso");
     error.name = "ConflictError";
@@ -25,39 +30,45 @@ export async function registerUserService(
   const roleQuery = `
     SELECT id FROM "role"
     WHERE name = $1`;
-  const roleResult = await pool.query(roleQuery, ["Usuario"]);
-  const roleId = roleResult.rows.length > 0 ? roleResult.rows[0].id : 1; 
+  const roles = await processReturnQuery(roleQuery, ["Usuario"]);
+  const roleId = roles.length > 0 ? roles[0].id : 1;
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  let insertQuery;
-
-  insertQuery = `
+  const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
+    const userQuery = `
       INSERT INTO "user" (username, password, state, role_id)
       VALUES ($1, $2, $3, $4)
       RETURNING id, username, state
     `;
-  let values = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
-  const { rows: newUsers } = await processReturnQuery(insertQuery, values);
-  
-  const newUser = newUsers[0];
+    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
+    const userRes = await client.query(userQuery, userValues);
+    const newUser = userRes.rows[0];
 
-  insertQuery = `
-    INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
-    VALUES ($1, $2, $3, $4)
-    RETURNING names, paternal_surname, maternal_surname
-  `;
-  values = [newUser.id, names, paternalSurname, maternalSurname];
-  const { rows: newUsersDetails } = await processReturnQuery(insertQuery, values);
-  const newUserDetail = newUsersDetails[0];
+    const detailQuery = `
+      INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
+      VALUES ($1, $2, $3, $4)
+      RETURNING names, paternal_surname, maternal_surname
+    `;
+    const detailValues = [newUser.id, names, paternalSurname, maternalSurname];
+    const detailRes = await client.query(detailQuery, detailValues);
+    const newUserDetail = detailRes.rows[0];
 
-  const token = generateToken({
-    username: newUser.username,
-    state: newUser.state,
-    names: newUserDetail.names,
-    paternalSurname: newUserDetail.paternal_surname
+    return {
+      user: newUser,
+      userDetail: newUserDetail
+    };
   });
 
-  return { user: newUser, token };
+  const token = generateToken({
+    username: registrationData.user.username,
+    state: registrationData.user.state,
+    names: registrationData.userDetail.names,
+    paternalSurname: registrationData.userDetail.paternal_surname
+  });
+
+  return {
+    user: registrationData.user, token
+  };
 }
