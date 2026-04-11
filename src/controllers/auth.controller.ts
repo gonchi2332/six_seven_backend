@@ -49,7 +49,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
 
     const { user, token } = await AuthService.login(username, password);
 
-    res.status(201).json({
+    res.status(200).json({
       user,
       token
     });

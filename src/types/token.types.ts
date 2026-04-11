@@ -5,9 +5,9 @@ export enum VerificationState {
 
 export interface TokenPayload {
   username: string;
-  state: VerificationState;
-  names: string;
-  paternalSurname: string;
+  state?: VerificationState;
+  names?: string;
+  paternalSurname?: string;
   maternalSurname?: string;
 }
 

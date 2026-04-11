@@ -110,10 +110,7 @@ export async function login(
   }
 
   const token = generateToken({
-    username: foundUser.username,
-    state: foundUser.state,
-    names: foundUser.names,
-    paternalSurname: foundUser.paternal_surname
+    username: foundUser.username
   });
 
   return {
