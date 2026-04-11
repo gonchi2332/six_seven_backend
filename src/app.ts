@@ -1,5 +1,5 @@
 import "./config/env.config";
-import app from "./config/server.config";   
+import { app } from "./config/server.config";   
 import { env } from "./config/env.config";
 import { getConectionString } from "./config/database.config";
 

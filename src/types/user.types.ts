@@ -1,8 +1,9 @@
 export interface UserPersonalInfo {
   phone: string;
+  names: string;
+  paternalSurname: string;
   maternalSurname: string;
   address: string;
-  residenceCountryId: number;
+  residenceCountry: string;
   contactEmail: string;
-  profilePicture: string;
 }
