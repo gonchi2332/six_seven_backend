@@ -20,7 +20,8 @@ async function askTableDeletionConfirmation(question: string): Promise<string> {
 
 async function verifyTablesExistence() {
   const { rows } = await pool.query(`
-            SELECT COUNT(*) AS count FROM pg_stat_user_tables
+      SELECT COUNT(*) AS count FROM pg_stat_user_tables
+      WHERE schemaname = 'public'
     `);
   if (parseInt(rows[0].count) === 0) {
     console.log("La Base de Datos no tiene tablas creadas, no es posible resetearla.");

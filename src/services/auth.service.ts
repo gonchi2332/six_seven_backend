@@ -38,7 +38,7 @@ export async function registerUserService(
       VALUES ($1, $2, $3, $4)
       RETURNING id, username, state
     `;
-  let values = [username, hashedPassword, TokenTypes.VerificationState.NO_VERIFICADO, roleId];
+  let values = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
   const { rows: newUsers } = await processReturnQuery(insertQuery, values);
   
   const newUser = newUsers[0];
