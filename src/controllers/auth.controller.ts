@@ -13,11 +13,6 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    if (maternalSurname !== null && maternalSurname !== undefined && typeof maternalSurname !== "string") {
-      res.status(400).json({ error: "Faltan campos obligatorios."});
-      return;
-    }
-
     if (password.length < 8) {
       res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
       return;
@@ -33,6 +28,35 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
   } catch (error) {
     if ((error as Error).name === "ConflictError") {
       res.status(409).json({ error: (error as Error).message });
+      return;
+    }
+    res.status(500).json({ 
+      message: `Error en registerUser: ${(error as Error).message}`,
+      error: "Error interno del servidor." 
+    });
+  }
+}
+
+export async function loginUser(req: Request, res: Response): Promise<void> {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || typeof username !== "string" ||
+      !password || typeof password !== "string") {
+      res.status(400).json({ error: "Faltan campos obligatorios." });
+      return;
+    }
+
+    const { user, token } = await AuthService.login(username, password);
+
+    res.status(201).json({
+      user,
+      token
+    });
+
+  } catch (error) {
+    if ((error as Error).name === "AuthError") {
+      res.status(404).json({ error: (error as Error).message });
       return;
     }
     res.status(500).json({ 
