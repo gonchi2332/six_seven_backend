@@ -1,6 +1,6 @@
 export enum VerificationState {
-  NO_VERIFICADO = "no verificado",
-  VERIFICADO = "verificado"
+  UNVERIFIED = "unverified",
+  VERIFIED = "verified"
 }
 
 export interface TokenPayload {

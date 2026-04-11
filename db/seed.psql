@@ -1,7 +1,7 @@
 BEGIN;
 
 INSERT INTO role VALUES
-(1,'Administrador'),(2,'Usuario'),(3,'Reclutador');
+(1,'Administrador'),(2,'Usuario');
 
 INSERT INTO function VALUES
 (1,'Gestionar usuarios'),(2,'Ver perfil'),(3,'Editar perfil'),
@@ -14,7 +14,7 @@ INSERT INTO language VALUES
 (1,'Español'),(2,'Inglés');
 
 INSERT INTO language_level VALUES
-(1,'Básico'),(2,'Intermedio'),(3,'Avanzado'),(4,'Nativo');
+(1,'A1'),(2,'A2'),(3,'B1'),(4,'B2'),(5,'C1'),(6,'C2');
 
 INSERT INTO skill VALUES
 (1,'Trabajo en equipo','soft'),
