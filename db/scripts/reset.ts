@@ -33,7 +33,7 @@ async function verifyTablesExistence() {
 
 export async function resetDatabase(): Promise<void> {
   try {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "development") {
       console.log("Reseteo de la Base de Datos en ambiente de produccion no permitido.");
       await pool.end();
       process.exit(0);
