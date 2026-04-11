@@ -72,3 +72,48 @@ export async function registerUserService(
     user: registrationData.user, token
   };
 }
+
+export async function login(
+  username: string,
+  password: string
+) {
+
+  if (typeof username !== "string" || typeof password !== "string") {
+    throw new Error("Credenciales inválidas.");
+  }
+  
+  const findUserQuery = `
+    SELECT 
+      u.id, u.username, u.password as hashed_password, u.state,
+      ud.names, ud.paternal_surname
+    FROM "user" u
+    JOIN "user_detail" ud ON u.id = ud.user_id
+    WHERE u.username = $1
+  `;
+  const findUserValues = [username];
+  const users = await processReturnQuery(findUserQuery, findUserValues);
+
+  if (users.length === 0) {
+    const error = new Error("Usuario o contraseña incorrectos");
+    error.name = "AuthError";
+    throw error;
+  }
+
+  const foundUser = users[0];
+
+  const isMatch = await bcrypt.compare(password, foundUser.hashed_password);
+
+  if (!isMatch) {
+    const error = new Error("Usuario o contraseña incorrectos");
+    error.name = "AuthError";
+    throw error;
+  }
+
+  const token = generateToken({
+    username: foundUser.username
+  });
+
+  return {
+    user: foundUser, token
+  };
+}
