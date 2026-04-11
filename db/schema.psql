@@ -64,7 +64,7 @@ CREATE TABLE "user" (
   "username" varchar(100) UNIQUE NOT NULL,
   "email" varchar(200) NOT NULL,
   "password" varchar(100) NOT NULL,
-  "state" varchar(50) NOT NULL DEFAULT 'active',
+  "state" varchar(50) NOT NULL DEFAULT 'unverfied',
   "role_id" int NOT NULL,
   "public_profile_link" text
 );

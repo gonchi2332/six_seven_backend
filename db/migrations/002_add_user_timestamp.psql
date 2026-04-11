@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "registration_date" TIMESTAMPTZ NOT NULL DEFAULT now();
