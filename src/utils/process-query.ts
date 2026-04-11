@@ -1,28 +1,27 @@
 import { getClient } from "../config/database.config";
+import { PoolClient } from "pg";
+// utils/process-query.ts
 
-export async function processQuery(queryString: string, values: unknown[]) {
+export async function processReturnQuery(queryString: string, values: unknown[]) {
   const client = await getClient();
   try {
-    client.query("BEGIN");
-    client.query(queryString, values);
-    client.query("COMMIT");  
-  } catch (err) {
-    client.query("ROLLBACK");
-    throw err;
+    const result = await client.query(queryString, values);
+    return result.rows;
   } finally {
     client.release();
   }
 }
 
-export async function processReturnQuery(queryString: string, values: unknown[]) {
+// 2. Para procesos complejos y atómicos (Con transacciones)
+export async function processTransaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await getClient();
   try {
-    client.query("BEGIN");
-    const answer = client.query(queryString, values);
-    client.query("COMMIT");
-    return answer;
+    await client.query("BEGIN");
+    const result = await callback(client);
+    await client.query("COMMIT");
+    return result;
   } catch (err) {
-    client.query("ROLLBACK");
+    await client.query("ROLLBACK");
     throw err;
   } finally {
     client.release();
