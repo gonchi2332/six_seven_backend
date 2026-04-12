@@ -5,5 +5,6 @@ const router = Router();
 
 router.post("/users/credentials-info", AuthController.registerUser);
 router.post("/users/login", AuthController.loginUser);
+router.patch("/users/reset-password", AuthController.resetPassword);
 
-export default router;
+export default router;  

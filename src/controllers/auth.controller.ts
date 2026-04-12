@@ -56,11 +56,41 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
 
   } catch (error) {
     if ((error as Error).name === "AuthError") {
-      res.status(404).json({ error: (error as Error).message });
+      res.status(401).json({ error: (error as Error).message });
       return;
     }
     res.status(500).json({ 
-      message: `Error en registerUser: ${(error as Error).message}`,
+      message: `Error en loginUser: ${(error as Error).message}`,
+      error: "Error interno del servidor." 
+    });
+  }
+}
+
+export async function resetPassword(req: Request, res: Response): Promise<void> {
+  try {
+    const { username, password, verificationCode } = req.body;
+
+    if (!username || typeof username !== "string" ||
+      !password || typeof password !== "string" ||
+      !verificationCode || typeof verificationCode !== "string") {
+      res.status(400).json({ error: "Faltan campos obligatorios." });
+      return;
+    }
+    await AuthService.resetPassword(username, password, verificationCode);
+
+    res.status(200).json({ message: "Contraseña actualizada correctamente" });
+
+  } catch (error) {
+    if ((error as Error).name === "AuthError") {
+      res.status(401).json({ error: (error as Error).message });
+      return;
+    }
+    if ((error as Error).name === "ConflictError") {
+      res.status(409).json({ error: (error as Error).message });
+      return;
+    }
+    res.status(500).json({ 
+      message: `Error en resetPassword: ${(error as Error).message}`,
       error: "Error interno del servidor." 
     });
   }
