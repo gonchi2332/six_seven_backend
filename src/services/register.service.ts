@@ -152,3 +152,37 @@ export async function updateUserPersonalInfo(
   profilePicture: Express.Multer.File | null) {
   return processUserPersonalInfoAction(username, userPersonalInfo, profilePicture, "actualiza");
 }
+
+export async function viewUserPersonalInfo(username: string){
+  try {
+    const getQuery = `
+      SELECT 
+        u.username, u.state, ud.phone, ud.names, ud.paternal_surname, ud.maternal_surname, 
+        ud.address, rc.name, ud.contact_email, pp.profile_picture
+      FROM "user" u
+      LEFT JOIN "user_detail" ud ON u.id = ud.user_id
+      LEFT JOIN "residence_country" rc ON ud.residence_country_id = rc.id
+      LEFT JOIN "profile_picture" pp ON ud.profile_picture_id = pp.id
+      WHERE username = $1
+    `;
+    const values = [username];
+    const usersPersonalInfo = await processReturnQuery(getQuery, values);
+
+    const personalInfo = usersPersonalInfo[0];
+    const profilePicture = personalInfo.profile_picture;
+    const proccessedProfilePicture = profilePicture.toString("base64");
+    personalInfo.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
+
+    return {
+      result: true,
+      messageState: `Infomacion personal de ${username} correctamente obtenida.`,
+      currentPersonalInfo: personalInfo,
+    };
+
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error al acceder a la informacion personal: ${(err as Error).message}`
+    };
+  }
+}

@@ -79,3 +79,33 @@ export async function registerPersonalInfo(req: Request, res: Response) {
 export async function updatePersonalInfo(req: Request, res: Response) {
   return handlePersonalInfoRequest(req, res, "update");
 }
+
+export async function viewPersonalInfo(req: Request, res: Response) {
+  try {
+    const { username } = req.query;
+
+    if (!username || typeof username !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Nombre de usuario invalido."
+      });
+    }
+    const { result, messageState, currentPersonalInfo } = await RegisterService.viewUserPersonalInfo(username);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: `Se ha accedido a la informacion personal de ${username} correctamente.`,
+      userPersonalInfo: currentPersonalInfo
+    }); 
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
