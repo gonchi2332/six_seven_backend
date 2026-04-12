@@ -1,9 +1,8 @@
 import bcrypt from "bcrypt";
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/process-query";
-import { generateToken,  } from "../utils/jwt";
+import { generateToken  } from "../utils/jwt";
 import * as TokenTypes from "../types/token.types";
-import {  } from "../types/user.types";
 
 export async function registerUserService(
   username: string,
@@ -12,65 +11,76 @@ export async function registerUserService(
   paternalSurname: string,
   maternalSurname: string
 ) {
-  if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
-    throw new Error("Datos de entrada inválidos o incompletos.");
-  }
+  try {
+    if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
+      return {
+        result: false,
+        messageState: "Datos de entrada invalidos o incompleros."
+      };
+    }
 
-  const checkQuery = `
-    SELECT id FROM "user" 
-    WHERE username = $1`;
-  const existingUsers = await processReturnQuery(checkQuery,[username]);
+    const checkQuery = `
+      SELECT id FROM "user" 
+      WHERE username = $1`;
+    const existingUsers = await processReturnQuery(checkQuery,[username]);
 
-  if (existingUsers.length > 0) {
-    const error = new Error("El nombre de usuario ya está en uso");
-    error.name = "ConflictError";
-    throw error;
-  }
+    if (existingUsers.length > 0) {
+      const error = new Error("El nombre de usuario ya está en uso");
+      error.name = "ConflictError";
+      throw error;
+    }
 
-  const roleQuery = `
-    SELECT id FROM "role"
-    WHERE name = $1`;
-  const roles = await processReturnQuery(roleQuery, ["Usuario"]);
-  const roleId = roles.length > 0 ? roles[0].id : 1;
-
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
-    const userQuery = `
-      INSERT INTO "user" (username, password, state, role_id)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, username, state
+    const roleQuery = `
+        SELECT id FROM "role"
+        WHERE name = $1
     `;
-    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
-    const userRes = await client.query(userQuery, userValues);
-    const newUser = userRes.rows[0];
+    const roles = await processReturnQuery(roleQuery, ["Usuario"]);
+    const roleId = roles.length > 0 ? roles[0].id : 1;
 
-    const detailQuery = `
-      INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
-      VALUES ($1, $2, $3, $4)
-      RETURNING names, paternal_surname, maternal_surname
-    `;
-    const detailValues = [newUser.id, names, paternalSurname, maternalSurname];
-    const detailRes = await client.query(detailQuery, detailValues);
-    const newUserDetail = detailRes.rows[0];
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
+      const userQuery = `
+        INSERT INTO "user" (username, password, state, role_id)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, username, state
+      `;
+      const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
+      const userRes = await client.query(userQuery, userValues);
+      const newUser = userRes.rows[0];
+
+      const detailQuery = `
+        INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
+        VALUES ($1, $2, $3, $4)
+        RETURNING names, paternal_surname, maternal_surname
+      `;
+      const detailValues = [newUser.id, names, paternalSurname, maternalSurname];
+      const detailRes = await client.query(detailQuery, detailValues);
+      const newUserDetail = detailRes.rows[0];
+
+      return {
+        user: newUser,
+        userDetail: newUserDetail
+      };
+    });
+
+    const token = generateToken({
+      username: registrationData.user.username,
+    });
 
     return {
-      user: newUser,
-      userDetail: newUserDetail
+      result: true,
+      messageState: "Usuario registrado exitosamente",
+      user: registrationData.user,  
+      token
     };
-  });
-
-  const token = generateToken({
-    username: registrationData.user.username,
-    state: registrationData.user.state,
-    names: registrationData.userDetail.names,
-    paternalSurname: registrationData.userDetail.paternal_surname
-  });
-
-  return {
-    user: registrationData.user, token
-  };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error al registrar usuario: ${(err as Error).message}`
+    };
+  }
 }
 
 export async function login(
@@ -85,13 +95,23 @@ export async function login(
   const findUserQuery = `
     SELECT 
       u.id, u.username, u.password as hashed_password, u.state,
-      ud.names, ud.paternal_surname
+      ud.names, ud.paternal_surname, ud.profile_picture_id
     FROM "user" u
     JOIN "user_detail" ud ON u.id = ud.user_id
-    WHERE u.username = $1
+    WHERE u.username = $1 
   `;
   const findUserValues = [username];
   const users = await processReturnQuery(findUserQuery, findUserValues);
+  const profilePictureId = users[0].profile_picture_id;
+
+  const getProfilePictureQuery = `
+    SELECT profile_picture FROM "profile_picture"
+    WHERE id = $1
+  `;
+  const getProfilePictureValues = [profilePictureId];
+  const userProfilePicture = await processReturnQuery(getProfilePictureQuery, getProfilePictureValues);
+  const profilePicture : Buffer = userProfilePicture[0].profile_picture;
+  const proccessedProfilePicture = profilePicture.toString("base64");
 
   if (users.length === 0) {
     const error = new Error("Usuario o contraseña incorrectos");
@@ -114,6 +134,8 @@ export async function login(
   });
 
   return {
-    user: foundUser, token
+    user: foundUser, 
+    profilePicture: `data:image/jpeg;base64,${proccessedProfilePicture}`,
+    token
   };
 }

@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as TokenTypes from "../types/token.types";
 
-export function onlyRegisteredUsers(req: Request, res: Response, next: NextFunction) {
+export async function onlyRegisteredUsers(req: Request, res: Response, next: NextFunction) {
   try {
     const token = req.headers.authorization?.split(" ")[1] || req.query.token;
     if (!token || typeof token !== "string") {
