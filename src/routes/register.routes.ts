@@ -20,5 +20,10 @@ router.put(
   SharpCheck.verifyProfilePictureDimensions,
   RegisterPersonalInfoController.updatePersonalInfo,
 );
+router.get(
+  "/users/personal-info", 
+  Authorization.onlyRegisteredUsers, 
+  RegisterPersonalInfoController.viewPersonalInfo
+);
 
 export default router;

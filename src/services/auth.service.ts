@@ -95,31 +95,25 @@ export async function login(
   const findUserQuery = `
     SELECT 
       u.id, u.username, u.password as hashed_password, u.state,
-      ud.names, ud.paternal_surname, ud.profile_picture_id
+      ud.names, ud.paternal_surname, pp.profile_picture
     FROM "user" u
-    JOIN "user_detail" ud ON u.id = ud.user_id
+    LEFT JOIN "user_detail" ud ON u.id = ud.user_id
+    LEFT JOIN "profile_picture" pp ON ud.profile_picture_id = pp.id
     WHERE u.username = $1 
   `;
   const findUserValues = [username];
   const users = await processReturnQuery(findUserQuery, findUserValues);
-  const profilePictureId = users[0].profile_picture_id;
 
-  const getProfilePictureQuery = `
-    SELECT profile_picture FROM "profile_picture"
-    WHERE id = $1
-  `;
-  const getProfilePictureValues = [profilePictureId];
-  const userProfilePicture = await processReturnQuery(getProfilePictureQuery, getProfilePictureValues);
-  const profilePicture : Buffer = userProfilePicture[0].profile_picture;
+  const foundUser = users[0];
+  const profilePicture = foundUser.profile_picture;
   const proccessedProfilePicture = profilePicture.toString("base64");
+  foundUser.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
 
   if (users.length === 0) {
     const error = new Error("Usuario o contraseña incorrectos");
     error.name = "AuthError";
     throw error;
   }
-
-  const foundUser = users[0];
 
   const isMatch = await bcrypt.compare(password, foundUser.hashed_password);
 
