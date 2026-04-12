@@ -2,22 +2,37 @@ import { Request, Response } from "express";
 import * as TokenTypes from "../types/token.types";
 import * as RegisterService from "../services/register.service";
 
-async function handlePersonalInfoRequest(req: Request, res: Response, action: "register" | "update") {
+async function handlePersonalInfoRequest(
+  req: Request, 
+  res: Response, 
+  action: "register" | "update") {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
     const userPersonalInfo = req.body;
+    const profilePicture = req.file as Express.Multer.File;
 
     if (!username || typeof username !== "string") {
-      return res.status(400).json({ success: false, message: "Nombre de usuario faltante o invalido." });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Nombre de usuario faltante o invalido." 
+      });
     }
     if (!userPersonalInfo || Object.keys(userPersonalInfo).length === 0) {
-      return res.status(400).json({ success: false,
-        message: "Parametros de informacion personal del usuario insuficientes." });
+      return res.status(400).json({ 
+        success: false,
+        message: "Parametros de informacion personal del usuario insuficientes." 
+      });
+    }
+    if (profilePicture !== null && !profilePicture.mimetype.startsWith("image/")) {
+      return res.status(400).json({
+        success: false,
+        message: "Foto de perfil invalida."
+      });
     }
 
     const serviceResponse = action === "register" 
-      ? await RegisterService.registerUserPersonalInfo(username, userPersonalInfo)
-      : await RegisterService.updateUserPersonalInfo(username, userPersonalInfo);
+      ? await RegisterService.registerUserPersonalInfo(username, userPersonalInfo, profilePicture)
+      : await RegisterService.updateUserPersonalInfo(username, userPersonalInfo, profilePicture);
 
     const { result, messageState } = serviceResponse;
 
@@ -38,13 +53,15 @@ async function handlePersonalInfoRequest(req: Request, res: Response, action: "r
         errorMessage = messageState;
       }
 
-      return res.status(400).json({ success: false, message: errorMessage });
+      return res.status(400).json({ 
+        success: false, 
+        message: errorMessage 
+      });
     }
 
     return res.status(200).json({
       success: true,
-      message: `La informacion personal del usuario ${username}
-       se ha ${action === "register" ? "registrado" : "actualizado"} correctamente.`
+      message: `La informacion personal de ${username} se ha ${action === "register" ? "registrado" : "actualizado"} correctamente.`
     });
 
   } catch (err) {
@@ -62,5 +79,3 @@ export async function registerPersonalInfo(req: Request, res: Response) {
 export async function updatePersonalInfo(req: Request, res: Response) {
   return handlePersonalInfoRequest(req, res, "update");
 }
-
-

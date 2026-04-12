@@ -1,0 +1,5 @@
+ALTER TABLE "user_detail"
+DROP COLUMN IF EXISTS profile_picture ;
+
+ALTER TABLE "user_detail"
+ADD COLUMN profile_picture BYTEA NULL;

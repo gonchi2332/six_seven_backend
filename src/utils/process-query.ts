@@ -1,6 +1,5 @@
 import { getClient } from "../config/database.config";
 import { PoolClient } from "pg";
-// utils/process-query.ts
 
 export async function processReturnQuery(queryString: string, values: unknown[]) {
   const client = await getClient();
