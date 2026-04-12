@@ -4,6 +4,7 @@ import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/process-query";
 import { generateToken } from "../utils/jwt";
 import { sendResetCodeEmail } from "../utils/mailer";
+import { generateCode } from "../utils/generate";
 import * as TokenTypes from "../types/token.types";
 
 export async function registerUserService(
@@ -196,7 +197,7 @@ export async function forgotPasswordService(username: string, email: string) {
     }
 
     const userId = users[0].id;
-    const resetCode = crypto.randomInt(10000000, 100000000).toString();
+    const resetCode = generateCode();
 
     const upsertCodeQuery = `
       INSERT INTO "password_reset_code" ("user_id", "code", "expires_at")
