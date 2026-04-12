@@ -1,3 +1,4 @@
+import { env } from "../config/env.config";
 import { transporter } from "../config/nodemailer.config";
 import { generateCode, generateHTMLMail } from "../utils/generate";
 import { processReturnQuery } from "../utils/process-query";
@@ -27,7 +28,7 @@ export async function sendMailVerificationCode(username: string, targetMail: str
     }
 
     await transporter.sendMail({
-      from: "Six Seven <no-reply-six-seven@gmail.com>",
+      from: env.SEND_USER + " <no-reply:" + env.SEND_EMAIL_USER + ">",
       to: targetMail,
       subject: "Verificacion de cuenta nueva - Portafolio Web",
       html: generateHTMLMail(username, targetMail, code)
