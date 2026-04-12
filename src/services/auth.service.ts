@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/process-query";
 import { generateToken } from "../utils/jwt";
@@ -183,7 +184,7 @@ export async function resetPassword(
 
 export async function forgotPasswordService(username: string, email: string) {
   try {
-    const checkUserQuery = `SELECT id FROM "user" WHERE username = $1`;
+    const checkUserQuery = "SELECT id FROM \"user\" WHERE username = $1";
     const users = await processReturnQuery(checkUserQuery, [username]);
 
     if (users.length === 0) {
@@ -193,7 +194,7 @@ export async function forgotPasswordService(username: string, email: string) {
     }
 
     const userId = users[0].id;
-    const resetCode = Math.floor(10000000 + Math.random() * 90000000).toString();
+    const resetCode = crypto.randomInt(10000000, 100000000).toString();
 
     const upsertCodeQuery = `
       INSERT INTO "password_reset_code" ("user_id", "code", "expires_at")

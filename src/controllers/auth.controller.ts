@@ -104,7 +104,7 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
     const { username, email } = req.body;
 
     if (!username || typeof username !== "string" || !email || typeof email !== "string") {
-      res.status(400).json({ error: "El nombre de usuario y el correo son obligatorios." });
+      res.status(404).json({ error: "El nombre de usuario y el correo son obligatorios." });
       return;
     }
 
@@ -113,7 +113,7 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
 
   } catch (error: any) {
     if (error.name === "NotFoundError") {
-      res.status(404).json({ error: error.message });
+      res.status(400).json({ error: error.message });
       return;
     }
     res.status(500).json({ 
