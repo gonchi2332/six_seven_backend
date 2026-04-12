@@ -44,7 +44,7 @@ export async function sendMailVerification(req: Request, res: Response) {
   }
 }
 
-export async function compareMailCodes(req: Request, res: Response) {
+export async function compareMailCode(req: Request, res: Response) {
   try {
     const { username, currentCode } = req.query;
 

@@ -4,7 +4,7 @@ import * as VerificationController from "../controllers/verification.controller"
 
 const router = Router();
 
-router.post(
+router.patch(
   "/users/verification-code",
   Authorization.tokenAuthorization,
   VerificationController.sendMailVerification
@@ -12,7 +12,7 @@ router.post(
 router.post(
   "/users/compare-verification-code",
   Authorization.tokenAuthorization,
-  VerificationController.compareMailCodes
+  VerificationController.compareMailCode
 );
 
 export default router;
