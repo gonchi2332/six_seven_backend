@@ -34,7 +34,8 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@eslint/css": "^1.1.0",

@@ -1,7 +1,6 @@
 import "../config/env.config";
 import { processReturnQuery } from "../utils/process-query";
 import * as UserTypes from "../types/user.types";
-import pool from "../config/database.config";
 
 async function processUserPersonalInfoAction(
   username: string,
@@ -47,16 +46,11 @@ async function processUserPersonalInfoAction(
     }
     if ((names !== null && typeof names !== "string") || 
       (paternalSurname !== null && typeof paternalSurname !== "string") ||
-      (maternalSurname !== null && typeof maternalSurname !== "string")) {
+      (maternalSurname !== null && typeof maternalSurname !== "string") ||
+      (address !== null && typeof address !== "string")) {
       return {
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
-      };
-    }
-    if (address !== null && typeof address !== "string") {
-      return { 
-        result: false, 
-        messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.` 
       };
     }
     let residenceCountryId;
@@ -71,7 +65,7 @@ async function processUserPersonalInfoAction(
         SELECT id FROM residence_country
         WHERE name = $1
       `;
-      const { rows: foundedCountries } = await pool.query(checkQuery, [residenceCountry]);
+      const foundedCountries = await processReturnQuery(checkQuery, [residenceCountry]);
       if (foundedCountries.length === 0) {
         const insertionQuery = `
           INSERT INTO "residence_country" (name)
