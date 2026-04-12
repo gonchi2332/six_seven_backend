@@ -67,6 +67,7 @@ export async function registerUserService(
 
     const token = generateToken({
       username: registrationData.user.username,
+      state: registrationData.user.state
     });
 
     return {
@@ -124,7 +125,8 @@ export async function login(
   }
 
   const token = generateToken({
-    username: foundUser.username
+    username: foundUser.username,
+    state: foundUser.state
   });
 
   return {

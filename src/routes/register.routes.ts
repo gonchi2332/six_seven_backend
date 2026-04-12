@@ -8,21 +8,24 @@ const router = Router();
 
 router.post(
   "/users/personal-info", 
-  Authorization.onlyRegisteredUsers, 
+  Authorization.tokenAuthorization, 
+  Authorization.onlyVerifiedUsers,
   MulterCheck.checkMulterErrors,
   SharpCheck.verifyProfilePictureDimensions,
   RegisterPersonalInfoController.registerPersonalInfo,
 );
 router.put(
   "/users/personal-info", 
-  Authorization.onlyRegisteredUsers, 
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
   MulterCheck.checkMulterErrors,
   SharpCheck.verifyProfilePictureDimensions,
   RegisterPersonalInfoController.updatePersonalInfo,
 );
 router.get(
   "/users/personal-info", 
-  Authorization.onlyRegisteredUsers, 
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
   RegisterPersonalInfoController.viewPersonalInfo
 );
 

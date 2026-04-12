@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Verificacion de Cuenta Nueva</title>
+
+    <meta name="description"
+        content="Codigo de Verificacion de Identidad">
+
+    <meta name="theme-color" content="#90ddf0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Nunito:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            font-family: "Nunito", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: transparent;
+        }
+
+        p {
+            font-family: "Nunito", sans-serif;
+            font-weight: 500;
+            font-size: 1rem;
+            color: #07393C;
+            margin: 20px 0;
+        }
+
+        .headBar {
+            background-color: #2C666E;
+            background-size: auto, cover;
+            background-position: center;
+            padding: 15px;
+            width: 100%;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .content {
+            background-color: #b1e5f2;
+            width: 100%;    
+            margin: 0 auto;     
+            min-height: 250px;
+            box-sizing: border-box;
+            padding: 10px 20px;
+        }
+
+        .title {
+            color: #ffff;
+            text-align: center;
+            margin: 10px 0;
+            width: 100%;
+            font-weight: 700;
+            font-family: "Inter", sans-serif;
+        }
+
+        .subtitle {
+            color: #07393C;
+            text-align: left;
+            margin: 20px 0;
+            width: 100%;
+            font-weight: 700;
+        }
+
+        .code {
+            color: #07393C;
+            text-align: center;
+            margin: 30px 0;
+            width: 100%;
+            font-weight: 700;
+            font-size: xx-large;
+        }
+
+        .emailLink {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .emailLink:hover {
+            color: #004499; 
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="headBar">
+            <h1 class="title">Codigo de Verificacion de Identidad</h1>
+        </div>
+    </header>
+    <main>
+        <div class="content">
+            <h2 class="subtitle">Confirma tu Identidad</h2>
+            <p>Bienvenido __USERNAME__, gracias por unirte a nuestra plataforma.</p>
+            <p>Para usar nuestros servicios debes de verificar tu identidad, para ello
+            debes copiar el siguiente codigo de verificacion de 8 digitos enviados a este correo 
+            (<a href="mailto:__TARGETMAIL__" class="emailLink">__TARGETMAIL__</a>).</p>
+            <div class="code">
+                <strong>__CODE__</strong>
+            </div>
+        </div>
+    </main>
+</body>
