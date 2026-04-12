@@ -1,5 +1,6 @@
 import "../config/env.config";
-import { processReturnQuery } from "../utils/process-query";
+import { PoolClient } from "pg";
+import { processTransaction, processReturnQuery } from "../utils/process-query";
 import * as UserTypes from "../types/user.types";
 
 async function processUserPersonalInfoAction(
@@ -53,7 +54,7 @@ async function processUserPersonalInfoAction(
         messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
       };
     }
-    let residenceCountryId;
+    let residenceCountryId : number;
     if (residenceCountry !== null) {
       if (typeof residenceCountry !== "string") {
         return {
@@ -96,22 +97,36 @@ async function processUserPersonalInfoAction(
     const currentPaternalSurname = (!paternalSurname) ? userDetailFounded[0].paternal_surname : paternalSurname;
     const currentMaternalSurname = (!maternalSurname) ? userDetailFounded[0].maternal_surname : maternalSurname;
 
-    const updateQuery = `
-      UPDATE "user_detail" 
-      SET 
-        phone = $1, 
-        names = $2,
-        paternal_surname = $3,
-        maternal_surname = $4, 
-        address = $5, 
-        residence_country_id = $6, 
-        contact_email = $7,
-        profile_picture = $8
-      WHERE user_id = $9
-    `;
-    const values = [phone, currentNames, currentPaternalSurname, currentMaternalSurname, address, 
-      residenceCountryId, contactEmail, profilePicture?.buffer, userId];
-    await processReturnQuery(updateQuery, values);
+    await processTransaction<unknown>(async function (client: PoolClient) {
+      const insertQuery = `
+        INSERT INTO "profile_picture" (profile_picture)
+        VALUES ($1)
+        RETURNING id
+      `;
+      const currentProfilePicture = await client.query(insertQuery, [profilePicture]);
+      const profilePictureId = currentProfilePicture.rows[0].id;
+      checkQuery = `
+        SELECT setval(pg_get_serial_sequence('"profile_picture"', 'id'),
+        (SELECT MAX(id) FROM "profile_picture"));
+      `;
+      await client.query(checkQuery);
+      const updateQuery = `
+        UPDATE "user_detail" 
+        SET 
+          phone = $1, 
+          names = $2,
+          paternal_surname = $3,
+          maternal_surname = $4, 
+          address = $5, 
+          residence_country_id = $6, 
+          contact_email = $7,
+          profile_picture_id = $8
+        WHERE user_id = $9
+      `;
+      const values = [phone, currentNames, currentPaternalSurname, currentMaternalSurname, address, 
+        residenceCountryId, contactEmail, profilePictureId, userId];
+      await client.query(updateQuery, values);
+    });
     return {
       result: true,
       messageState: `Datos de informacion personal del usuario ${actionLabel}dos exitosamente.`

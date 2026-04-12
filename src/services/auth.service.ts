@@ -1,9 +1,8 @@
 import bcrypt from "bcrypt";
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/process-query";
-import { generateToken,  } from "../utils/jwt";
+import { generateToken  } from "../utils/jwt";
 import * as TokenTypes from "../types/token.types";
-import {  } from "../types/user.types";
 
 export async function registerUserService(
   username: string,
@@ -96,13 +95,23 @@ export async function login(
   const findUserQuery = `
     SELECT 
       u.id, u.username, u.password as hashed_password, u.state,
-      ud.names, ud.paternal_surname
+      ud.names, ud.paternal_surname, ud.profile_picture_id
     FROM "user" u
     JOIN "user_detail" ud ON u.id = ud.user_id
-    WHERE u.username = $1
+    WHERE u.username = $1 
   `;
   const findUserValues = [username];
   const users = await processReturnQuery(findUserQuery, findUserValues);
+  const profilePictureId = users[0].profile_picture_id;
+
+  const getProfilePictureQuery = `
+    SELECT profile_picture FROM "profile_picture"
+    WHERE id = $1
+  `;
+  const getProfilePictureValues = [profilePictureId];
+  const userProfilePicture = await processReturnQuery(getProfilePictureQuery, getProfilePictureValues);
+  const profilePicture : Buffer = userProfilePicture[0].profile_picture;
+  const proccessedProfilePicture = profilePicture.toString("base64");
 
   if (users.length === 0) {
     const error = new Error("Usuario o contraseña incorrectos");
@@ -125,6 +134,8 @@ export async function login(
   });
 
   return {
-    user: foundUser, token
+    user: foundUser, 
+    profilePicture: `data:image/jpeg;base64,${proccessedProfilePicture}`,
+    token
   };
 }
