@@ -101,3 +101,35 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
     });
   }
 }
+
+export async function forgotPassword(req: Request, res: Response): Promise<void> {
+  try {
+    const { username, email } = req.body;
+
+    if (!username || typeof username !== "string" || !email || typeof email !== "string") {
+      res.status(400).json({ error: "El nombre de usuario y el correo son obligatorios." });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato de correo electronico invalido."
+      });
+    }
+
+    const response = await AuthService.forgotPasswordService(username, email);
+    res.status(200).json(response);
+
+  } catch (error: any) {
+    if (error.name === "NotFoundError") {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    res.status(500).json({ 
+      message: `Error en forgotPassword: ${error.message}`,
+      error: "Error interno del servidor." 
+    });
+  }
+}

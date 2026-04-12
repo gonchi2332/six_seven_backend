@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/process-query";
 import { generateToken } from "../utils/jwt";
+import { sendResetCodeEmail } from "../utils/mailer";
+import { generateCode } from "../utils/generate";
 import * as TokenTypes from "../types/token.types";
 
 export async function registerUserService(
@@ -180,4 +182,41 @@ export async function resetPassword(
 
     return ;
   });
+}
+
+export async function forgotPasswordService(username: string, email: string) {
+  try {
+    const checkUserQuery = "SELECT id FROM \"user\" WHERE username = $1";
+    const users = await processReturnQuery(checkUserQuery, [username]);
+
+    if (users.length === 0) {
+      const error = new Error("El nombre de usuario no existe.");
+      error.name = "NotFoundError";
+      throw error;
+    }
+
+    const userId = users[0].id;
+    const resetCode = generateCode();
+
+    const upsertCodeQuery = `
+      INSERT INTO "password_reset_code" ("user_id", "code", "expires_at")
+      VALUES ($1, $2, NOW() + INTERVAL '1 hour')
+      ON CONFLICT ("user_id") DO UPDATE 
+      SET "code" = EXCLUDED.code, "expires_at" = EXCLUDED.expires_at;
+    `;
+    await processReturnQuery(upsertCodeQuery, [userId, resetCode]);
+
+    await sendResetCodeEmail(email, username, resetCode);
+
+    return {
+      result: true,
+      messageState: "Código de recuperación enviado exitosamente.",
+    };
+  } catch (err: any) {
+    if (err.name === "NotFoundError") throw err;
+    return {
+      result: false,
+      messageState: `Error al procesar la solicitud: ${err.message}`
+    };
+  }
 }
