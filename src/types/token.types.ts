@@ -5,6 +5,7 @@ export enum VerificationState {
 
 export interface TokenPayload {
   username: string;
+  state: VerificationState
 }
 
 export interface RegistrationResult {
