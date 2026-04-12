@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import crypto from "crypto";
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/process-query";
 import { generateToken } from "../utils/jwt";
