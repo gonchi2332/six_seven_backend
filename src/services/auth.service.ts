@@ -204,7 +204,7 @@ export async function forgotPasswordService(username: string, email: string) {
     `;
     await processReturnQuery(upsertCodeQuery, [userId, resetCode]);
 
-    await sendResetCodeEmail(email, resetCode);
+    await sendResetCodeEmail(email, username, resetCode);
 
     return {
       result: true,
