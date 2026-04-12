@@ -4,12 +4,12 @@ import * as VerificationController from "../controllers/verification.controller"
 
 const router = Router();
 
-router.patch(
+router.post(
   "/users/verification-code",
   Authorization.tokenAuthorization,
   VerificationController.sendMailVerification
 );
-router.post(
+router.patch(
   "/users/compare-verification-code",
   Authorization.tokenAuthorization,
   VerificationController.compareMailCode
