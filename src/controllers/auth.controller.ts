@@ -12,7 +12,6 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       res.status(400).json({ error: "Faltan campos obligatorios." });
       return;
     }
-
     if (password.length < 8) {
       res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
       return;
@@ -77,6 +76,10 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
       !password || typeof password !== "string" ||
       !verificationCode || typeof verificationCode !== "string") {
       res.status(400).json({ error: "Faltan campos obligatorios." });
+      return;
+    }
+    if (password.length < 8) {
+      res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
       return;
     }
     await AuthService.resetPassword(username, password, verificationCode);
