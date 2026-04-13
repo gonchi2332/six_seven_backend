@@ -98,18 +98,22 @@ async function processUserPersonalInfoAction(
     const currentMaternalSurname = (!maternalSurname) ? userDetailFounded[0].maternal_surname : maternalSurname;
 
     await processTransaction<unknown>(async function (client: PoolClient) {
-      const insertQuery = `
-        INSERT INTO "profile_picture" (profile_picture)
-        VALUES ($1)
-        RETURNING id
-      `;
-      const currentProfilePicture = await client.query(insertQuery, [profilePicture]);
-      const profilePictureId = currentProfilePicture.rows[0].id;
-      checkQuery = `
-        SELECT setval(pg_get_serial_sequence('"profile_picture"', 'id'),
-        (SELECT MAX(id) FROM "profile_picture"));
-      `;
-      await client.query(checkQuery);
+      let profilePictureId: number = 1;
+      if (profilePicture) {
+        const insertQuery = `
+          INSERT INTO "profile_picture" (profile_picture)
+          VALUES ($1)
+          RETURNING id
+        `;
+        const currentProfilePicture = await client.query(insertQuery, [profilePicture.buffer]);
+        profilePictureId = currentProfilePicture.rows[0].id;
+        checkQuery = `
+          SELECT setval(pg_get_serial_sequence('"profile_picture"', 'id'),
+          (SELECT MAX(id) FROM "profile_picture"));
+        `;
+        await client.query(checkQuery);
+      }
+  
       const updateQuery = `
         UPDATE "user_detail" 
         SET 
@@ -170,15 +174,16 @@ export async function viewUserPersonalInfo(username: string){
 
     const personalInfo = usersPersonalInfo[0];
     const profilePicture = personalInfo.profile_picture;
-    const proccessedProfilePicture = profilePicture.toString("base64");
-    personalInfo.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
-
+    if (profilePicture) {
+      personalInfo.profile_picture = `data:image/jpeg;base64,${profilePicture.toString("base64")}`;
+    } else {
+      personalInfo.profile_picture = null;
+    }
     return {
       result: true,
       messageState: `Infomacion personal de ${username} correctamente obtenida.`,
       currentPersonalInfo: personalInfo,
     };
-
   } catch (err) {
     return {
       result: false,
