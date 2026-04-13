@@ -113,6 +113,11 @@ async function processUserPersonalInfoAction(
         `;
         await client.query(checkQuery);
       }
+      checkQuery = `
+        SELECT setval(pg_get_serial_sequence('"residence_country"', 'id'),
+        (SELECT MAX(id) FROM "residence_country"));
+      `;
+      await client.query(checkQuery);
   
       const updateQuery = `
         UPDATE "user_detail" 
