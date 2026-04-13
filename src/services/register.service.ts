@@ -54,31 +54,6 @@ async function processUserPersonalInfoAction(
         messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
       };
     }
-    let residenceCountryId : number;
-    if (residenceCountry !== null) {
-      if (typeof residenceCountry !== "string") {
-        return {
-          return: false,
-          messageState: `No se pudo ${actionLabel}r la informacion, pais de residencia invalido.`
-        };
-      }
-      checkQuery = `
-        SELECT id FROM residence_country
-        WHERE name = $1
-      `;
-      const foundedCountries = await processReturnQuery(checkQuery, [residenceCountry]);
-      if (foundedCountries.length === 0) {
-        const insertionQuery = `
-          INSERT INTO "residence_country" (name)
-          VALUES ($1)
-          RETURNING id
-        `;
-        const newCountry = await processReturnQuery(insertionQuery, [residenceCountry]); 
-        residenceCountryId = newCountry[0].id;
-      } else {
-        residenceCountryId = foundedCountries[0].id;
-      }
-    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (contactEmail !== null && !emailRegex.test(contactEmail)) {
       return { 
@@ -98,6 +73,32 @@ async function processUserPersonalInfoAction(
     const currentMaternalSurname = (!maternalSurname) ? userDetailFounded[0].maternal_surname : maternalSurname;
 
     await processTransaction<unknown>(async function (client: PoolClient) {
+      let residenceCountryId : number | undefined = undefined;
+      if (residenceCountry !== null && typeof residenceCountryId !== "string") {
+        if (typeof residenceCountry !== "string") {
+          return {
+            return: false,
+            messageState: `No se pudo ${actionLabel}r la informacion, pais de residencia invalido.`
+          };
+        }
+        checkQuery = `
+          SELECT id FROM residence_country
+          WHERE name = $1
+        `;
+        const foundedCountries = await processReturnQuery(checkQuery, [residenceCountry]);
+        if (foundedCountries.length === 0) {
+          const insertionQuery = `
+            INSERT INTO "residence_country" (name)
+            VALUES ($1)
+            RETURNING id
+          `;
+          const newCountry = await processReturnQuery(insertionQuery, [residenceCountry]); 
+          residenceCountryId = newCountry[0].id;
+        } else {
+          residenceCountryId = foundedCountries[0].id;
+        }
+      }
+
       let profilePictureId: number = 1;
       if (profilePicture) {
         const insertQuery = `
