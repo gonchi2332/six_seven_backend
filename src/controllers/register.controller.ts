@@ -23,7 +23,7 @@ async function handlePersonalInfoRequest(
         message: "Parametros de informacion personal del usuario insuficientes." 
       });
     }
-    if (profilePicture !== null && !profilePicture.mimetype.startsWith("image/")) {
+    if (profilePicture && !profilePicture.mimetype.startsWith("image/")) {
       return res.status(400).json({
         success: false,
         message: "Foto de perfil invalida."
