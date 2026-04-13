@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/process-query";
 import { generateToken } from "../utils/jwt";
+import { sendResetCodeEmail } from "../utils/mailer";
+import { generateCode } from "../utils/generate";
 import * as TokenTypes from "../types/token.types";
 
 export async function registerUserService(
@@ -11,77 +13,70 @@ export async function registerUserService(
   paternalSurname: string,
   maternalSurname: string
 ) {
-  try {
-    if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
-      return {
-        result: false,
-        messageState: "Datos de entrada invalidos o incompleros."
-      };
-    }
-
-    const checkQuery = `
-      SELECT id FROM "user" 
-      WHERE username = $1`;
-    const existingUsers = await processReturnQuery(checkQuery,[username]);
-
-    if (existingUsers.length > 0) {
-      const error = new Error("El nombre de usuario ya está en uso");
-      error.name = "ConflictError";
-      throw error;
-    }
-
-    const roleQuery = `
-        SELECT id FROM "role"
-        WHERE name = $1
-    `;
-    const roles = await processReturnQuery(roleQuery, ["Usuario"]);
-    const roleId = roles.length > 0 ? roles[0].id : 1;
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
-      const userQuery = `
-        INSERT INTO "user" (username, password, state, role_id)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, username, state
-      `;
-      const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
-      const userRes = await client.query(userQuery, userValues);
-      const newUser = userRes.rows[0];
-
-      const detailQuery = `
-        INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
-        VALUES ($1, $2, $3, $4)
-        RETURNING names, paternal_surname, maternal_surname
-      `;
-      const detailValues = [newUser.id, names, paternalSurname, maternalSurname];
-      const detailRes = await client.query(detailQuery, detailValues);
-      const newUserDetail = detailRes.rows[0];
-
-      return {
-        user: newUser,
-        userDetail: newUserDetail
-      };
-    });
-
-    const token = generateToken({
-      username: registrationData.user.username,
-      state: registrationData.user.state
-    });
-
-    return {
-      result: true,
-      messageState: "Usuario registrado exitosamente",
-      user: registrationData.user,  
-      token
-    };
-  } catch (err) {
+  if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
     return {
       result: false,
-      messageState: `Error al registrar usuario: ${(err as Error).message}`
+      messageState: "Datos de entrada invalidos o incompleros."
     };
   }
+
+  const checkQuery = `
+  SELECT id FROM "user" 
+  WHERE username = $1`;
+  const existingUsers = await processReturnQuery(checkQuery,[username]);
+
+  if (existingUsers.length > 0) {
+    const error = new Error("El nombre de usuario ya está en uso");
+    error.name = "ConflictError";
+    throw error;
+  }
+
+  const roleQuery = `
+  SELECT id FROM "role"
+  WHERE name = $1
+  `;
+  const roles = await processReturnQuery(roleQuery, ["Usuario"]);
+  const roleId = roles.length > 0 ? roles[0].id : 1;
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
+    const userQuery = `
+    INSERT INTO "user" (username, password, state, role_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, username, state
+    `;
+    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
+    const userRes = await client.query(userQuery, userValues);
+    const newUser = userRes.rows[0];
+
+    const detailQuery = `
+    INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
+    VALUES ($1, $2, $3, $4)
+    RETURNING names, paternal_surname, maternal_surname
+    `;
+    const detailValues = [newUser.id, names, paternalSurname, maternalSurname];
+    const detailRes = await client.query(detailQuery, detailValues);
+    const newUserDetail = detailRes.rows[0];
+
+    return {
+      user: newUser,
+      userDetail: newUserDetail
+    };
+  });
+
+  const token = generateToken({
+    username: registrationData.user.username,
+    state: registrationData.user.state
+  });
+
+  return {
+    result: true,
+    messageState: "Usuario registrado exitosamente",
+    user: registrationData.user,  
+    token
+  };
 }
 
 export async function login(
@@ -180,4 +175,58 @@ export async function resetPassword(
 
     return ;
   });
+}
+
+export async function forgotPasswordService(username: string, email: string) {
+  try {
+    const checkUserQuery = "SELECT id FROM \"user\" WHERE username = $1";
+    const users = await processReturnQuery(checkUserQuery, [username]);
+
+    if (users.length === 0) {
+      const error = new Error("El nombre de usuario no existe.");
+      error.name = "NotFoundError";
+      throw error;
+    }
+
+    const userId = users[0].id;
+    const resetCode = generateCode();
+
+    const upsertCodeQuery = `
+      INSERT INTO "password_reset_code" ("user_id", "code", "expires_at")
+      VALUES ($1, $2, NOW() + INTERVAL '1 hour')
+      ON CONFLICT ("user_id") DO UPDATE 
+      SET "code" = EXCLUDED.code, "expires_at" = EXCLUDED.expires_at;
+    `;
+    await processReturnQuery(upsertCodeQuery, [userId, resetCode]);
+
+    await sendResetCodeEmail(email, username, resetCode);
+
+    return {
+      result: true,
+      messageState: "Código de recuperación enviado exitosamente.",
+    };
+  } catch (err: any) {
+    if (err.name === "NotFoundError") throw err;
+    return {
+      result: false,
+      messageState: `Error al procesar la solicitud: ${err.message}`
+    };
+  }
+}
+
+export async function verifyCodeService(username: string, code: string): Promise<boolean> {
+  const userQuery = "SELECT id FROM \"user\" WHERE username = $1";
+  const users = await processReturnQuery(userQuery, [username]);
+
+  if (users.length === 0) return false;
+
+  const userId = users[0].id;
+
+  const codeQuery = `
+    SELECT user_id FROM "password_reset_code" 
+    WHERE user_id = $1 AND code = $2 AND expires_at > NOW()
+  `;
+  const result = await processReturnQuery(codeQuery, [userId, code]);
+
+  return result.length > 0;
 }
