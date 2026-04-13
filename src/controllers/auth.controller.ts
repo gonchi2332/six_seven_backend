@@ -133,3 +133,31 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
     });
   }
 }
+
+export async function verifyResetCode(req: Request, res: Response): Promise<void> {
+  try {
+    const { username, code } = req.body;
+
+    if (!username || !code) {
+      res.status(400).json({ success: false, message: "Usuario y código son obligatorios." });
+      return;
+    }
+
+    const isValid = await AuthService.verifyCodeService(username, code);
+
+    if (!isValid) {
+      res.status(400).json({ success: false, message: "Código inválido o expirado." });
+      return;
+    }
+
+    res.status(200).json({ 
+      success: true,
+      message: "Código verificado correctamente." 
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      success: false, 
+      message: `Error interno del servidor: ${(error as Error).message}` 
+    });
+  }
+}

@@ -220,3 +220,20 @@ export async function forgotPasswordService(username: string, email: string) {
     };
   }
 }
+
+export async function verifyCodeService(username: string, code: string): Promise<boolean> {
+  const userQuery = "SELECT id FROM \"user\" WHERE username = $1";
+  const users = await processReturnQuery(userQuery, [username]);
+
+  if (users.length === 0) return false;
+
+  const userId = users[0].id;
+
+  const codeQuery = `
+    SELECT user_id FROM "password_reset_code" 
+    WHERE user_id = $1 AND code = $2 AND expires_at > NOW()
+  `;
+  const result = await processReturnQuery(codeQuery, [userId, code]);
+
+  return result.length > 0;
+}
