@@ -113,10 +113,11 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "Formato de correo electronico invalido."
       });
+      return ;
     }
 
     const response = await AuthService.forgotPasswordService(username, email);
