@@ -22,13 +22,7 @@ export async function verifyProfilePictureDimensions(req: Request, res: Response
         message: "Imagen invalida, sin dimensiones."
       });
     }
-    if (metadata.height !== metadata.width) {
-      return res.status(400).json({
-        success: false,
-        message: "Imagen invalida, debe ser cuadrada."
-      });
-    }
-
+    
     const processedProfilePicture = await sharp(profilePicture.buffer)
       .resize(standarWidthHeight, standarWidthHeight)
       .jpeg({ quality: 80 })
