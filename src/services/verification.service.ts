@@ -1,7 +1,7 @@
 import { env } from "../config/env.config";
 import { transporter } from "../config/nodemailer.config";
 import { generateCode, generateHTMLMail } from "../utils/generate";
-import { processReturnQuery } from "../utils/process-query";
+import { processReturnQuery } from "../utils/processQuery";
 import * as TokenTypes from "../types/token.types";
 
 export async function sendMailVerificationCode(username: string, targetMail: string) {
