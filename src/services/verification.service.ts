@@ -1,7 +1,7 @@
 import { env } from "../config/env.config";
 import { transporter } from "../config/nodemailer.config";
 import { generateCode, generateHTMLMail } from "../utils/generate";
-import { processReturnQuery } from "../utils/process-query";
+import { processReturnQuery } from "../utils/processQuery";
 import * as TokenTypes from "../types/token.types";
 
 export async function sendMailVerificationCode(username: string, targetMail: string) {
@@ -24,7 +24,21 @@ export async function sendMailVerificationCode(username: string, targetMail: str
       await processReturnQuery(insertQuery, values);
     } else {
       const currentCodeInfo = codeInfo[0];
-      code = currentCodeInfo.code;
+      const currentCode = currentCodeInfo.code;
+      insertQuery = `
+        UPDATE "verification_mail_code"
+        SET expires_at = now() - interval '1 hour'
+        WHERE username = $1 AND code = $2
+      `;
+      values = [username, currentCode];
+      await processReturnQuery(insertQuery, values);
+      code = generateCode();
+      insertQuery = `
+        INSERT INTO "verification_mail_code" (username, code)
+        VALUES ($1, $2)
+      `;
+      values = [username, code];
+      await processReturnQuery(insertQuery, values);
     }
 
     await transporter.sendMail({

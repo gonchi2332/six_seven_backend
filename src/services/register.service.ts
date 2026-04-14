@@ -1,6 +1,6 @@
 import "../config/env.config";
 import { PoolClient } from "pg";
-import { processTransaction, processReturnQuery } from "../utils/process-query";
+import { processTransaction, processReturnQuery } from "../utils/processQuery";
 import * as UserTypes from "../types/user.types";
 
 async function processUserPersonalInfoAction(
