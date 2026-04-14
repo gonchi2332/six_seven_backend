@@ -1,0 +1,232 @@
+import bcrypt from "bcrypt";
+import { PoolClient } from "pg";
+import { processTransaction, processReturnQuery } from "../utils/processQuery";
+import { generateToken } from "../utils/jwt";
+import { sendResetCodeEmail } from "../utils/mailer";
+import { generateCode } from "../utils/generate";
+import * as TokenTypes from "../types/token.types";
+
+export async function registerUserService(
+  username: string,
+  password: string,
+  names: string,
+  paternalSurname: string,
+  maternalSurname: string
+) {
+  if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
+    return {
+      result: false,
+      messageState: "Datos de entrada invalidos o incompleros."
+    };
+  }
+
+  const checkQuery = `
+  SELECT id FROM "user" 
+  WHERE username = $1`;
+  const existingUsers = await processReturnQuery(checkQuery,[username]);
+
+  if (existingUsers.length > 0) {
+    const error = new Error("El nombre de usuario ya está en uso");
+    error.name = "ConflictError";
+    throw error;
+  }
+
+  const roleQuery = `
+  SELECT id FROM "role"
+  WHERE name = $1
+  `;
+  const roles = await processReturnQuery(roleQuery, ["Usuario"]);
+  const roleId = roles.length > 0 ? roles[0].id : 1;
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
+    const userQuery = `
+    INSERT INTO "user" (username, password, state, role_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, username, state
+    `;
+    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
+    const userRes = await client.query(userQuery, userValues);
+    const newUser = userRes.rows[0];
+
+    const detailQuery = `
+    INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
+    VALUES ($1, $2, $3, $4)
+    RETURNING names, paternal_surname, maternal_surname
+    `;
+    const detailValues = [newUser.id, names, paternalSurname, maternalSurname];
+    const detailRes = await client.query(detailQuery, detailValues);
+    const newUserDetail = detailRes.rows[0];
+
+    return {
+      user: newUser,
+      userDetail: newUserDetail
+    };
+  });
+
+  const token = generateToken({
+    username: registrationData.user.username,
+    state: registrationData.user.state
+  });
+
+  return {
+    result: true,
+    messageState: "Usuario registrado exitosamente",
+    user: registrationData.user,  
+    token
+  };
+}
+
+export async function login(
+  username: string,
+  password: string
+) {
+
+  if (typeof username !== "string" || typeof password !== "string") {
+    throw new Error("Credenciales inválidas.");
+  }
+
+  const findUserQuery = `
+    SELECT 
+      u.id, u.username, u.password as hashed_password, u.state,
+      ud.names, ud.paternal_surname, pp.profile_picture
+    FROM "user" u
+    LEFT JOIN "user_detail" ud ON u.id = ud.user_id
+    LEFT JOIN "profile_picture" pp ON ud.profile_picture_id = pp.id
+    WHERE u.username = $1 
+  `;
+  const findUserValues = [username];
+  const users = await processReturnQuery(findUserQuery, findUserValues);
+
+  const foundUser = users[0];
+  const profilePicture = foundUser.profile_picture;
+  const proccessedProfilePicture = profilePicture.toString("base64");
+  foundUser.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
+
+  if (users.length === 0) {
+    const error = new Error("Usuario o contraseña incorrectos");
+    error.name = "AuthError";
+    throw error;
+  }
+
+  const isMatch = await bcrypt.compare(password, foundUser.hashed_password);
+
+  if (!isMatch) {
+    const error = new Error("Usuario o contraseña incorrectos");
+    error.name = "AuthError";
+    throw error;
+  }
+
+  const token = generateToken({
+    username: foundUser.username,
+    state: foundUser.state
+  });
+
+  return {
+    user: foundUser, 
+    profilePicture: `data:image/jpeg;base64,${proccessedProfilePicture}`,
+    token
+  };
+}
+
+export async function resetPassword(
+  username: string,
+  newPassword: string,
+  verificationCode: string
+) {
+  return await processTransaction(async function (client) {
+
+    const findCodeQuery = `
+    SELECT 
+    u.id, u.password as hashed_password
+    FROM "user" u
+    JOIN "password_reset_code" p ON u.id = p.user_id
+    WHERE u.username = $1
+    AND p.code = $2 
+    AND p.expires_at > NOW()
+  `;
+    const codeRes = await processReturnQuery(findCodeQuery, [username, verificationCode]);
+
+    if (codeRes.length === 0) {
+      const error = new Error("Código de verificación inválido o expirado");
+      error.name = "AuthError";
+      throw error;
+    }
+
+    const { id: userId, hashed_password: hashedPassword } = codeRes[0];
+
+    const isSame = await bcrypt.compare(newPassword, hashedPassword);
+    if (isSame) {
+      const error = new Error("La nueva contraseña no puede ser igual a la anterior");
+      error.name = "ConflictError";
+      throw error;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newHashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await client.query(`UPDATE "user" SET 
+      password = $1 WHERE id = $2`, [newHashedPassword, userId]);
+
+    await client.query(`DELETE FROM "password_reset_code"
+       WHERE user_id = $1`, [userId]);
+
+    return ;
+  });
+}
+
+export async function forgotPasswordService(username: string, email: string) {
+  try {
+    const checkUserQuery = "SELECT id FROM \"user\" WHERE username = $1";
+    const users = await processReturnQuery(checkUserQuery, [username]);
+
+    if (users.length === 0) {
+      const error = new Error("El nombre de usuario no existe.");
+      error.name = "NotFoundError";
+      throw error;
+    }
+
+    const userId = users[0].id;
+    const resetCode = generateCode();
+
+    const upsertCodeQuery = `
+      INSERT INTO "password_reset_code" ("user_id", "code", "expires_at")
+      VALUES ($1, $2, NOW() + INTERVAL '1 hour')
+      ON CONFLICT ("user_id") DO UPDATE 
+      SET "code" = EXCLUDED.code, "expires_at" = EXCLUDED.expires_at;
+    `;
+    await processReturnQuery(upsertCodeQuery, [userId, resetCode]);
+
+    await sendResetCodeEmail(email, username, resetCode);
+
+    return {
+      result: true,
+      messageState: "Código de recuperación enviado exitosamente.",
+    };
+  } catch (err: any) {
+    if (err.name === "NotFoundError") throw err;
+    return {
+      result: false,
+      messageState: `Error al procesar la solicitud: ${err.message}`
+    };
+  }
+}
+
+export async function verifyCodeService(username: string, code: string): Promise<boolean> {
+  const userQuery = "SELECT id FROM \"user\" WHERE username = $1";
+  const users = await processReturnQuery(userQuery, [username]);
+
+  if (users.length === 0) return false;
+
+  const userId = users[0].id;
+
+  const codeQuery = `
+    SELECT user_id FROM "password_reset_code" 
+    WHERE user_id = $1 AND code = $2 AND expires_at > NOW()
+  `;
+  const result = await processReturnQuery(codeQuery, [userId, code]);
+
+  return result.length > 0;
+}
