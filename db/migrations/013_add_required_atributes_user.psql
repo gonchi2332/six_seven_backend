@@ -1,0 +1,7 @@
+-- This migration has the purpose of adding the "names" and "paternal_surname" columns to the "user"
+-- table, since these attributes are required for the registration process and they are not optional.
+
+ALTER TABLE "user"
+ADD COLUMN IF NOT EXISTS "names" varchar(100);
+ALTER TABLE "user"
+ADD COLUMN IF NOT EXISTS "paternal_surname" varchar(100);
