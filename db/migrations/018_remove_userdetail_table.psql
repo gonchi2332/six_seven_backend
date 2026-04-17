@@ -1,0 +1,5 @@
+-- This migration has the purpose of removing definitively the "user_detail" table, since all the required 
+-- attributes that were in this table have been moved to the "user" table and the optional attributes that 
+-- were in this table have been moved to other tables, so this table is no longer necessary.
+
+DROP TABLE IF EXISTS "user_detail";
