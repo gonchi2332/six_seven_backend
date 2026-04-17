@@ -6,12 +6,22 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     const { username, password, names, paternalSurname, maternalSurname } = req.body;
 
     if (!username || typeof username !== "string" ||
+      !email || typeof email !== "string" ||
       !password || typeof password !== "string" ||
       !names || typeof names !== "string" ||
       !paternalSurname || typeof paternalSurname !== "string") {
       res.status(400).json({ error: "Faltan campos obligatorios." });
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(targetMail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato de correo electronico invalido."
+      });
+    }
+
     if (password.length < 8) {
       res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
       return;

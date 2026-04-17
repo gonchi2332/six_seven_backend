@@ -11,9 +11,10 @@ export async function registerUserService(
   password: string,
   names: string,
   paternalSurname: string,
-  maternalSurname: string
+  maternalSurname: string,
+  email: string
 ) {
-  if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
+  if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string" || typeof email !== "string") {
     return {
       result: false,
       messageState: "Datos de entrada invalidos o incompleros."
@@ -22,11 +23,11 @@ export async function registerUserService(
 
   const checkQuery = `
   SELECT id FROM "user" 
-  WHERE username = $1`;
-  const existingUsers = await processReturnQuery(checkQuery,[username]);
+  WHERE username = $1 OR email = $2`;
+  const existingUsers = await processReturnQuery(checkQuery,[username, email]);
 
   if (existingUsers.length > 0) {
-    const error = new Error("El nombre de usuario ya está en uso");
+    const error = new Error("El nombre de usuario o correo electrónico ya está en uso");
     error.name = "ConflictError";
     throw error;
   }
@@ -43,11 +44,11 @@ export async function registerUserService(
 
   const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
     const userQuery = `
-    INSERT INTO "user" (username, password, state, role_id)
-    VALUES ($1, $2, $3, $4)
+    INSERT INTO "user" (username, email, password, state, role_id)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING id, username, state
     `;
-    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
+    const userValues = [username, email, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId];
     const userRes = await client.query(userQuery, userValues);
     const newUser = userRes.rows[0];
 
