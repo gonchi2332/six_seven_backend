@@ -1,0 +1,6 @@
+-- This migration has the purpose of changing the "city_name" column of the "residence_city" 
+-- table to "name", since it is more intuitive and consistent with the naming convention of the other 
+-- tables.
+
+ALTER TABLE "residence_city"
+RENAME COLUMN "city_name" TO "name";

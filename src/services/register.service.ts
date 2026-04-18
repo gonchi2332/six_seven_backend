@@ -162,24 +162,33 @@ export async function viewUserPersonalInfo(username: string){
   try {
     const getQuery = `
       SELECT 
-        u.username, u.state, ud.phone, ud.names, ud.paternal_surname, ud.maternal_surname, 
-        ud.address, rc.name, ud.contact_email, pp.profile_picture
+        u.username, u.state, u.names, u.paternal_surname, upn.phone_number, umn.maternal_surname, 
+        rci.name AS residence_city_name, rc.name AS residence_country_name, uce.contact_email, 
+        pp.profile_picture
       FROM "user" u
-      LEFT JOIN "user_detail" ud ON u.id = ud.user_id
-      LEFT JOIN "residence_country" rc ON ud.residence_country_id = rc.id
-      LEFT JOIN "profile_picture" pp ON ud.profile_picture_id = pp.id
-      WHERE username = $1
+      LEFT JOIN "user_phone_number" upn ON u.username = upn.username
+      LEFT JOIN "user_maternal_surname" umn ON u.username = umn.username
+      LEFT JOIN "user_residence_city" urci ON u.username = urci.username
+      LEFT JOIN "residence_city" rci ON urci.residence_city_id = rci.id
+      LEFT JOIN "user_residence_country" urc ON u.username = urc.username
+      LEFT JOIN "residence_country" rc ON urc.residence_country_id = rc.id
+      LEFT JOIN "user_contact_email" uce ON u.username = uce.username
+      LEFT JOIN "user_profile_picture" upp ON u.username = upp.username
+      LEFT JOIN "profile_picture" pp ON upp.profile_picture_id = pp.id
+      WHERE u.username = $1
     `;
     const values = [username];
     const usersPersonalInfo = await processReturnQuery(getQuery, values);
 
-    const personalInfo = usersPersonalInfo[0];
+    let personalInfo = usersPersonalInfo[0];
     const profilePicture = personalInfo.profile_picture;
     if (profilePicture) {
       personalInfo.profile_picture = `data:image/jpeg;base64,${profilePicture.toString("base64")}`;
     } else {
       personalInfo.profile_picture = null;
     }
+
+    personalInfo = Object.fromEntries(Object.entries(personalInfo).filter(([, value]) => value !== null));
     return {
       result: true,
       messageState: `Infomacion personal de ${username} correctamente obtenida.`,
