@@ -1,0 +1,33 @@
+-- This migration has the purpose of removing the all the foreign keys that reference the "user" table
+-- using the "user_id" column, and instead use the "username" column as the reference. This is done to
+-- improve the readability of the database and to make it easier to query the data.
+
+
+ALTER TABLE "user_detail" DROP CONSTRAINT IF EXISTS "User_Detail_Belongs_To_User";
+
+
+ALTER TABLE "project" DROP CONSTRAINT IF EXISTS "Publishes";
+
+
+ALTER TABLE "laboral_experience" DROP CONSTRAINT IF EXISTS "Laboral_Experience_Belongs_To_User";
+
+
+ALTER TABLE "academic_training" DROP CONSTRAINT IF EXISTS "Academic_Training_Belongs_To_User";
+
+
+ALTER TABLE "certificate" DROP CONSTRAINT IF EXISTS "Holds";
+
+
+ALTER TABLE "session_report_user" DROP CONSTRAINT IF EXISTS "Generates_2";
+
+
+ALTER TABLE "user_skill" DROP CONSTRAINT IF EXISTS "Masters_1";
+
+
+ALTER TABLE "user_language_level" DROP CONSTRAINT IF EXISTS "User_Language_Level_Belongs_To_User";
+
+
+ALTER TABLE "user_platform" DROP CONSTRAINT IF EXISTS "Interacts_1";
+
+
+ALTER TABLE "password_reset_code" DROP CONSTRAINT IF EXISTS "fk_user_password_reset";

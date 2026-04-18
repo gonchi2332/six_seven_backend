@@ -1,0 +1,69 @@
+-- This migration has the purpose of stopping use the "user_id" column as the primary key for all the tables 
+-- that reference the "user" table, and instead use the "username" column as the primary key. 
+-- This is done to improve the readability of the database and to make it easier to query the data.
+
+
+-- First of all, we need to adjust tables with simple primary keys, like "user_detail", to use the 
+-- "username" column as the primary key instead of the "user_id" column. 
+ALTER TABLE "user_detail"
+DROP CONSTRAINT IF EXISTS "user_detail_pkey";
+ALTER TABLE "user_detail"
+ALTER COLUMN "username" SET NOT NULL;
+ALTER TABLE "user_detail"
+ADD PRIMARY KEY ("username");
+
+ALTER TABLE "password_reset_code"
+DROP CONSTRAINT IF EXISTS "password_reset_code_pkey";
+ALTER TABLE "password_reset_code"
+ALTER COLUMN "username" SET NOT NULL;
+ALTER TABLE "password_reset_code"
+ADD PRIMARY KEY ("username");
+
+-- Then, we need to adjust tables with references to the "user" table, like "project", to use the "username" 
+--column as the reference instead of the "user_id" column. 
+ALTER TABLE "project"
+ALTER COLUMN "username" SET NOT NULL;
+
+ALTER TABLE "laboral_experience"
+ALTER COLUMN "username" SET NOT NULL;
+
+ALTER TABLE "academic_training"
+ALTER COLUMN "username" SET NOT NULL;
+
+ALTER TABLE "certificate"
+ALTER COLUMN "username" SET NOT NULL;
+
+ALTER TABLE "session_report_user"
+ALTER COLUMN "username" SET NOT NULL;
+
+-- Then, we need to adjust tables with composite primary keys that reference the "user" table, like 
+-- "user_skill", to use the "username" column as the reference instead of the "user_id" column.
+ALTER TABLE "user_skill"
+DROP CONSTRAINT IF EXISTS "user_skill_pkey";
+ALTER TABLE "user_skill"
+ALTER COLUMN "username" SET NOT NULL;
+ALTER TABLE "user_skill"
+ADD PRIMARY KEY ("skill_id", "username");
+
+ALTER TABLE "user_language_level"
+DROP CONSTRAINT IF EXISTS "user_language_level_pkey";
+ALTER TABLE "user_language_level"
+ALTER COLUMN "username" SET NOT NULL;
+ALTER TABLE "user_language_level"
+ADD PRIMARY KEY ("language_id", "username");
+
+ALTER TABLE "user_platform"
+DROP CONSTRAINT IF EXISTS "user_platform_pkey";
+ALTER TABLE "user_platform"
+ALTER COLUMN "username" SET NOT NULL;
+ALTER TABLE "user_platform"
+ADD PRIMARY KEY ("username", "external_platform_id");
+
+-- Finally, we need to adjust the "user" table to use the "username" column as the primary key instead of 
+-- the "id" column.
+ALTER TABLE "user"
+DROP CONSTRAINT IF EXISTS "user_username_key" CASCADE;
+ALTER TABLE "user"
+DROP CONSTRAINT IF EXISTS "user_pkey";
+ALTER TABLE "user"
+ADD PRIMARY KEY ("username");
