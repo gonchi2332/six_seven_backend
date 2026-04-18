@@ -21,7 +21,7 @@ async function processUserPersonalInfoAction(
     } = userPersonalInfo;
 
     let checkQuery = `
-      SELECT id FROM "user" 
+      SELECT username FROM "user" 
       WHERE username = $1
     `;
     const userFounded = await processReturnQuery(checkQuery, [username]);
@@ -67,6 +67,7 @@ async function processUserPersonalInfoAction(
       SELECT names, paternal_surname, maternal_surname FROM "user_detail"
       WHERE user_id = $1
     `;
+
     const userDetailFounded = await processReturnQuery(checkQuery, [userId]);
     const currentNames = (!names) ? userDetailFounded[0].names : names;
     const currentPaternalSurname = (!paternalSurname) ? userDetailFounded[0].paternal_surname : paternalSurname;
