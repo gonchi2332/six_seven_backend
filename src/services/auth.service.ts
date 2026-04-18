@@ -10,8 +10,8 @@ export async function registerUserService(
   username: string,
   password: string,
   names: string,
-  paternalSurname: string,
-  maternalSurname: string
+  firstSurname: string,
+  secondSurname: string
 ) {
   if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
     return {
@@ -52,11 +52,11 @@ export async function registerUserService(
     const newUser = userRes.rows[0];
 
     const detailQuery = `
-    INSERT INTO "user_detail" (user_id, names, paternal_surname, maternal_surname)
+    INSERT INTO "user_detail" (user_id, names, first_surname, second_surname)
     VALUES ($1, $2, $3, $4)
-    RETURNING names, paternal_surname, maternal_surname
+    RETURNING names, first_surname, second_surname
     `;
-    const detailValues = [newUser.id, names, paternalSurname, maternalSurname];
+    const detailValues = [newUser.id, names, firstSurname, secondSurname];
     const detailRes = await client.query(detailQuery, detailValues);
     const newUserDetail = detailRes.rows[0];
 
@@ -91,7 +91,7 @@ export async function login(
   const findUserQuery = `
     SELECT 
       u.id, u.username, u.password as hashed_password, u.state,
-      ud.names, ud.paternal_surname, pp.profile_picture
+      ud.names, ud.first_surname, pp.profile_picture
     FROM "user" u
     LEFT JOIN "user_detail" ud ON u.id = ud.user_id
     LEFT JOIN "profile_picture" pp ON ud.profile_picture_id = pp.id

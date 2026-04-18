@@ -13,15 +13,15 @@ async function processUserPersonalInfoAction(
     const {
       phone = null,
       names = null,
-      paternalSurname = null,
-      maternalSurname = null, 
+      firstSurname = null,
+      secondSurname = null, 
       residenceCity = null,
       residenceCountry = null, 
       contactEmail = null, 
     } = userPersonalInfo;
 
     let checkQuery = `
-      SELECT names, paternal_surname FROM "user" 
+      SELECT names, first_surname FROM "user" 
       WHERE username = $1
     `;
     const userFounded = await processReturnQuery(checkQuery, [username]);
@@ -46,8 +46,8 @@ async function processUserPersonalInfoAction(
       };
     }
     if ((names !== null && typeof names !== "string") || 
-      (paternalSurname !== null && typeof paternalSurname !== "string") ||
-      (maternalSurname !== null && typeof maternalSurname !== "string")) {
+      (firstSurname !== null && typeof firstSurname !== "string") ||
+      (secondSurname !== null && typeof secondSurname !== "string")) {
       return {
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
@@ -131,24 +131,24 @@ async function processUserPersonalInfoAction(
       }
 
       const currentNames = (names) ? names : userFounded[0].names;
-      const currentPaternalSurname = (paternalSurname) ? paternalSurname : userFounded[0].paternal_surname;
+      const currentFirstSurname = (firstSurname) ? firstSurname : userFounded[0].first_surname;
       const insertQuery = `
         UPDATE "user"
         SET 
           names = $1,
-          paternal_surname = $2
+          first_surname = $2
         WHERE username = $3
         `;
-      const values = [currentNames, currentPaternalSurname, username];
+      const values = [currentNames, currentFirstSurname, username];
       await client.query(insertQuery, values);
       
-      if (maternalSurname) {
+      if (secondSurname) {
         const insertQuery = `
-          INSERT INTO "user_maternal_surname" (username, maternal_surname)
+          INSERT INTO "user_second_surname" (username, second_surname)
           VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET maternal_surname = EXCLUDED.maternal_surname
+          ON CONFLICT (username) DO UPDATE SET second_surname = EXCLUDED.second_surname
       `;
-        const values = [username, maternalSurname];
+        const values = [username, secondSurname];
         await client.query(insertQuery, values); 
       }
       
@@ -244,12 +244,12 @@ export async function viewUserPersonalInfo(username: string){
 
     const getQuery = `
       SELECT 
-        u.username, u.state, u.names, u.paternal_surname, upn.phone_number, umn.maternal_surname, 
+        u.username, u.state, u.names, u.first_surname, upn.phone_number, umn.second_surname, 
         rci.name AS residence_city_name, rc.name AS residence_country_name, uce.contact_email, 
         pp.profile_picture
       FROM "user" u
       LEFT JOIN "user_phone_number" upn ON u.username = upn.username
-      LEFT JOIN "user_maternal_surname" umn ON u.username = umn.username
+      LEFT JOIN "user_second_surname" umn ON u.username = umn.username
       LEFT JOIN "user_residence_city" urci ON u.username = urci.username
       LEFT JOIN "residence_city" rci ON urci.residence_city_id = rci.id
       LEFT JOIN "user_residence_country" urc ON u.username = urc.username
