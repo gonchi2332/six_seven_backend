@@ -74,14 +74,14 @@ async function processUserPersonalInfoAction(
           SELECT id FROM residence_city
           WHERE name = $1
         `;
-        const foundedCities = await processReturnQuery(checkQuery, [residenceCity]);
+        const { rows: foundedCities } = await client.query(checkQuery, [residenceCity]);
         if (foundedCities.length === 0) {
           const insertionQuery = `
             INSERT INTO "residence_city" (name)
             VALUES ($1)
             RETURNING id
           `;
-          const newCity = await processReturnQuery(insertionQuery, [residenceCity]);
+          const { rows: newCity } = await client.query(insertionQuery, [residenceCity]);
           residenceCityId = newCity[0].id;
         } else {
           residenceCityId = foundedCities[0].id;
@@ -100,14 +100,14 @@ async function processUserPersonalInfoAction(
           SELECT id FROM residence_country
           WHERE name = $1
         `;
-        const foundedCountries = await processReturnQuery(checkQuery, [residenceCountry]);
+        const { rows: foundedCountries } = await client.query(checkQuery, [residenceCountry]);
         if (foundedCountries.length === 0) {
           const insertionQuery = `
             INSERT INTO "residence_country" (name)
             VALUES ($1)
             RETURNING id
           `;
-          const newCountry = await processReturnQuery(insertionQuery, [residenceCountry]); 
+          const { rows: newCountry } = await client.query(insertionQuery, [residenceCountry]); 
           residenceCountryId = newCountry[0].id;
         } else {
           residenceCountryId = foundedCountries[0].id;
@@ -133,13 +133,13 @@ async function processUserPersonalInfoAction(
       const currentNames = (names) ? names : userFounded[0].names;
       const currentPaternalSurname = (paternalSurname) ? paternalSurname : userFounded[0].paternal_surname;
       const insertQuery = `
-        INSERT INTO "user" (username, names, paternal_surname)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (username) DO UPDATE SET 
-          names = EXCLUDED.names, 
-          paternal_surname = EXCLUDED.paternal_surname
+        UPDATE "user"
+        SET 
+          names = $1,
+          paternal_surname = $2
+        WHERE username = $3
         `;
-      const values = [username, currentNames, currentPaternalSurname];
+      const values = [currentNames, currentPaternalSurname, username];
       await client.query(insertQuery, values);
       
       if (maternalSurname) {
