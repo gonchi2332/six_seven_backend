@@ -15,13 +15,13 @@ async function processUserPersonalInfoAction(
       names = null,
       paternalSurname = null,
       maternalSurname = null, 
-      address = null,
+      residenceCity = null,
       residenceCountry = null, 
       contactEmail = null, 
     } = userPersonalInfo;
 
     let checkQuery = `
-      SELECT username FROM "user" 
+      SELECT names, paternal_surname FROM "user" 
       WHERE username = $1
     `;
     const userFounded = await processReturnQuery(checkQuery, [username]);
@@ -47,8 +47,7 @@ async function processUserPersonalInfoAction(
     }
     if ((names !== null && typeof names !== "string") || 
       (paternalSurname !== null && typeof paternalSurname !== "string") ||
-      (maternalSurname !== null && typeof maternalSurname !== "string") ||
-      (address !== null && typeof address !== "string")) {
+      (maternalSurname !== null && typeof maternalSurname !== "string")) {
       return {
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
@@ -62,20 +61,35 @@ async function processUserPersonalInfoAction(
       };
     }
 
-    const userId = userFounded[0].id;
-    checkQuery = `
-      SELECT names, paternal_surname, maternal_surname FROM "user_detail"
-      WHERE user_id = $1
-    `;
-
-    const userDetailFounded = await processReturnQuery(checkQuery, [userId]);
-    const currentNames = (!names) ? userDetailFounded[0].names : names;
-    const currentPaternalSurname = (!paternalSurname) ? userDetailFounded[0].paternal_surname : paternalSurname;
-    const currentMaternalSurname = (!maternalSurname) ? userDetailFounded[0].maternal_surname : maternalSurname;
-
     await processTransaction<unknown>(async function (client: PoolClient) {
+      let residenceCityId : number | undefined = undefined;
+      if (residenceCity) {
+        if (typeof residenceCity !== "string") {
+          return {
+            return: false,
+            messageState: `No se pudo ${actionLabel}r la informacion, ciudad de residencia invalida.`
+          };
+        }
+        checkQuery = `
+          SELECT id FROM residence_city
+          WHERE name = $1
+        `;
+        const foundedCities = await processReturnQuery(checkQuery, [residenceCity]);
+        if (foundedCities.length === 0) {
+          const insertionQuery = `
+            INSERT INTO "residence_city" (name)
+            VALUES ($1)
+            RETURNING id
+          `;
+          const newCity = await processReturnQuery(insertionQuery, [residenceCity]);
+          residenceCityId = newCity[0].id;
+        } else {
+          residenceCityId = foundedCities[0].id;
+        }
+      }
+
       let residenceCountryId : number | undefined = undefined;
-      if (residenceCountry !== null && typeof residenceCountryId !== "string") {
+      if (residenceCountry) {
         if (typeof residenceCountry !== "string") {
           return {
             return: false,
@@ -102,6 +116,11 @@ async function processUserPersonalInfoAction(
 
       let profilePictureId: number = 1;
       if (profilePicture) {
+        checkQuery = `
+          SELECT setval(pg_get_serial_sequence('"profile_picture"', 'id'),
+          (SELECT MAX(id) FROM "profile_picture"));
+        `;
+        await client.query(checkQuery);
         const insertQuery = `
           INSERT INTO "profile_picture" (profile_picture)
           VALUES ($1)
@@ -109,29 +128,79 @@ async function processUserPersonalInfoAction(
         `;
         const currentProfilePicture = await client.query(insertQuery, [profilePicture.buffer]);
         profilePictureId = currentProfilePicture.rows[0].id;
-        checkQuery = `
-          SELECT setval(pg_get_serial_sequence('"profile_picture"', 'id'),
-          (SELECT MAX(id) FROM "profile_picture"));
-        `;
-        await client.query(checkQuery);
       }
-  
-      const updateQuery = `
-        UPDATE "user_detail" 
-        SET 
-          phone = $1, 
-          names = $2,
-          paternal_surname = $3,
-          maternal_surname = $4, 
-          address = $5, 
-          residence_country_id = $6, 
-          contact_email = $7,
-          profile_picture_id = $8
-        WHERE user_id = $9
+
+      const currentNames = (names) ? names : userFounded[0].names;
+      const currentPaternalSurname = (paternalSurname) ? paternalSurname : userFounded[0].paternal_surname;
+      const insertQuery = `
+        INSERT INTO "user" (username, names, paternal_surname)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (username) DO UPDATE SET 
+          names = EXCLUDED.names, 
+          paternal_surname = EXCLUDED.paternal_surname
+        `;
+      const values = [username, currentNames, currentPaternalSurname];
+      await client.query(insertQuery, values);
+      
+      if (maternalSurname) {
+        const insertQuery = `
+          INSERT INTO "user_maternal_surname" (username, maternal_surname)
+          VALUES ($1, $2)
+          ON CONFLICT (username) DO UPDATE SET maternal_surname = EXCLUDED.maternal_surname
       `;
-      const values = [phone, currentNames, currentPaternalSurname, currentMaternalSurname, address, 
-        residenceCountryId, contactEmail, profilePictureId, userId];
-      await client.query(updateQuery, values);
+        const values = [username, maternalSurname];
+        await client.query(insertQuery, values); 
+      }
+      
+      if (phone) {
+        const insertQuery = `
+          INSERT INTO "user_phone_number" (username, phone_number)
+          VALUES ($1, $2)
+          ON CONFLICT (username) DO UPDATE SET phone_number = EXCLUDED.phone_number
+        `;
+        const values = [username, phone];
+        await client.query(insertQuery, values);
+      }
+
+      if (residenceCityId) {
+        const insertQuery = `
+          INSERT INTO "user_residence_city" (username, residence_city_id)
+            VALUES ($1, $2)
+            ON CONFLICT (username) DO UPDATE SET residence_city_id = EXCLUDED.residence_city_id
+        `;
+        const values = [username, residenceCityId];
+        await client.query(insertQuery, values);
+      }
+
+      if (residenceCountryId) {
+        const insertQuery = `
+          INSERT INTO "user_residence_country" (username, residence_country_id)
+          VALUES ($1, $2)
+          ON CONFLICT (username) DO UPDATE SET residence_country_id = EXCLUDED.residence_country_id
+      `;
+        const values = [username, residenceCountryId];
+        await client.query(insertQuery, values);
+      }
+
+      if (contactEmail) {
+        const insertQuery = `
+          INSERT INTO "user_contact_email" (username, contact_email)
+          VALUES ($1, $2)
+          ON CONFLICT (username) DO UPDATE SET contact_email = EXCLUDED.contact_email
+        `;
+        const values = [username, contactEmail];
+        await client.query(insertQuery, values);
+      }
+
+      if (profilePictureId !== 1) {
+        const insertQuery = `
+          INSERT INTO "user_profile_picture" (username, profile_picture_id)
+          VALUES ($1, $2)
+          ON CONFLICT (username) DO UPDATE SET profile_picture_id = EXCLUDED.profile_picture_id
+        `;
+        const values = [username, profilePictureId];
+        await client.query(insertQuery, values);
+      }
     });
     return {
       result: true,

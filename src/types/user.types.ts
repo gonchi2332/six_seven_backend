@@ -3,7 +3,7 @@ export interface UserPersonalInfo {
   names: string;
   paternalSurname: string;
   maternalSurname: string;
-  address: string;
+  residenceCity: string;
   residenceCountry: string;
   contactEmail: string;
 }
