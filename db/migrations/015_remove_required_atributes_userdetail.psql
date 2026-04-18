@@ -1,0 +1,15 @@
+-- This migration has the purpose of making the "names" and "paternal_surname" columns of the "user"
+-- table required (not null), since these attributes are required for the registration process and they are 
+-- not optional and delete definitively the same columns from the "user_detail" table.
+
+ALTER TABLE "user"
+ALTER COLUMN "names" SET NOT NULL;
+
+ALTER TABLE "user"
+ALTER COLUMN "paternal_surname" SET NOT NULL;
+
+ALTER TABLE "user_detail"
+DROP COLUMN IF EXISTS "names";
+
+ALTER TABLE "user_detail"
+DROP COLUMN IF EXISTS "paternal_surname";

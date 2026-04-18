@@ -1,0 +1,82 @@
+-- This migration has the purpose of creating new tables to store optional data of the user, dividing the
+-- "user_detail" table into several tables to make the database more normalized and organized.
+
+-- Create the "user_phone_number" table to store the phone numbers of the users, since a user can have a unique
+-- phone number and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "user_phone_number" (
+  "username" varchar(100) NOT NULL,
+  "phone_number" varchar(20) NOT NULL,
+  PRIMARY KEY ("username"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE
+);
+
+-- Create the "user_maternal_surname" table to store the maternal surname of the users, since a user can
+-- have a unique maternal surname and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "user_maternal_surname" (
+  "username" varchar(100) NOT NULL,
+  "maternal_surname" varchar(100) NOT NULL,
+  PRIMARY KEY ("username"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE
+);
+
+-- Create the "residence_city" table to store the cities of residence of the users, since a user can have 
+-- a unique city of residence and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "residence_city" (
+  "id" SERIAL PRIMARY KEY,
+  "city_name" varchar(100) NOT NULL
+);
+
+-- Create the "user_residence_city" table to store the city of the users, since a user can have a unique 
+-- city and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "user_residence_city" (
+  "username" varchar(100) NOT NULL,
+  "residence_city_id" int NOT NULL,
+  PRIMARY KEY ("username"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE,
+  FOREIGN KEY ("residence_city_id") REFERENCES "residence_city" ("id") ON DELETE CASCADE
+);
+
+
+-- Create the "user_residence_country" table to store the country of the users, since a user can have a 
+-- unique country and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "user_residence_country" (
+  "username" varchar(100) NOT NULL,
+  "residence_country_id" int NOT NULL,
+  PRIMARY KEY ("username"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE,
+  FOREIGN KEY ("residence_country_id") REFERENCES "residence_country" ("id") ON DELETE CASCADE
+);
+
+-- Create the "user_contact_email" table to store the contact email of the users, since a user can have 
+-- a unique contact email and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "user_contact_email" (
+  "username" varchar(100) NOT NULL,
+  "contact_email" varchar(200) NOT NULL,
+  PRIMARY KEY ("username"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE
+);
+
+-- Create the "user_profile_picture" table to store the profile picture of the users, since a user can have
+-- a unique profile picture and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "user_profile_picture" (
+  "username" varchar(100) NOT NULL,
+  "profile_picture_id" int NOT NULL,
+  PRIMARY KEY ("username"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE,
+  FOREIGN KEY ("profile_picture_id") REFERENCES "profile_picture" ("id") ON DELETE CASCADE
+);
+
+-- Add the "user_registration_email" table to store the registration email of the users, since a user can 
+-- have a unique secondary registration email and it is not required for the registration process.
+CREATE TABLE IF NOT EXISTS "user_registration_email" (
+  "username" varchar(100) NOT NULL,
+  "registration_email" varchar(200) NOT NULL,
+  PRIMARY KEY ("username"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE
+);
+
+-- Add the "main_registration_email" columns to the "user" table to store the main registration email of 
+-- the users, since a user can have more than one registration email and it is required for the 
+-- registration process.
+ALTER TABLE "user"
+ADD COLUMN IF NOT EXISTS "main_registration_email" varchar(200) NOT NULL DEFAULT 'undefined';
