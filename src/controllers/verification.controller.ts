@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
+import * as TokenTypes from "../types/token.types";
 import * as VerificationService from "../services/verification.service";
 
 export async function sendMailVerification(req: Request, res: Response) {
   try {
-    const { username, targetMail } = req.query;
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { targetMail } = req.query;
   
     if (!username || typeof username !== "string") {
       return res.status(400).json({
@@ -46,7 +48,8 @@ export async function sendMailVerification(req: Request, res: Response) {
 
 export async function compareMailCode(req: Request, res: Response) {
   try {
-    const { username, currentCode } = req.query;
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { currentCode } = req.query;
 
     if (!username || typeof username !== "string") {
       return res.status(400).json({
