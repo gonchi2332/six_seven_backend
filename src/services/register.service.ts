@@ -160,6 +160,18 @@ export async function updateUserPersonalInfo(
 
 export async function viewUserPersonalInfo(username: string){
   try {
+    const checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1
+    `;
+    const userFounded = await processReturnQuery(checkQuery, [username]);
+    if (userFounded.length === 0) {
+      return { 
+        result: false, 
+        messageState: "Usuario no encontrado." 
+      };
+    }
+
     const getQuery = `
       SELECT 
         u.username, u.state, u.names, u.paternal_surname, upn.phone_number, umn.maternal_surname, 
