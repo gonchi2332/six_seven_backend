@@ -18,6 +18,7 @@ async function processUserPersonalInfoAction(
       residenceCity = null,
       residenceCountry = null, 
       contactEmail = null, 
+      secondaryRegistrationEmail = null
     } = userPersonalInfo;
 
     let checkQuery = `
@@ -58,6 +59,12 @@ async function processUserPersonalInfoAction(
       return { 
         result: false, 
         messageState: `No se pudo ${actionLabel}r la informacion, correo de contacto invalido.` 
+      };
+    }
+    if (secondaryRegistrationEmail !== null && !emailRegex.test(secondaryRegistrationEmail)) {
+      return { 
+        result: false, 
+        messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido.` 
       };
     }
 
@@ -192,6 +199,16 @@ async function processUserPersonalInfoAction(
         await client.query(insertQuery, values);
       }
 
+      if (secondaryRegistrationEmail) {
+        const insertQuery = `
+          INSERT INTO "user_registration_email" (username, registration_email)
+          VALUES ($1, $2)
+          ON CONFLICT (username) DO UPDATE SET registration_email = EXCLUDED.registration_email
+        `;
+        const values = [username, secondaryRegistrationEmail];
+        await client.query(insertQuery, values);
+      }
+
       if (profilePictureId !== 1) {
         const insertQuery = `
           INSERT INTO "user_profile_picture" (username, profile_picture_id)
@@ -246,7 +263,7 @@ export async function viewUserPersonalInfo(username: string){
       SELECT 
         u.username, u.state, u.names, u.first_surname, upn.phone_number, umn.second_surname, 
         rci.name AS residence_city_name, rc.name AS residence_country_name, uce.contact_email, 
-        pp.profile_picture
+        ure.registration_email, pp.profile_picture
       FROM "user" u
       LEFT JOIN "user_phone_number" upn ON u.username = upn.username
       LEFT JOIN "user_second_surname" umn ON u.username = umn.username
@@ -255,6 +272,7 @@ export async function viewUserPersonalInfo(username: string){
       LEFT JOIN "user_residence_country" urc ON u.username = urc.username
       LEFT JOIN "residence_country" rc ON urc.residence_country_id = rc.id
       LEFT JOIN "user_contact_email" uce ON u.username = uce.username
+      LEFT JOIN "user_registration_email" ure ON u.username = ure.username
       LEFT JOIN "user_profile_picture" upp ON u.username = upp.username
       LEFT JOIN "profile_picture" pp ON upp.profile_picture_id = pp.id
       WHERE u.username = $1
