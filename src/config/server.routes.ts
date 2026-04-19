@@ -12,9 +12,9 @@ router.get("/health", (req: Request, res: Response) => {
   });
 });
 
-router.use("/api/v1/auth", AuthRoutes);
-router.use("/api/v1/register", RegisterRoutes);
-router.use("/api/v1/verification", VerificationRoutes);
+router.use("/api/v2/auth", AuthRoutes);
+router.use("/api/v2/register", RegisterRoutes);
+router.use("/api/v2/verification", VerificationRoutes);
 
 router.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Ruta no encontrada..." });
