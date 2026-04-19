@@ -6,4 +6,5 @@ export interface UserPersonalInfo {
   residenceCity: string;
   residenceCountry: string;
   contactEmail: string;
+  secondaryRegistrationEmail: string;
 }
