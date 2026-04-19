@@ -25,4 +25,11 @@ router.patch(
   SkillController.modifyHardSkill
 );
 
+router.delete(
+  "/users/hard-skills",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  SkillController.deleteHardSkill
+);
+
 export default router;

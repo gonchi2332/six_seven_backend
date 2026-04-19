@@ -92,7 +92,7 @@ export async function registerUserHardSkill(username: string, skillName: string,
     });
     return {
       result: true,
-      messageState: `Habilidad tecnica de ${username} registrada correctamente`
+      messageState: `Habilidad tecnica de ${username} registrada correctamente.`
     };
   } catch (err) {
     return {
@@ -149,18 +149,76 @@ export async function modifyUserHardSkill(username: string, skillName: string, n
     }
 
     const updateQuery = `
-     UPDATE "user_skill"
-     SET punctuation = $1
-     WHERE username = $2 AND skill_id = (
-       SELECT id FROM "skill"
-       WHERE name = $3)
+      UPDATE "user_skill" us
+      SET punctuation = $1
+      FROM "skill" s
+      WHERE us.skill_id = s.id AND us.username = $2 AND s.name = $3
    `;
     const queryValues = [newPunctuation, username, skillName];
     await processReturnQuery(updateQuery, queryValues);
 
     return {
       result: true,
-      messageState: `Habilidad tecnica de ${username} modificada correctamente`
+      messageState: `Habilidad tecnica de ${username} modificada correctamente.`
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error en el servidor: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function deleteUserHardSkill(username: string, skillName: string) {
+  try {
+    let checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1 
+    `;
+    const foundedUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundedUsers.length === 0) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    checkQuery = `
+      SELECT id FROM "skill"
+      WHERE name = $1
+    `;
+    const foundedSkills = await processReturnQuery(checkQuery, [skillName]);
+    if (foundedSkills.length === 0) {
+      return {
+        result: false,
+        messageState: "La habilidad tecnica que se desea eliminar no existe."
+      };
+    }
+
+    checkQuery = `
+      SELECT * FROM "user_skill" us
+      JOIN "skill" s ON us.skill_id = s.id
+      WHERE us.username = $1 AND s.name = $2
+    `;
+    const values = [username, skillName];
+    const foundedUserSkills = await processReturnQuery(checkQuery, values);
+    if (foundedUserSkills.length === 0) {
+      return {
+        result: false,
+        messageState: "La habilidad tecnica a modificar no esta asociada a este usuario."
+      };
+    }
+
+    const deleteQuery = `
+      DELETE FROM "user_skill" us
+      USING "skill" s
+      WHERE us.skill_id = s.id AND us.username = $1 AND s.name = $2
+    `;
+    await processReturnQuery(deleteQuery, values);
+
+    return {
+      result: true,
+      messageState: `Habilidad tecnica de ${username} eliminada correctamente.`
     };
   } catch (err) {
     return {

@@ -140,3 +140,41 @@ export async function modifyHardSkill(req: Request, res: Response) {
     });
   }
 }
+
+export async function deleteHardSkill(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { skillName } = req.body;
+
+    if (!username || typeof username !== "string" ||
+      !skillName || typeof skillName !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Nombre de usuario o de habilidad incompletos o invalidos."
+      });
+    }
+    if (skillName.length === 0 || skillName.length > 50) {
+      return res.status(400).json({
+        success: false,
+        message: "El nombre de habilidad supera el limite de caracteres o es invalido."
+      });
+    }
+
+    const { result, messageState } = await SkillService.deleteUserHardSkill(username, skillName);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Habilidad tecnica eliminada correctamente."
+    }); 
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error en el servidor ${(err as Error).message}`
+    });
+  }
+}
