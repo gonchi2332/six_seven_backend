@@ -18,4 +18,11 @@ router.post(
   SkillController.registerHardSkill
 );
 
+router.patch(
+  "/users/hard-skills",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  SkillController.modifyHardSkill
+);
+
 export default router;
