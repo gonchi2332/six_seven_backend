@@ -12,10 +12,9 @@ export interface RegistrationResult {
   user: {
     username: string;
     state: VerificationState;
-  };
-  userDetail: {
     names: string;
-    paternal_surname: string;
+    first_surname: string;
+    main_registration_email: string;
   };
 }
 
