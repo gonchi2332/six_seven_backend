@@ -172,8 +172,8 @@ async function processUserPersonalInfoAction(
       if (residenceCityId) {
         const insertQuery = `
           INSERT INTO "user_residence_city" (username, residence_city_id)
-            VALUES ($1, $2)
-            ON CONFLICT (username) DO UPDATE SET residence_city_id = EXCLUDED.residence_city_id
+          VALUES ($1, $2)
+          ON CONFLICT (username) DO UPDATE SET residence_city_id = EXCLUDED.residence_city_id
         `;
         const values = [username, residenceCityId];
         await client.query(insertQuery, values);

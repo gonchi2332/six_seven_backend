@@ -11,4 +11,11 @@ router.get(
   SkillController.viewHardSkills
 );
 
+router.post(
+  "/users/hard-skills",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  SkillController.registerHardSkill
+);
+
 export default router;
