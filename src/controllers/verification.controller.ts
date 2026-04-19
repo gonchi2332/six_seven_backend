@@ -5,7 +5,6 @@ import * as VerificationService from "../services/verification.service";
 export async function sendMailVerification(req: Request, res: Response) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
-    const { targetMail } = req.query;
   
     if (!username || typeof username !== "string") {
       return res.status(400).json({
@@ -13,21 +12,8 @@ export async function sendMailVerification(req: Request, res: Response) {
         message: "Nombre de usuario invalido."
       });
     }
-    if (!targetMail || typeof targetMail !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Error al enviar codigo de verificacion, correo electronico invalido."
-      });
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(targetMail)) {
-      return res.status(400).json({
-        success: false,
-        message: "Formato de correo electronico invalido."
-      });
-    }
 
-    const { result, messageState } = await VerificationService.sendMailVerificationCode(username, targetMail);
+    const { result, messageState, email } = await VerificationService.sendMailVerificationCode(username);
     if (!result) {
       return res.status(400).json({
         success: false,
@@ -36,7 +22,7 @@ export async function sendMailVerification(req: Request, res: Response) {
     }
     return res.status(200).json({
       success: true,
-      message: `Codigo de verificacion enviado correctamente a ${targetMail}`
+      message: `Codigo de verificacion enviado correctamente a ${email}`
     });
   } catch (err) {
     return res.status(500).json({
