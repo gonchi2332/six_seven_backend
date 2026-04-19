@@ -6,7 +6,19 @@ import * as TokenTypes from "../types/token.types";
 
 export async function sendMailVerificationCode(username: string, targetMail: string) {
   try {
-    const checkQuery = `
+    let checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1
+    `;
+    const foundedUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundedUsers.length === 0) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    checkQuery = `
       SELECT * FROM "verification_mail_code"
       WHERE username = $1 AND expires_at > now()
     `;
@@ -61,7 +73,19 @@ export async function sendMailVerificationCode(username: string, targetMail: str
 
 export async function compareVerificationMailCodes(username: string, currentCode: string) {
   try {
-    const checkQuery = `
+    let checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1
+    `;
+    const foundedUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundedUsers.length === 0) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    checkQuery = `
       SELECT * FROM "verification_mail_code"
       WHERE username = $1 AND expires_at > now()
     `;
