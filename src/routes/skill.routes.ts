@@ -6,8 +6,8 @@ const router = Router();
 
 router.get(
   "/users/hard-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
+  //Authorization.tokenAuthorization,
+  //Authorization.onlyVerifiedUsers,
   SkillController.viewHardSkills
 );
 
