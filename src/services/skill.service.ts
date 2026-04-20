@@ -228,22 +228,22 @@ export async function deleteUserHardSkill(username: string, skillName: string) {
   }
 }
 
-async function getOrCreateSkillId(skillName: string, client?: PoolClient): Promise<number> {
-  const selectQuery = `SELECT id FROM "skill" WHERE name = $1 AND type = 'soft'`;
+async function getOrCreateSkillId(skillName: string): Promise<number> {
+  const selectQuery = "SELECT id FROM \"skill\" WHERE name = $1 AND type = 'soft'";
   const skills = await processReturnQuery(selectQuery, [skillName]);
   
   if (skills.length > 0) {
     return skills[0].id;
   }
   
-  const insertQuery = `INSERT INTO "skill" (name, type) VALUES ($1, 'soft') RETURNING id`;
+  const insertQuery = "INSERT INTO \"skill\" (name, type) VALUES ($1, 'soft') RETURNING id";
   const newSkill = await processReturnQuery(insertQuery, [skillName]);
   return newSkill[0].id;
 }
 
 export async function viewUserSoftSkills(username: string) {
   try {
-    const checkUser = await processReturnQuery(`SELECT username FROM "user" WHERE username = $1`, [username]);
+    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
     if (checkUser.length === 0) return {
       result: false,
       messageState: "El usuario no existe."
@@ -279,12 +279,12 @@ export async function viewUserSoftSkills(username: string) {
 
 export async function registerUserSoftSkill(username: string, skillName: string) {
   try {
-    const checkUser = await processReturnQuery(`SELECT username FROM "user" WHERE username = $1`, [username]);
+    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
     if (checkUser.length === 0) return { result: false, messageState: "El usuario no existe." };
 
     const softSkillId = await getOrCreateSkillId(skillName);
 
-    const checkQuery = `SELECT * FROM "user_skill" WHERE username = $1 AND skill_id = $2`;
+    const checkQuery = "SELECT * FROM \"user_skill\" WHERE username = $1 AND skill_id = $2";
     const foundedUserSkill = await processReturnQuery(checkQuery, [username, softSkillId]);
     
     if (foundedUserSkill.length > 0) {
@@ -294,7 +294,7 @@ export async function registerUserSoftSkill(username: string, skillName: string)
       };
     }
 
-    const insertQuery = `INSERT INTO "user_skill" (skill_id, username) VALUES ($1, $2)`;
+    const insertQuery = "INSERT INTO \"user_skill\" (skill_id, username) VALUES ($1, $2)";
     await processReturnQuery(insertQuery, [softSkillId, username]);
 
     return {
