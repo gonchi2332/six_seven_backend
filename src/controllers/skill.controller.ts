@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import * as TokenTypes from "../types/token.types";
 import * as SkillService from "../services/skill.service";
 
+const latinAlphabetRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+
 export async function viewHardSkills(req: Request, res: Response) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
@@ -175,6 +177,74 @@ export async function deleteHardSkill(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       message: `Error en el servidor ${(err as Error).message}`
+    });
+  }
+}
+
+export async function viewSoftSkills(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+
+    if (!username || typeof username !== "string") {
+      return res.status(400).json({
+        success: false, message: "Nombre de usuario inválido."
+      });
+    }
+
+    const { result, messageState, skills } = await SkillService.viewUserSoftSkills(username);
+    if (!result) {
+      return res.status(400).json({
+        success: false, message: messageState
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: messageState,
+      softSkills: skills || []
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false, message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
+
+export async function registerSoftSkill(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { skillName } = req.body;
+
+    if (!skillName || typeof skillName !== "string" || skillName.trim().length === 0) {
+      return res.status(400).json({
+        success: false, message: "El campo nombre de la habilidad es obligatorio."
+      });
+    }
+    
+    if (skillName.length > 50) {
+      return res.status(400).json({
+        success: false, message: "El máximo es 50 caracteres"
+      });
+    }
+
+    if (!latinAlphabetRegex.test(skillName)) {
+      return res.status(400).json({
+        success: false, message: "Solo se permite caracteres"
+      });
+    }
+
+    const { result, messageState } = await SkillService.registerUserSoftSkill(username, skillName.trim());
+    if (!result) {
+      return res.status(400).json({
+        success: false, message: messageState
+      });
+    }
+    return res.status(201).json({
+      success: true, message: messageState
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false, message: `Error en el servidor: ${(err as Error).message}`
     });
   }
 }
