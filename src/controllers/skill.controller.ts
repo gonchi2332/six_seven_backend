@@ -213,7 +213,7 @@ export async function viewSoftSkills(req: Request, res: Response) {
 export async function registerSoftSkill(req: Request, res: Response) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
-    const { skillName } = req.body;
+    let { skillName } = req.body;
 
     if (!skillName || typeof skillName !== "string" || skillName.trim().length === 0) {
       return res.status(400).json({
