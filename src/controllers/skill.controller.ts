@@ -221,6 +221,7 @@ export async function registerSoftSkill(req: Request, res: Response) {
       });
     }
     
+    skillName = skillName.trim();
     if (skillName.length > 50) {
       return res.status(400).json({
         success: false, message: "El máximo es 50 caracteres"

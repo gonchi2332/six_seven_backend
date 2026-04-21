@@ -228,7 +228,40 @@ export async function deleteUserHardSkill(username: string, skillName: string) {
   }
 }
 
+export async function registerUserSoftSkill(username: string, skillName: string) {
+  try {
+    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
+    if (checkUser.length === 0) return { result: false, messageState: "El usuario no existe." };
+
+    const softSkillId = await getOrCreateSkillId(skillName);
+
+    const checkQuery = "SELECT * FROM \"user_skill\" WHERE username = $1 AND skill_id = $2";
+    const foundedUserSkill = await processReturnQuery(checkQuery, [username, softSkillId]);
+    
+    if (foundedUserSkill.length > 0) {
+      return {
+        result: false,
+        messageState: "El usuario ya tiene registrada esta habilidad blanda."
+      };
+    }
+
+    const insertQuery = "INSERT INTO \"user_skill\" (skill_id, username) VALUES ($1, $2)";
+    await processReturnQuery(insertQuery, [softSkillId, username]);
+
+    return {
+      result: true,
+      messageState: "La habilidad es agregada a la lista de habilidades blandas."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error en el servidor: ${(err as Error).message}`
+    };
+  }
+}
+
 async function getOrCreateSkillId(skillName: string): Promise<number> {
+  skillName = skillName.toLowerCase();
   const selectQuery = "SELECT id FROM \"skill\" WHERE name = $1 AND type = 'soft'";
   const skills = await processReturnQuery(selectQuery, [skillName]);
   
@@ -268,38 +301,6 @@ export async function viewUserSoftSkills(username: string) {
       result: true,
       messageState: `Habilidades blandas de ${username} obtenidas correctamente.`,
       skills: userSkills
-    };
-  } catch (err) {
-    return {
-      result: false,
-      messageState: `Error en el servidor: ${(err as Error).message}`
-    };
-  }
-}
-
-export async function registerUserSoftSkill(username: string, skillName: string) {
-  try {
-    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
-    if (checkUser.length === 0) return { result: false, messageState: "El usuario no existe." };
-
-    const softSkillId = await getOrCreateSkillId(skillName);
-
-    const checkQuery = "SELECT * FROM \"user_skill\" WHERE username = $1 AND skill_id = $2";
-    const foundedUserSkill = await processReturnQuery(checkQuery, [username, softSkillId]);
-    
-    if (foundedUserSkill.length > 0) {
-      return {
-        result: false,
-        messageState: "El usuario ya tiene registrada esta habilidad blanda."
-      };
-    }
-
-    const insertQuery = "INSERT INTO \"user_skill\" (skill_id, username) VALUES ($1, $2)";
-    await processReturnQuery(insertQuery, [softSkillId, username]);
-
-    return {
-      result: true,
-      messageState: "La habilidad es agregada a la lista de habilidades blandas."
     };
   } catch (err) {
     return {

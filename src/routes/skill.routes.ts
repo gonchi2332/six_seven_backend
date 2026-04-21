@@ -34,8 +34,8 @@ router.delete(
 
 router.get(
   "/users/soft-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
+  //Authorization.tokenAuthorization,
+  //Authorization.onlyVerifiedUsers,
   SkillController.viewSoftSkills
 );
 
