@@ -230,7 +230,7 @@ export async function registerSoftSkill(req: Request, res: Response) {
 
     if (!latinAlphabetRegex.test(skillName)) {
       return res.status(400).json({
-        success: false, message: "Solo se permite caracteres"
+        success: false, message: "Solo se permite caracteres del alfabeto latino"
       });
     }
 
