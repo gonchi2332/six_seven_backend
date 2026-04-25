@@ -32,10 +32,10 @@ router.delete(
   SkillController.deleteHardSkill
 );
 
+// SOFT SKILLS
+
 router.get(
-  "/users/soft-skills",
-  //Authorization.tokenAuthorization,
-  //Authorization.onlyVerifiedUsers,
+  "/users/:username/soft-skills",
   SkillController.viewSoftSkills
 );
 
@@ -44,6 +44,20 @@ router.post(
   Authorization.tokenAuthorization,
   Authorization.onlyVerifiedUsers,
   SkillController.registerSoftSkill
+);
+
+router.patch(
+  "/users/soft-skills",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  SkillController.modifySoftSkill
+);
+
+router.delete(
+  "/users/soft-skills",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  SkillController.deleteSoftSkill
 );
 
 export default router;
