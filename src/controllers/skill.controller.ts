@@ -4,7 +4,7 @@ import * as SkillService from "../services/skill.service";
 
 export async function viewHardSkills(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
+    const { username } = req.user as TokenTypes.TokenPayload || req.query;
 
 
     if (!username || typeof username !== "string") {

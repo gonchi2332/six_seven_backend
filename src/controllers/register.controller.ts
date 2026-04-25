@@ -82,7 +82,7 @@ export async function updatePersonalInfo(req: Request, res: Response) {
 
 export async function viewPersonalInfo(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
+    const { username } = req.user as TokenTypes.TokenPayload || req.params;
 
     if (!username || typeof username !== "string") {
       return res.status(400).json({
