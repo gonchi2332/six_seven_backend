@@ -1,0 +1,32 @@
+-- This migration has the purpose of migrating all the optional data from the "user_detail" table to the 
+--new tables created in the previous migration, populating the new tables with the existing data.
+
+-- Populate the "user_phone_number" table:
+INSERT INTO "user_phone_number" ("username", "phone_number")
+SELECT "username", "phone"
+FROM "user_detail"
+WHERE "phone" IS NOT NULL AND "phone" <> '';
+
+-- Populate the "user_maternal_surname" table:
+INSERT INTO "user_maternal_surname" ("username", "maternal_surname")
+SELECT "username", "maternal_surname"
+FROM "user_detail"
+WHERE "maternal_surname" IS NOT NULL AND "maternal_surname" <> '';
+
+-- Populate the "user_residence_country" table:
+INSERT INTO "user_residence_country" ("username", "residence_country_id")
+SELECT "username", "residence_country_id"
+FROM "user_detail"
+WHERE "residence_country_id" IS NOT NULL;
+
+-- Populate the "user_contact_email" table:
+INSERT INTO "user_contact_email" ("username", "contact_email")
+SELECT "username", "contact_email"
+FROM "user_detail"
+WHERE "contact_email" IS NOT NULL AND "contact_email" <> '';
+
+-- Populate the "user_profile_picture" table:
+INSERT INTO "user_profile_picture" ("username", "profile_picture_id")
+SELECT "username", "profile_picture_id"
+FROM "user_detail"
+WHERE "profile_picture_id" IS NOT NULL;

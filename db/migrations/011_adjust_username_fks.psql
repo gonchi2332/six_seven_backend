@@ -1,0 +1,43 @@
+-- This migration has the purpose of adjusting the foreign keys that reference the "user" table to use the 
+-- "username" column instead of the "user_id" column. This is done to improve the readability of the 
+-- database and to make it easier to query the data.
+
+ALTER TABLE "user_detail"
+ADD CONSTRAINT "fk_user_detail_user" 
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "project"
+ADD CONSTRAINT "fk_project_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "laboral_experience"
+ADD CONSTRAINT "fk_laboral_experience_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;  
+
+ALTER TABLE "academic_training"
+ADD CONSTRAINT "fk_academic_training_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "certificate"
+ADD CONSTRAINT "fk_certificate_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "session_report_user"
+ADD CONSTRAINT "fk_session_report_user_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "user_skill"
+ADD CONSTRAINT "fk_user_skill_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "user_language_level"
+ADD CONSTRAINT "fk_user_language_level_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "user_platform"
+ADD CONSTRAINT "fk_user_platform_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;
+
+ALTER TABLE "password_reset_code"
+ADD CONSTRAINT "fk_password_reset_code_user"
+FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE;

@@ -1,0 +1,9 @@
+-- This migration has the purpose of populatiing the new "names" and "paternal_surname" columns that were
+-- added in the previous migration copying the values from the "name" and "paternal_surname" columns coming from the 
+-- "user_detail" table originally.
+
+UPDATE "user" u
+SET "names" = ud."names",
+    "paternal_surname" = ud."paternal_surname"
+FROM "user_detail" ud
+WHERE u."username" = ud."username";
