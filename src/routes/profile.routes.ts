@@ -7,7 +7,7 @@ const router = Router();
 router.get(
   "/users/public-link", 
   Authorization.tokenAuthorization, 
-  //Authorization.onlyVerifiedUsers,
+  Authorization.onlyVerifiedUsers,
   ProfileController.getOrCreatePublicLink,
 );
 
