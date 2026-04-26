@@ -4,6 +4,39 @@ import { generateCode, generateHTMLMail } from "../utils/generate";
 import { processReturnQuery } from "../utils/processQuery";
 import * as TokenTypes from "../types/token.types";
 
+export async function getUserMail(username: string) {
+  try {
+    const checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1
+    `;
+    const foundUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundUsers.length === 0) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    const emailQuery = `
+      SELECT main_registration_email FROM "user"
+      WHERE username = $1
+    `;
+    const emailRes = await processReturnQuery(emailQuery, [username]);
+    const targetMail = emailRes[0].main_registration_email;
+    return {
+      result: true,
+      messageState: "Correo electronico del usuario recuperado.",
+      email: targetMail
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}
+
 export async function sendMailVerificationCode(username: string) {
   try {
     let checkQuery = `
