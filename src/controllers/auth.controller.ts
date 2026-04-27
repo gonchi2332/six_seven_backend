@@ -113,21 +113,37 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
     const { username } = req.query;
 
     if (!username || typeof username !== "string") {
-      res.status(400).json({ error: "El nombre de usuario es obligatorio." });
+      res.status(400).json({ 
+        success: false,
+        message: "El nombre de usuario es obligatorio." 
+      });
       return;
     }
 
-    const response = await AuthService.forgotPasswordService(username);
-    res.status(200).json(response);
+    const { result, messageState, emails } = await AuthService.forgotPasswordService(username);
+    if (!result) {
+      res.status(400).json({
+        success: false,
+        message: messageState,
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Contraseña recuperada.",
+      verificationMails: emails
+    });
 
   } catch (err) {
     if ((err as Error).name === "NotFoundError") {
-      res.status(404).json({ error: (err as Error).message });
+      res.status(404).json({ 
+        success: false,
+        message: `Contraseña no recuoerada: ${(err as Error).message}` 
+      });
       return;
     }
     res.status(500).json({ 
+      success: false,
       message: `Error en forgotPassword: ${(err as Error).message}`,
-      error: "Error interno del servidor." 
     });
   }
 }
