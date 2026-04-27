@@ -214,6 +214,7 @@ export async function forgotPasswordService(username: string) {
     return {
       result: true,
       messageState: "Código de recuperación enviado exitosamente.",
+      emails: [mainRegistrationEmail, secondaryRegistrationEmail]
     };
   } catch (err) {
     if ((err as Error).name === "NotFoundError") throw err;
