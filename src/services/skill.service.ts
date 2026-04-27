@@ -241,8 +241,6 @@ export async function registerUserSoftSkill(username: string, skillName: string)
 }
 
 async function getOrCreateSkillId(skillName: string): Promise<number> {
-  skillName = skillName.toLowerCase();
-  skillName = skillName.charAt(0).toUpperCase() + skillName.slice(1);
   const selectQuery = "SELECT id FROM \"skill\" WHERE name = $1 AND type = 'soft'";
   const skills = await processReturnQuery(selectQuery, [skillName]);
 
