@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
 import { processReturnQuery, processTransaction } from "../utils/processQuery";
+import * as SkillTypes from "../types/skill.types";
 
 export async function viewUserHardSkills(username: string) {
   try {
@@ -7,8 +8,8 @@ export async function viewUserHardSkills(username: string) {
      SELECT username FROM "user"
      WHERE username = $1
    `;
-    const foundedUsers = await processReturnQuery(checkQuery, [username]);
-    if (foundedUsers.length === 0) {
+    const foundUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundUsers.length === 0) {
       return {
         result: false,
         messageState: "El usuario no existe."
@@ -46,8 +47,8 @@ export async function registerUserHardSkill(username: string, skillName: string,
      SELECT username FROM "user"
      WHERE username = $1
    `;
-    const foundedUsers = await processReturnQuery(checkQuery, [username]);
-    if (foundedUsers.length === 0) {
+    const foundUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundUsers.length === 0) {
       return {
         result: false,
         messageState: "El usuario no existe."
@@ -58,12 +59,15 @@ export async function registerUserHardSkill(username: string, skillName: string,
      SELECT id FROM "skill"
      WHERE name = $1
    `;
-    const foundedSkills = await processReturnQuery(checkQuery, [skillName]);
-    if (foundedSkills.length === 0) {
-      return {
-        result: false,
-        messageState: "La habilidad tecnica que se trata de insertar no existe."
-      };
+    let foundSkills = await processReturnQuery(checkQuery, [skillName]);
+    if (foundSkills.length === 0) {
+      const insertQuery = `
+        INSERT INTO "skill" (name, type)
+        VALUES ($1, $2)
+        RETURNING id
+      `;
+      const values = [skillName, SkillTypes.SkillType.HARDSKILL];
+      foundSkills = await processReturnQuery(insertQuery, values);
     }
 
     checkQuery = `
@@ -72,15 +76,15 @@ export async function registerUserHardSkill(username: string, skillName: string,
      WHERE us.username = $1 AND s.name = $2
    `;
     const values = [username, skillName];
-    const foundedUserSkill = await processReturnQuery(checkQuery, values);
-    if (foundedUserSkill.length > 0) {
+    const foundUserSkill = await processReturnQuery(checkQuery, values);
+    if (foundUserSkill.length > 0) {
       return {
         result: false,
         messageState: "La habilidad tecnica a insertar con su puntuacion ya existe."
       };
     }
 
-    const hardSkillId = foundedSkills[0].id;
+    const hardSkillId = foundSkills[0].id;
 
     await processTransaction<unknown>(async function (client: PoolClient) {
       const insertQuery = `
@@ -108,23 +112,11 @@ export async function modifyUserHardSkill(username: string, skillName: string, n
      SELECT username FROM "user"
      WHERE username = $1
    `;
-    const foundedUsers = await processReturnQuery(checkQuery, [username]);
-    if (foundedUsers.length === 0) {
+    const foundUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundUsers.length === 0) {
       return {
         result: false,
         messageState: "El usuario no existe."
-      };
-    }
-
-    checkQuery = `
-     SELECT id FROM "skill"
-     WHERE name = $1
-   `;
-    const foundedSkills = await processReturnQuery(checkQuery, [skillName]);
-    if (foundedSkills.length === 0) {
-      return {
-        result: false,
-        messageState: "La habilidad tecnica que se trata de modificar no existe."
       };
     }
 
@@ -134,14 +126,14 @@ export async function modifyUserHardSkill(username: string, skillName: string, n
      WHERE us.username = $1 AND s.name = $2
    `;
     const values = [username, skillName];
-    const foundedUserSkill = await processReturnQuery(checkQuery, values);
-    if (foundedUserSkill.length === 0) {
+    const foundUserSkill = await processReturnQuery(checkQuery, values);
+    if (foundUserSkill.length === 0) {
       return {
         result: false,
         messageState: "La habilidad tecnica a modificar no esta asociada a este usuario."
       };
     }
-    if (foundedUserSkill[0].punctuation === newPunctuation) {
+    if (foundUserSkill[0].punctuation === newPunctuation) {
       return {
         result: false,
         messageState: "No se puede modificar la habilidad tecnica asociada, el valor de puntuacion es el mismo."
@@ -175,23 +167,11 @@ export async function deleteUserHardSkill(username: string, skillName: string) {
       SELECT username FROM "user"
       WHERE username = $1 
     `;
-    const foundedUsers = await processReturnQuery(checkQuery, [username]);
-    if (foundedUsers.length === 0) {
+    const foundUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundUsers.length === 0) {
       return {
         result: false,
         messageState: "El usuario no existe."
-      };
-    }
-
-    checkQuery = `
-      SELECT id FROM "skill"
-      WHERE name = $1
-    `;
-    const foundedSkills = await processReturnQuery(checkQuery, [skillName]);
-    if (foundedSkills.length === 0) {
-      return {
-        result: false,
-        messageState: "La habilidad tecnica que se desea eliminar no existe."
       };
     }
 
@@ -201,11 +181,11 @@ export async function deleteUserHardSkill(username: string, skillName: string) {
       WHERE us.username = $1 AND s.name = $2
     `;
     const values = [username, skillName];
-    const foundedUserSkills = await processReturnQuery(checkQuery, values);
-    if (foundedUserSkills.length === 0) {
+    const foundUserSkills = await processReturnQuery(checkQuery, values);
+    if (foundUserSkills.length === 0) {
       return {
         result: false,
-        messageState: "La habilidad tecnica a modificar no esta asociada a este usuario."
+        messageState: "La habilidad tecnica a eliminar no esta asociada a este usuario."
       };
     }
 
@@ -236,9 +216,9 @@ export async function registerUserSoftSkill(username: string, skillName: string)
     const softSkillId = await getOrCreateSkillId(skillName);
 
     const checkQuery = "SELECT * FROM \"user_skill\" WHERE username = $1 AND skill_id = $2";
-    const foundedUserSkill = await processReturnQuery(checkQuery, [username, softSkillId]);
-    
-    if (foundedUserSkill.length > 0) {
+    const foundUserSkill = await processReturnQuery(checkQuery, [username, softSkillId]);
+
+    if (foundUserSkill.length > 0) {
       return {
         result: false,
         messageState: "El usuario ya tiene registrada esta habilidad blanda."
@@ -261,15 +241,13 @@ export async function registerUserSoftSkill(username: string, skillName: string)
 }
 
 async function getOrCreateSkillId(skillName: string): Promise<number> {
-  skillName = skillName.toLowerCase();
-  skillName = skillName.charAt(0).toUpperCase() + skillName.slice(1);
   const selectQuery = "SELECT id FROM \"skill\" WHERE name = $1 AND type = 'soft'";
   const skills = await processReturnQuery(selectQuery, [skillName]);
-  
+
   if (skills.length > 0) {
     return skills[0].id;
   }
-  
+
   const insertQuery = "INSERT INTO \"skill\" (name, type) VALUES ($1, 'soft') RETURNING id";
   const newSkill = await processReturnQuery(insertQuery, [skillName]);
   return newSkill[0].id;
@@ -289,7 +267,7 @@ export async function viewUserSoftSkills(username: string) {
       WHERE us.username = $1 AND s.type = 'soft'
     `;
     const userSkills = await processReturnQuery(skillQuery, [username]);
-    
+
     if (userSkills.length === 0) {
       return {
         result: true,
@@ -318,7 +296,7 @@ export async function modifyUserSoftSkill(username: string, oldSkillName: string
       JOIN "skill" s ON us.skill_id = s.id
       WHERE us.username = $1 AND s.name = $2 AND s.type = 'soft'
     `, [username, oldSkillName]);
-    
+
     if (oldSkillCheck.length === 0) {
       return {
         result: false,
@@ -332,9 +310,10 @@ export async function modifyUserSoftSkill(username: string, oldSkillName: string
     const alreadyHasNew = await processReturnQuery(`
       SELECT * FROM "user_skill" WHERE username = $1 AND skill_id = $2
     `, [username, newSkillId]);
-    
+
     if (alreadyHasNew.length > 0 && oldSkillId !== newSkillId) {
-      return {result: false,
+      return {
+        result: false,
         messageState: "El usuario ya posee la habilidad a la que intenta cambiar."
       };
     }
@@ -351,7 +330,8 @@ export async function modifyUserSoftSkill(username: string, oldSkillName: string
       messageState: "Habilidad modificada correctamente"
     };
   } catch (err) {
-    return {result: false,
+    return {
+      result: false,
       messageState: `Error en el servidor: ${(err as Error).message}`
     };
   }
