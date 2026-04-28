@@ -1,0 +1,6 @@
+-- This migration has the purpose of renaming the paternal_surname and maternal_surname columns to 
+-- first_surname and second_surname, respectively, in the "user" table. 
+-- Additionally, it will rename the "user_maternal_surname" table to "user_second_surname".
+
+ALTER TABLE "user"
+ADD COLUMN IF NOT EXISTS "is_new" BOOLEAN DEFAULT TRUE;

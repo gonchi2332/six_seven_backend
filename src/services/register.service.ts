@@ -14,31 +14,43 @@ async function processUserPersonalInfoAction(
       phone = null,
       names = null,
       firstSurname = null,
-      secondSurname = null, 
+      secondSurname = null,
       residenceCity = null,
-      residenceCountry = null, 
-      contactEmail = null, 
+      residenceCountry = null,
+      contactEmail = null,
       secondaryRegistrationEmail = null
     } = userPersonalInfo;
 
     let checkQuery = `
-      SELECT names, first_surname FROM "user" 
+      SELECT names, first_surname, is_new FROM "user" 
       WHERE username = $1
     `;
     const userFounded = await processReturnQuery(checkQuery, [username]);
 
     if (userFounded.length === 0) {
-      return { 
-        result: false, 
-        messageState: "Usuario no encontrado." 
+      return {
+        result: false,
+        messageState: "Usuario no encontrado."
       };
     }
     if (userFounded.length > 1) {
-      return { 
-        result: false, 
-        messageState: "Existen muchos usuarios con la misma identificacion." 
+      return {
+        result: false,
+        messageState: "Existen muchos usuarios con la misma identificacion."
       };
     }
+
+    const isNew = userFounded[0].is_new;
+    if (isNew) {
+      const updateQuery = `
+          update "user" 
+          SET is_new = FALSE
+          where username = $1
+        `;
+      const values = [username];
+      await processReturnQuery(updateQuery, values);
+    }
+
     const phoneRegex = /^\+?[-\d\s()]{7,15}$/;
     if (phone !== null && !phoneRegex.test(phone)) {
       return {
@@ -46,7 +58,7 @@ async function processUserPersonalInfoAction(
         messageState: `No se pudo ${actionLabel}r la informacion, numero de telefono invalido.`
       };
     }
-    if ((names !== null && typeof names !== "string") || 
+    if ((names !== null && typeof names !== "string") ||
       (firstSurname !== null && typeof firstSurname !== "string") ||
       (secondSurname !== null && typeof secondSurname !== "string")) {
       return {
@@ -56,20 +68,20 @@ async function processUserPersonalInfoAction(
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (contactEmail !== null && !emailRegex.test(contactEmail)) {
-      return { 
-        result: false, 
-        messageState: `No se pudo ${actionLabel}r la informacion, correo de contacto invalido.` 
+      return {
+        result: false,
+        messageState: `No se pudo ${actionLabel}r la informacion, correo de contacto invalido.`
       };
     }
     if (secondaryRegistrationEmail !== null && !emailRegex.test(secondaryRegistrationEmail)) {
-      return { 
-        result: false, 
-        messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido.` 
+      return {
+        result: false,
+        messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido.`
       };
     }
 
     await processTransaction<unknown>(async function (client: PoolClient) {
-      let residenceCityId : number | undefined = undefined;
+      let residenceCityId: number | undefined = undefined;
       if (residenceCity) {
         if (typeof residenceCity !== "string") {
           return {
@@ -95,7 +107,7 @@ async function processUserPersonalInfoAction(
         }
       }
 
-      let residenceCountryId : number | undefined = undefined;
+      let residenceCountryId: number | undefined = undefined;
       if (residenceCountry) {
         if (typeof residenceCountry !== "string") {
           return {
@@ -114,7 +126,7 @@ async function processUserPersonalInfoAction(
             VALUES ($1)
             RETURNING id
           `;
-          const { rows: newCountry } = await client.query(insertionQuery, [residenceCountry]); 
+          const { rows: newCountry } = await client.query(insertionQuery, [residenceCountry]);
           residenceCountryId = newCountry[0].id;
         } else {
           residenceCountryId = foundedCountries[0].id;
@@ -148,7 +160,7 @@ async function processUserPersonalInfoAction(
         `;
       const values = [currentNames, currentFirstSurname, username];
       await client.query(insertQuery, values);
-      
+
       if (secondSurname) {
         const insertQuery = `
           INSERT INTO "user_second_surname" (username, second_surname)
@@ -156,9 +168,9 @@ async function processUserPersonalInfoAction(
           ON CONFLICT (username) DO UPDATE SET second_surname = EXCLUDED.second_surname
       `;
         const values = [username, secondSurname];
-        await client.query(insertQuery, values); 
+        await client.query(insertQuery, values);
       }
-      
+
       if (phone) {
         const insertQuery = `
           INSERT INTO "user_phone_number" (username, phone_number)
@@ -232,20 +244,20 @@ async function processUserPersonalInfoAction(
 }
 
 export async function registerUserPersonalInfo(
-  username: string, 
+  username: string,
   userPersonalInfo: UserTypes.UserPersonalInfo,
   profilePicture: Express.Multer.File | null) {
   return processUserPersonalInfoAction(username, userPersonalInfo, profilePicture, "registra");
 }
 
 export async function updateUserPersonalInfo(
-  username: string, 
+  username: string,
   userPersonalInfo: UserTypes.UserPersonalInfo,
   profilePicture: Express.Multer.File | null) {
   return processUserPersonalInfoAction(username, userPersonalInfo, profilePicture, "actualiza");
 }
 
-export async function viewUserPersonalInfo(username: string){
+export async function viewUserPersonalInfo(username: string) {
   try {
     const checkQuery = `
       SELECT username FROM "user"
@@ -253,15 +265,15 @@ export async function viewUserPersonalInfo(username: string){
     `;
     const userFounded = await processReturnQuery(checkQuery, [username]);
     if (userFounded.length === 0) {
-      return { 
-        result: false, 
-        messageState: "Usuario no encontrado." 
+      return {
+        result: false,
+        messageState: "Usuario no encontrado."
       };
     }
 
     const getQuery = `
       SELECT 
-        u.username, u.state, u.names, u.first_surname, upn.phone_number, umn.second_surname, 
+        u.username, u.is_new, u.state, u.names, u.first_surname, upn.phone_number, umn.second_surname, 
         rci.name AS residence_city_name, rc.name AS residence_country_name, uce.contact_email, 
         ure.registration_email, pp.profile_picture
       FROM "user" u
