@@ -3,7 +3,7 @@ import * as AuthService from "../services/auth.service";
 
 export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
-    const { username, password, names, firstSurname, mainRegistrationEmail } = req.body;
+    const { username, password, names, firstSurname, secondSurname, mainRegistrationEmail } = req.body;
 
     if (!username || typeof username !== "string" ||
       !password || typeof password !== "string" ||
@@ -11,6 +11,10 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       !firstSurname || typeof firstSurname !== "string" ||
       !mainRegistrationEmail || typeof mainRegistrationEmail !== "string") {
       res.status(400).json({ error: "Faltan campos obligatorios." });
+      return;
+    }
+    if (secondSurname !== undefined && typeof secondSurname !== "string") {
+      res.status(400).json({ error: "El segundo apellido debe ser un texto válido." });
       return;
     }
     if (password.length < 8) {
@@ -23,7 +27,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const { user, token } = await AuthService.registerUserService(username, password, names, firstSurname, mainRegistrationEmail);
+    const { user, token } = await AuthService.registerUserService(username, password, names, firstSurname, secondSurname, mainRegistrationEmail);
 
     res.status(201).json({
       user,
