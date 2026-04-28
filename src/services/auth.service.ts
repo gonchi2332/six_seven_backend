@@ -11,6 +11,7 @@ export async function registerUserService(
   password: string,
   names: string,
   firstSurname: string,
+  secondSurname: string | undefined,
   mainRegistrationEmail: string
 ) {
   if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
@@ -55,6 +56,14 @@ export async function registerUserService(
       VALUES ($1, 1);
     `;
     await client.query(userQuery, [username]);
+
+    if (secondSurname && secondSurname.trim() !== "") {
+      const surnameQuery = `
+        INSERT INTO "user_second_surname" (username, second_surname)
+        VALUES ($1, $2);
+      `;
+      await client.query(surnameQuery, [username, secondSurname.trim()]);
+    }
 
     return {
       user: newUser
