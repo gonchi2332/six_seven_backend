@@ -6,5 +6,5 @@ export async function userExists(username: string) {
      WHERE username = $1
   `;
   const foundUsers = await processReturnQuery(checkQuery, [username]);
-  return (foundUsers.length === 0);
+  return !(foundUsers.length === 0);
 }
