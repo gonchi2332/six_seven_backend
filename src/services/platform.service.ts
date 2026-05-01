@@ -1,4 +1,4 @@
-import { processReturnQuery } from "../utils/processQuery";
+import { processReturnQuery } from "../utils/query";
 
 export async function saveUserLinkedin(username: string, linkedinUsername: string) {
   try {

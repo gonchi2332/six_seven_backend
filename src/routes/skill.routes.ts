@@ -46,13 +46,6 @@ router.post(
   SkillController.registerSoftSkill
 );
 
-router.patch(
-  "/users/soft-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
-  SkillController.modifySoftSkill
-);
-
 router.delete(
   "/users/soft-skills",
   Authorization.tokenAuthorization,
