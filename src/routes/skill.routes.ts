@@ -35,7 +35,7 @@ router.delete(
 // SOFT SKILLS
 
 router.get(
-  "/users/:username/soft-skills",
+  "/users/soft-skills",
   SkillController.viewSoftSkills
 );
 

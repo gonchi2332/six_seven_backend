@@ -2,11 +2,20 @@ import { processReturnQuery } from "../utils/query";
 import * as SkillTypes from "../types/skill.types";
 
 export async function getAllUserSkills(username: string, skillType: SkillTypes.SkillType) {
-  const skillQuery = `
-    SELECT s.name, us.punctuation FROM "user_skill" us
-    JOIN "skill" s ON us.skill_id = s.id
-    WHERE us.username = $1 AND s.type = $2
-  `;
+  let skillQuery;
+  if (skillType === "hard") {
+    skillQuery = `
+      SELECT s.name, us.punctuation FROM "user_skill" us
+      JOIN "skill" s ON us.skill_id = s.id
+      WHERE us.username = $1 AND s.type = $2
+    `;
+  } else {
+    skillQuery = `
+      SELECT s.name FROM "user_skill" us
+      JOIN "skill" s ON us.skill_id = s.id
+      WHERE us.username = $1 AND s.type = $2
+    `;
+  }
   const userSkills = await processReturnQuery(skillQuery, [username, skillType]);
   return userSkills;
 }
