@@ -1,7 +1,105 @@
 import { Request, Response } from "express";
+import { profanity, uniqueWords } from "../config/leoprofanity.config";
+import { containsBadWord } from "../utils/validations";
+import { getSkillTypeData } from "../helpers/skill.helper";
+import * as MeasureConstants from "../utils/constants/measure.constants";
 import * as RegexConstants from "../utils/constants/regex.constants"; 
 import * as TokenTypes from "../types/token.types";
 import * as SkillService from "../services/skill.service";
+
+async function registerNewSkill(
+  req: Request, 
+  res: Response,
+  skillType: "hard" | "soft",
+  punctuation?: number) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { skillName } = req.body;
+
+    if (!username || typeof username !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Nombre de usuario faltante o invalido."
+      });
+    }
+
+    const skillTypeData = getSkillTypeData(skillType);
+
+    const formatedSkillName = skillTypeData.formater(skillName);
+    if (!formatedSkillName || typeof formatedSkillName !== "string" ||
+      formatedSkillName.length === 0 || formatedSkillName.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "El nombre de habilidad supera el limite de caracteres o es invalido."
+      });
+    }
+    if (profanity.check(formatedSkillName) || containsBadWord(formatedSkillName, uniqueWords)) {
+      return res.status(400).json({
+        success: false,
+        message: "El nombre de la habilidad es inapropiado."
+      });
+    }
+    const resultSkillNames = (await skillTypeData.fuse).search(formatedSkillName);
+    let correctedSkillName;
+    if (resultSkillNames.length === 0 || !resultSkillNames[0].score ||
+      resultSkillNames[0].score > MeasureConstants.fuseThreshold) {
+      correctedSkillName = formatedSkillName; 
+    }
+    correctedSkillName = resultSkillNames[0].item;
+
+    let ans;
+    if (skillType === "hard") {
+      if (!punctuation || typeof punctuation !== "number") {
+        return res.status(400).json({
+          success: false,
+          message: "Puntuacion invalida o fuera de rango."
+        });
+      }
+      if (punctuation < 0 || punctuation > 50) {
+        return res.status(400).json({
+          success: false,
+          message: "Puntuacion fuera de rango, la puntuacion debe ser un numero entre 1 y 5."
+        });
+      }
+      ans = await SkillService.registerNewUserHardSkill(username, correctedSkillName, punctuation);
+    } else {
+      if (!RegexConstants.latinAlphabetRegex.test(skillName)) {
+        return res.status(400).json({
+          success: false,
+          message: "Solo se permite caracteres del alfabeto latino."
+        });
+      }
+      ans = await SkillService.registerNewUserSoftSkill(username, formatedSkillName);
+    }
+
+    const { result, messageState } = ans;
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    return res.status(201).json({
+      success: true,
+      message: `La habilidad ${skillTypeData.pluralWord}: ${skillName} se ha registrado correctamente.`
+    });
+
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error en el servidor: ${(err as Error).message}`
+    });
+  } 
+}
+
+export async function registerNewHardSkill(req: Request, res: Response) {
+  const { punctuation } = req.body;
+  return await registerNewSkill(req, res, "hard", punctuation);
+}
+
+export async function registerNewSoftSkill(req: Request, res: Response) {
+  return await registerNewSkill(req, res, "soft");
+}
 
 async function registerSkill(
   req: Request, 
@@ -18,13 +116,17 @@ async function registerSkill(
         message: "Nombre de usuario faltante o invalidos."
       });
     }
+    
+    const skillTypeData = getSkillTypeData(skillType);
+
     if (!skillName || typeof skillName !== "string" || 
-      skillName.trim().length === 0 || skillName.length > 50) {
+      skillName.length === 0 || skillName.length > 50) {
       return res.status(400).json({
         success: false,
         message: "El nombre de habilidad supera el limite de caracteres o es invalido."
       });
-    } 
+    }
+
     let ans;
     if (skillType === "hard") {
       if (!punctuation || typeof punctuation !== "number") {
@@ -39,7 +141,7 @@ async function registerSkill(
           message: "Puntuacion fuera de rango, la puntuacion debe ser un numero entre 1 y 5."
         });
       }
-      ans = await SkillService.registerUserHardSkill(username, skillName.trim(), punctuation);
+      ans = await SkillService.registerUserHardSkill(username, skillName, punctuation);
     } else {
       if (!RegexConstants.latinAlphabetRegex.test(skillName)) {
         return res.status(400).json({
@@ -47,11 +149,10 @@ async function registerSkill(
           message: "Solo se permite caracteres del alfabeto latino."
         });
       }
-      ans = await SkillService.registerUserSoftSkill(username, skillName.trim());
+      ans = await SkillService.registerUserSoftSkill(username, skillName);
     }
 
     const { result, messageState } = ans;
-    const skillTypeWord = (skillType === "hard") ? "tecnica" : "blanda";
     if (!result) {
       return res.status(400).json({
         success: false,
@@ -60,7 +161,7 @@ async function registerSkill(
     }
     return res.status(201).json({
       success: true,
-      message: `La habilidad ${skillTypeWord}: ${skillName} se ha registrado correctamente.`
+      message: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha registrado correctamente.`
     });
   } catch (err) {
     return res.status(500).json({

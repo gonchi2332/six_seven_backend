@@ -31,23 +31,30 @@ export async function getUserSkill(username: string, skillName: string, skillTyp
   return foundUserSkill;
 }
 
-export async function getOrCreateSkillId(skillName: string, skillType: SkillTypes.SkillType) {
+export async function getSkill(skillName: string, skillType: SkillTypes.SkillType) {
   const selectQuery = `
     SELECT id FROM "skill" 
-    WHERE name = $1 AND type = $2
+    WHERE type = $1 AND canon_name = $2
   `;
-  const values = [skillName, skillType];
-  const skills = await processReturnQuery(selectQuery, values);
+  const values = [skillType, skillName.toLowerCase()];
+  const foundSkill = await processReturnQuery(selectQuery, values);
+  return foundSkill;
 
-  if (skills.length > 0) {
-    return skills[0].id;
-  }
+  //const insertQuery = `
+  //  INSERT INTO "skill" (name, type, canon_name)
+  //  VALUES ($1, $2, $3) 
+  //  RETURNING id
+  //`;
+  //values = [skillName, skillType, skillName.toLowerCase()];
+  //const newSkill = await processReturnQuery(insertQuery, values);
+  //return newSkill[0].id;
+}
 
-  const insertQuery = `
-    INSERT INTO "skill" (name, type)
-    VALUES ($1, 'soft') 
-    RETURNING id
+export async function getSkillsCanonName(skillType: SkillTypes.SkillType) {
+  const selectQuery = `
+    SELECT canon_name FROM "skill"
+    WHERE type = $1
   `;
-  const newSkill = await processReturnQuery(insertQuery, [skillName]);
-  return newSkill[0].id;
+  const skills = await processReturnQuery(selectQuery, [skillType]);
+  return skills;
 }

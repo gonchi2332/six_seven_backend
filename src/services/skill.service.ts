@@ -1,10 +1,57 @@
-import * as SkillTypes from "../types/skill.types";
 import { getSkillTypeData } from "../helpers/skill.helper";
-import * as Getters from "../helpers/selects.helper";
-import * as Insertions from "../helpers/inserts.helper";
+import * as SkillTypes from "../types/skill.types";
+import * as Selects from "../helpers/selects.helper";
+import * as Inserts from "../helpers/inserts.helper";
 import * as Updates from "../helpers/updates.helper";
-import * as Deletions from "../helpers/deletes.helper";
+import * as Deletes from "../helpers/deletes.helper";
 import * as Assertions from "../helpers/assertions.helper";
+
+async function registerNewUserSkill(
+  username: string,
+  skillName: string,
+  type: "hard" | "soft",
+  punctuation?: number) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    const skillTypeData = getSkillTypeData(type);
+
+    const foundSkill = await Selects.getSkill(skillName, skillTypeData.enum);
+    if (!foundSkill || foundSkill.length === 0) {
+      
+    }
+
+    const skillId = foundSkill[0].id;
+    if (type === "hard") {
+      await Inserts.createUserSkill(skillId, username, punctuation);
+    } else {
+      await Inserts.createUserSkill(skillId, username);
+    }
+    return {
+      result: true,
+      messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} existe y se ha registrado correctamente.`
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error en el servidor: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function registerNewUserHardSkill(username: string, skillName: string, punctuation: number) {
+  return await registerNewUserSkill(username, skillName, "hard", punctuation);
+}
+
+export async function registerNewUserSoftSkill(username: string, skillName: string) {
+  return await registerNewUserSkill(username, skillName, "soft");
+}
 
 async function registerUserSkill(
   username: string, 
@@ -21,19 +68,28 @@ async function registerUserSkill(
     }
 
     const skillTypeData = getSkillTypeData(type);
-    const foundUserSkill = await Getters.getUserSkill(username, skillName, skillTypeData.enum);
+
+    const foundSkill = await Selects.getSkill(skillName, skillTypeData.enum);
+    if (!foundSkill || foundSkill.length === 0) {
+      return {
+        result: false,
+        messageState: `La habilidad ${skillTypeData.singleWord} que se intenta registrar no existe.`
+      };
+    }
+
+    const foundUserSkill = await Selects.getUserSkill(username, skillName, skillTypeData.enum);
     if (foundUserSkill.length > 0) {
       return {
         result: false,
         messageState: `El usuario ya tiene registrada esta habilidad ${skillTypeData.singleWord}.`
       };
     }
-
-    const skillId = await Getters.getOrCreateSkillId(skillName, skillTypeData.enum);
+    
+    const skillId = foundSkill[0].id;
     if (type === "hard") {
-      await Insertions.createUserSkill(skillId, username, punctuation);
+      await Inserts.createUserSkill(skillId, username, punctuation);
     } else {
-      await Insertions.createUserSkill(skillId, username);
+      await Inserts.createUserSkill(skillId, username);
     }
     return {
       result: true,
@@ -66,7 +122,7 @@ async function viewUserSkills(username: string, type: "hard" | "soft") {
     }
 
     const skillTypeData = getSkillTypeData(type);
-    const userSkills = await Getters.getAllUserSkills(username, skillTypeData.enum);
+    const userSkills = await Selects.getAllUserSkills(username, skillTypeData.enum);
     if (userSkills.length === 0) {
       return {
         result: true,
@@ -104,7 +160,7 @@ export async function modifyUserHardSkill(username: string, skillName: string, n
       };
     }
 
-    const foundUserSkill = await Getters.getUserSkill(username, skillName, SkillTypes.SkillType.HARDSKILL);
+    const foundUserSkill = await Selects.getUserSkill(username, skillName, SkillTypes.SkillType.HARDSKILL);
     if (foundUserSkill.length === 0) {
       return {
         result: false,
@@ -142,7 +198,7 @@ async function deleteUserSkill(username: string, skillName: string, type: "hard"
     }
 
     const skillTypeData = getSkillTypeData(type);
-    const deletedSkill = await Deletions.deleteUserSkill(username, skillName, skillTypeData.enum);
+    const deletedSkill = await Deletes.deleteUserSkill(username, skillName, skillTypeData.enum);
     if (deletedSkill.length === 0) {
       return {
         result: false,
