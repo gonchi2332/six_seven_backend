@@ -4,9 +4,54 @@ import { generateCode, generateHTMLMail } from "../utils/generate";
 import { processReturnQuery } from "../utils/processQuery";
 import * as TokenTypes from "../types/token.types";
 
-export async function sendMailVerificationCode(username: string, targetMail: string) {
+export async function getUserMail(username: string) {
   try {
     const checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1
+    `;
+    const foundUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundUsers.length === 0) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    const emailQuery = `
+      SELECT main_registration_email FROM "user"
+      WHERE username = $1
+    `;
+    const emailRes = await processReturnQuery(emailQuery, [username]);
+    const targetMail = emailRes[0].main_registration_email;
+    return {
+      result: true,
+      messageState: "Correo electronico del usuario recuperado.",
+      email: targetMail
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function sendMailVerificationCode(username: string) {
+  try {
+    let checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1
+    `;
+    const foundedUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundedUsers.length === 0) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    checkQuery = `
       SELECT * FROM "verification_mail_code"
       WHERE username = $1 AND expires_at > now()
     `;
@@ -41,15 +86,34 @@ export async function sendMailVerificationCode(username: string, targetMail: str
       await processReturnQuery(insertQuery, values);
     }
 
+    const emailQuery = `
+      SELECT main_registration_email FROM "user"
+      WHERE username = $1
+    `;
+    const emailRes = await processReturnQuery(emailQuery, [username]);
+    const targetMail = emailRes[0].main_registration_email;
+    const targetMails = [targetMail];
+
+    const secondaryEmailQuery = `
+      SELECT registration_email FROM "user_registration_email"
+      WHERE username = $1
+    `;
+    const secondaryRegistrationEmail = await processReturnQuery(secondaryEmailQuery, [username]);
+    if (secondaryRegistrationEmail.length === 1) {
+      const secondaryTargetMail = secondaryRegistrationEmail[0].registration_email;
+      targetMails.push(secondaryTargetMail);
+    }
+
     await transporter.sendMail({
-      from: env.SEND_USER + " <no-reply:" + env.SEND_EMAIL_USER + ">",
-      to: targetMail,
+      from: env.SEND_USER + " <no-reply@" + env.SEND_EMAIL_USER + ">",
+      to: targetMails.join(","),
       subject: "Verificacion de cuenta nueva - Portafolio Web",
       html: generateHTMLMail(username, targetMail, code)
     });
     return {
       result: true,
-      messageState: "Codigo de verificacion enviado."
+      messageState: "Codigo de verificacion enviado.",
+      email: targetMail
     };
   } catch (err) {
     return {
@@ -61,7 +125,19 @@ export async function sendMailVerificationCode(username: string, targetMail: str
 
 export async function compareVerificationMailCodes(username: string, currentCode: string) {
   try {
-    const checkQuery = `
+    let checkQuery = `
+      SELECT username FROM "user"
+      WHERE username = $1
+    `;
+    const foundedUsers = await processReturnQuery(checkQuery, [username]);
+    if (foundedUsers.length === 0) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    checkQuery = `
       SELECT * FROM "verification_mail_code"
       WHERE username = $1 AND expires_at > now()
     `;

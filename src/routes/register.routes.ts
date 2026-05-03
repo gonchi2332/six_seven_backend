@@ -24,8 +24,8 @@ router.put(
 );
 router.get(
   "/users/personal-info", 
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
+  //Authorization.tokenAuthorization,
+  //Authorization.onlyVerifiedUsers,
   RegisterPersonalInfoController.viewPersonalInfo
 );
 

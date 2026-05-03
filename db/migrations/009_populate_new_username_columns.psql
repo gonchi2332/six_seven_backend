@@ -1,0 +1,52 @@
+-- This migration has the purpose of adding values to the new "username" columns that were added in the
+-- previous migration. This is done by joining the tables with the "user" table using the "user_id" column,
+
+UPDATE "user_detail" ud
+SET "username" = u."username"
+FROM "user" u
+WHERE ud."user_id" = u."id";
+
+UPDATE "project" p
+SET "username" = u."username"
+FROM "user" u
+WHERE p."user_id" = u."id";
+
+UPDATE "laboral_experience" le
+SET "username" = u."username"
+FROM "user" u
+WHERE le."user_id" = u."id";
+
+UPDATE "academic_training" act
+SET "username" = u."username"
+FROM "user" u
+WHERE act."user_id" = u."id";
+
+UPDATE "certificate" c
+SET "username" = u."username"
+FROM "user" u
+WHERE c."user_id" = u."id";
+
+UPDATE "session_report_user" sru
+SET "username" = u."username"
+FROM "user" u
+WHERE sru."user_id" = u."id";
+
+UPDATE "user_skill" us
+SET "username" = u."username"
+FROM "user" u
+WHERE us."user_id" = u."id";
+
+UPDATE "user_language_level" ull
+SET "username" = u."username"
+FROM "user" u
+WHERE ull."user_id" = u."id";
+
+UPDATE "user_platform" up
+SET "username" = u."username"
+FROM "user" u
+WHERE up."user_id" = u."id";
+
+UPDATE "password_reset_code" prc
+SET "username" = u."username"
+FROM "user" u
+WHERE prc."user_id" = u."id";

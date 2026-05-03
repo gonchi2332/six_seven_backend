@@ -1,0 +1,32 @@
+-- This migration has the purpose of adding the "username" column to all the tables that reference the 
+-- "user" table.
+
+ALTER TABLE "user_detail"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "project"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "laboral_experience"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "academic_training"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "certificate"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "session_report_user"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "user_skill"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "user_language_level"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "user_platform"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);
+
+ALTER TABLE "password_reset_code"
+ADD COLUMN IF NOT EXISTS "username" varchar(100);

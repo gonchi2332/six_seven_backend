@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS "verification_mail_code" (
   ON DELETE CASCADE
 );
 
-CREATE INDEX "idx_verification_mail_code" ON "verification_mail_code" ("username", "code");
+CREATE INDEX IF NOT EXISTS "idx_verification_mail_code" ON "verification_mail_code" ("username", "code");

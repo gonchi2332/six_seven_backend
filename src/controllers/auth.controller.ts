@@ -3,21 +3,31 @@ import * as AuthService from "../services/auth.service";
 
 export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
-    const { username, password, names, paternalSurname, maternalSurname } = req.body;
+    const { username, password, names, firstSurname, secondSurname, mainRegistrationEmail } = req.body;
 
     if (!username || typeof username !== "string" ||
       !password || typeof password !== "string" ||
       !names || typeof names !== "string" ||
-      !paternalSurname || typeof paternalSurname !== "string") {
+      !firstSurname || typeof firstSurname !== "string" ||
+      !mainRegistrationEmail || typeof mainRegistrationEmail !== "string") {
       res.status(400).json({ error: "Faltan campos obligatorios." });
+      return;
+    }
+    if (secondSurname !== undefined && typeof secondSurname !== "string") {
+      res.status(400).json({ error: "El segundo apellido debe ser un texto válido." });
       return;
     }
     if (password.length < 8) {
       res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
       return;
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(mainRegistrationEmail)) {
+      res.status(400).json({ error: "Formato de correo electronico invalido."});
+      return;
+    }
 
-    const { user, token } = await AuthService.registerUserService(username, password, names, paternalSurname, maternalSurname);
+    const { user, token } = await AuthService.registerUserService(username, password, names, firstSurname, secondSurname, mainRegistrationEmail);
 
     res.status(201).json({
       user,
@@ -104,33 +114,40 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
 
 export async function forgotPassword(req: Request, res: Response): Promise<void> {
   try {
-    const { username, email } = req.body;
+    const { username } = req.query;
 
-    if (!username || typeof username !== "string" || !email || typeof email !== "string") {
-      res.status(400).json({ error: "El nombre de usuario y el correo son obligatorios." });
+    if (!username || typeof username !== "string") {
+      res.status(400).json({ 
+        success: false,
+        message: "El nombre de usuario es obligatorio." 
+      });
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    const { result, messageState, emails } = await AuthService.forgotPasswordService(username);
+    if (!result) {
       res.status(400).json({
         success: false,
-        message: "Formato de correo electronico invalido."
+        message: messageState,
       });
-      return ;
     }
+    res.status(200).json({
+      success: true,
+      message: "Contraseña recuperada.",
+      verificationMails: emails
+    });
 
-    const response = await AuthService.forgotPasswordService(username, email);
-    res.status(200).json(response);
-
-  } catch (error: any) {
-    if (error.name === "NotFoundError") {
-      res.status(404).json({ error: error.message });
+  } catch (err) {
+    if ((err as Error).name === "NotFoundError") {
+      res.status(404).json({ 
+        success: false,
+        message: `Contraseña no recuoerada: ${(err as Error).message}` 
+      });
       return;
     }
     res.status(500).json({ 
-      message: `Error en forgotPassword: ${error.message}`,
-      error: "Error interno del servidor." 
+      success: false,
+      message: `Error en forgotPassword: ${(err as Error).message}`,
     });
   }
 }
@@ -155,10 +172,10 @@ export async function verifyResetCode(req: Request, res: Response): Promise<void
       success: true,
       message: "Código verificado correctamente." 
     });
-  } catch (error: any) {
+  } catch (err) {
     res.status(500).json({ 
       success: false, 
-      message: `Error interno del servidor: ${(error as Error).message}` 
+      message: `Error interno del servidor: ${(err as Error).message}` 
     });
   }
 }
