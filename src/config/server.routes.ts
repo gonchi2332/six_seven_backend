@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import RegisterRoutes from "../routes/register.routes";
 import AuthRoutes from "../routes/auth.routes";
 import VerificationRoutes from "../routes/verification.routes";
+import UserSkillRoutes from "../routes/userskill.routes";
 import SkillRoutes from "../routes/skill.routes";
 import PlatformRoutes from "../routes/platform.routes";
 import ProfileRoutes from "../routes/profile.routes";
@@ -19,6 +20,7 @@ router.use("/api/v2/auth", AuthRoutes);
 router.use("/api/v2/register", RegisterRoutes);
 router.use("/api/v2/verification", VerificationRoutes);
 router.use("/api/v1/profile", ProfileRoutes);
+router.use("/api/v1/skills", UserSkillRoutes);
 router.use("/api/v1/skills", SkillRoutes);
 router.use("/api/v1/platforms", PlatformRoutes);
 
