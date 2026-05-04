@@ -1,7 +1,8 @@
 import { env } from "../config/env.config";
 import { transporter } from "../config/nodemailer.config";
-import { generateCode, generateHTMLMail } from "../utils/generate";
-import { processReturnQuery } from "../utils/processQuery";
+import { generateCode } from "../utils/generate";
+import { generateHTMLMail } from "../helpers/mailer.helper";
+import { processReturnQuery } from "../utils/query";
 import * as TokenTypes from "../types/token.types";
 
 export async function getUserMail(username: string) {
