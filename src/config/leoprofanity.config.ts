@@ -9,8 +9,9 @@ const spanishBadWords = fs.readFileSync(path.join(__dirname, "../resources/ESP.t
 const mexicanBadWords = fs.readFileSync(path.join(__dirname, "../resources/MEX.txt"), "utf-8");
 const argentinianBadWords = fs.readFileSync(path.join(__dirname, "../resources/ARG.txt"), "utf-8");
 const bolivianBadWords = fs.readFileSync(path.join(__dirname, "../resources/BOL.txt"), "utf-8");
+const englishBadWords = fs.readFileSync(path.join(__dirname, "../resources/ENG.txt"), "utf-8");
 
-const batchBadWords = [spanishBadWords, mexicanBadWords, argentinianBadWords, bolivianBadWords];
+const batchBadWords = [spanishBadWords, mexicanBadWords, argentinianBadWords, bolivianBadWords, englishBadWords];
 
 let words: string[] = [];
 for (const badWords of batchBadWords) {

@@ -27,9 +27,12 @@ export function formatHardSkillName(skillName: string) {
     .toLowerCase()
     .replace(/\s+/g, " ")
     .replace(/[^\w\sáéíóúñ+#.]/gi, "");
-  //.replace(/^\w/, (c) => c.toUpperCase());
 }
 
 export function formatSoftSkillName(skillName: string) {
-  return skillName;
+  return skillName
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[^\wáéíóúüñÁÉÍÓÚÜÑ\s]/gi, "");
 }

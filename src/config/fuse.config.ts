@@ -5,7 +5,7 @@ import * as SkillTypes from "../types/skill.types";
 
 export async function getFuse(skillType: SkillTypes.SkillType) {
   try{
-    const skills = await Selects.getSkillsCanonName(skillType);
+    const skills = await Selects.getAllSkillsCanonName(skillType);
     const fuse = new Fuse(skills, { threshold: MeasureConstants.fuseThreshold });
     return fuse;
   } catch (err) {

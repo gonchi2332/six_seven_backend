@@ -39,20 +39,20 @@ export async function getSkill(skillName: string, skillType: SkillTypes.SkillTyp
   const values = [skillType, skillName.toLowerCase()];
   const foundSkill = await processReturnQuery(selectQuery, values);
   return foundSkill;
-
-  //const insertQuery = `
-  //  INSERT INTO "skill" (name, type, canon_name)
-  //  VALUES ($1, $2, $3) 
-  //  RETURNING id
-  //`;
-  //values = [skillName, skillType, skillName.toLowerCase()];
-  //const newSkill = await processReturnQuery(insertQuery, values);
-  //return newSkill[0].id;
 }
 
-export async function getSkillsCanonName(skillType: SkillTypes.SkillType) {
+export async function getAllSkillsCanonName(skillType: SkillTypes.SkillType) {
   const selectQuery = `
     SELECT canon_name FROM "skill"
+    WHERE type = $1
+  `;
+  const skills = await processReturnQuery(selectQuery, [skillType]);
+  return skills;
+}
+
+export async function getAllSkills(skillType: SkillTypes.SkillType) {
+  const selectQuery = `
+    SELECT name FROM "skill"
     WHERE type = $1
   `;
   const skills = await processReturnQuery(selectQuery, [skillType]);
