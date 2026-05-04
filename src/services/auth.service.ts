@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import { PoolClient } from "pg";
-import { processTransaction, processReturnQuery } from "../utils/processQuery";
+import { processTransaction, processReturnQuery } from "../utils/query";
 import { generateToken } from "../utils/jwt";
-import { sendResetCodeEmail } from "../utils/mailer";
+import { sendResetCodeEmail } from "../helpers/mailer.helper";
 import { generateCode } from "../utils/generate";
 import * as TokenTypes from "../types/token.types";
 

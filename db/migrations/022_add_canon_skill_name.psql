@@ -1,0 +1,10 @@
+-- This migration has the purpose of adding the "canon_name" column into the "skill" table, this column
+-- will be populated with the same content as the "name" column, but entirely in lower case.
+
+-- Add the "canon_name" column into the "skill" table:
+ALTER TABLE "skill"
+ADD COLUMN IF NOT EXISTS "canon_name" varchar(50) NOT NULL DEFAULT 'undefined';
+
+-- Populate the "canon_name" column with the column "name" values in lower case:
+UPDATE "skill"
+SET "canon_name" = LOWER("name")

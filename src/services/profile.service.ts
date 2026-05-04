@@ -1,6 +1,6 @@
 import "../config/env.config";
 import crypto from "crypto";
-import { processReturnQuery } from "../utils/processQuery";
+import { processReturnQuery } from "../utils/query";
 
 export async function getOrCreatePublicLink(username: string) {
   try {

@@ -20,5 +20,7 @@ export const env = {
   SEND_EMAIL_HOST: verifyEnvVariables("SEND_EMAIL_HOST", undefined),
   SEND_USER: verifyEnvVariables("SEND_USER", undefined),
   SEND_EMAIL_USER: verifyEnvVariables("SEND_EMAIL_USER", "no-reply"),
-  SEND_EMAIL_PASSWORD: verifyEnvVariables("SEND_EMAIL_PASSWORD", undefined)
+  SEND_EMAIL_PASSWORD: verifyEnvVariables("SEND_EMAIL_PASSWORD", undefined),
+  GROQ_API_KEY: verifyEnvVariables("GROQ_API_KEY", undefined),
+  AI_MODEL: verifyEnvVariables("AI_MODEL", "llama-3.1-8b-instant")
 };
