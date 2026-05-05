@@ -52,28 +52,28 @@ async function processUserPersonalInfoAction(
     }
 
     const phoneRegex = /^\+?[-\d\s()]{7,15}$/;
-    if (phone !== null && !phoneRegex.test(phone)) {
+    if (phone && !phoneRegex.test(phone)) {
       return {
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, numero de telefono invalido.`
       };
     }
-    if ((names !== null && typeof names !== "string") ||
-      (firstSurname !== null && typeof firstSurname !== "string") ||
-      (secondSurname !== null && typeof secondSurname !== "string")) {
+    if ((names && typeof names !== "string") ||
+      (firstSurname && typeof firstSurname !== "string") ||
+      (secondSurname && typeof secondSurname !== "string")) {
       return {
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
       };
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (contactEmail !== null && !emailRegex.test(contactEmail)) {
+    if (contactEmail && !emailRegex.test(contactEmail)) {
       return {
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, correo de contacto invalido.`
       };
     }
-    if (secondaryRegistrationEmail !== null && !emailRegex.test(secondaryRegistrationEmail)) {
+    if (secondaryRegistrationEmail && !emailRegex.test(secondaryRegistrationEmail)) {
       return {
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido.`
