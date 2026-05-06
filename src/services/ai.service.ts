@@ -2,6 +2,7 @@ import { env } from "../config/env.config";
 import { groq } from "../config/ai.config";
 import { getSkillTypeData } from "../helpers/skill.helper";
 import * as SkillTypes from "../types/skill.types";
+import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as Selects from "../helpers/selects.helper";
 
 export async function skillValidation(skillName: string, skillType: "hard" | "soft") {
@@ -107,6 +108,58 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
     const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/,"").trim();
     
     const parsedResponse = JSON.parse(cleaned) as SkillTypes.SkillModerationResponse;
+    return parsedResponse;
+  } catch (err) {
+    return {
+      valid: false,
+      reason: `Error: ${(err as Error).message ?? String(err)}`
+    };
+  }
+}
+
+export async function positionValidation(position: string) {
+  try {
+    const prompt = `Puesto de trabajo a validar: "${position}"`;
+
+    const systemPrompt = `Eres un validador estricto de puestos de trabajo para un portafolio de proyectos de software.
+      Tu única tarea es analizar el nombre de un puesto de trabajo y responder ÚNICAMENTE con un objeto JSON válido.
+      Sin texto adicional, sin backticks, sin explicaciones fuera del JSON.
+
+      El JSON debe tener exactamente esta estructura:
+      {"valid": true/false, "reason": "..."}
+
+      Reglas para determinar valid:
+
+      PUESTO DE TRABAJO VÁLIDO:
+      - true: es un puesto de trabajo reconocible dentro del ámbito del desarrollo de software, ciencias de la computación e informática.
+      - Ejemplos válidos: Desarrollador Frontend, Desarrollador Backend, Desarrollador Full Stack, Desarrollador Mobile, Ingeniero de Software, Arquitecto de Software, Diseñador UI/UX, Scrum Master, Product Owner, DevOps Engineer, QA Engineer, Data Scientist, Data Engineer, Machine Learning Engineer, Analista de Sistemas, Administrador de Base de Datos, Ingeniero de Redes, Técnico en Soporte, Project Manager, Tech Lead, CTO, etc.
+
+      PUESTO DE TRABAJO INVÁLIDO:
+      - false: cualquier caso que no sea un puesto de trabajo válido del ámbito mencionado. Esto incluye: puestos de otros sectores, palabras que no son puestos de trabajo, groserías, insultos o cualquier contenido inapropiado.
+
+      Reglas para el texto de reason, usa EXACTAMENTE estos mensajes según el caso:
+
+      CASO 1 - Puesto de trabajo válido:
+      {"valid": true, "reason": "Puesto de trabajo válido dentro del ámbito del desarrollo de software, ciencias de la computación e informática."}
+
+      CASO 2 - Cualquier caso inválido (puesto no relacionado, no es un puesto, malas palabras, etc.):
+      {"valid": false, "reason": "El puesto de trabajo introducido no esta relacionado con ambito de las ciencias de la computacion, desarrollo de software o informatica"}
+
+      Responde SOLO con el JSON. Nada más.`;
+
+    const response = await groq.chat.completions.create({
+      model: env.AI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0
+    });
+
+    const raw = response.choices[0].message.content?.trim() ?? "";
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/,"").trim();
+
+    const parsedResponse = JSON.parse(cleaned) as LaboralExpTypes.PositionModerationResponse;
     return parsedResponse;
   } catch (err) {
     return {

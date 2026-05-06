@@ -12,3 +12,13 @@ export async function deleteUserSkill(username: string, skillName: string, skill
   const deletedSkill = await processReturnQuery(deleteQuery, values);
   return deletedSkill;
 }
+
+export async function deleteLaboralExperience(username: string, id: number) {
+  const deleteQuery = `
+    DELETE FROM "laboral_experience"
+    WHERE id = $1 AND username = $2
+    RETURNING position
+  `;
+  const deletedLaboralExperience = await processReturnQuery(deleteQuery, [id, username]);
+  return deletedLaboralExperience;
+}
