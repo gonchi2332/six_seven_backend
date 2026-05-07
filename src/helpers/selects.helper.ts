@@ -58,3 +58,21 @@ export async function getAllSkills(skillType: SkillTypes.SkillType) {
   const skills = await processReturnQuery(selectQuery, [skillType]);
   return skills;
 }
+
+export async function getAllUserLaboralExperiences(username: string) {
+  const selectQuery = `
+    SELECT id, position, company_name, description, visible, start_date, end_date FROM "laboral_experience"
+    WHERE username = $1
+  `;
+  const userLaboralExperiences = await processReturnQuery(selectQuery, [username]);
+  return userLaboralExperiences;
+}
+
+export async function getLaboralExperience(username: string, id: number) {
+  const selectQuery = `
+    SELECT position, company_name, description, visible, start_date, end_date FROM "laboral_experience"
+    WHERE id = $1 AND username = $2
+  `;
+  const foundLaboralExperience = await processReturnQuery(selectQuery, [id, username]);
+  return foundLaboralExperience;
+}

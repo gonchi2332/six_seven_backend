@@ -6,6 +6,7 @@ import UserSkillRoutes from "../routes/userskill.routes";
 import SkillRoutes from "../routes/skill.routes";
 import PlatformRoutes from "../routes/platform.routes";
 import ProfileRoutes from "../routes/profile.routes";
+import LaboralExpRoutes from "../routes/laboralexperience.routes";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.use("/api/v1/profile", ProfileRoutes);
 router.use("/api/v1/skills", UserSkillRoutes);
 router.use("/api/v1/skills", SkillRoutes);
 router.use("/api/v1/platforms", PlatformRoutes);
+router.use("/api/v1/portfolio", LaboralExpRoutes);
 
 router.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Ruta no encontrada..." });

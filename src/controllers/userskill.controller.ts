@@ -117,7 +117,7 @@ async function registerSkill(
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario faltante o invalidos."
+        message: "Nombre de usuario faltante o invalido."
       });
     }
     
