@@ -1,7 +1,10 @@
 import * as ProjectTypes from "../types/project.types";
 import * as Assertions from "../helpers/assertions.helper";
 import * as Inserts from "../helpers/inserts.helper";
+import * as Selects from "../helpers/selects.helper";
+import * as Updates from "../helpers/updates.helper";
 import { registerProjectValidations } from "../helpers/project.helper";
+import { modifyProjectValidations } from "../helpers/project.helper";
 
 export async function registerPersonalProject(username: string, projectInfo: ProjectTypes.ProjectInfo) {
   try {
@@ -28,6 +31,41 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
     return {
       result: false,
       messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function modifyPersonalProject(username: string, projectId: number, projectInfo: ProjectTypes.ProjectInfo) {
+  try {
+    if (!(await Assertions.userExists(username))) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    const project = await Selects.getProjectByIdAndUser(username, projectId);
+    if (!project || project.length === 0) {
+      return {
+        result: false,
+        messageState: "El proyecto no existe o no tienes permiso para editarlo."
+      };
+    }
+    const validation = await modifyProjectValidations(projectInfo);
+    if (!validation.result) {
+      return {
+        result: false,
+        messageState: validation.messageState
+      };
+    }
+    await Updates.updatePersonalProject(username, projectId, projectInfo);
+    return {
+      result: true,
+      messageState: "Proyecto personal modificado exitosamente."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno: ${(err as Error).message}`
     };
   }
 }

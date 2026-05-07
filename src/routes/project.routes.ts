@@ -13,4 +13,12 @@ router.post(
   ProjectController.registerProject
 );
 
+router.patch(
+  "/users/projects",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  MulterCheck.checkProjectImageErrors,
+  ProjectController.modifyProject
+);
+
 export default router;

@@ -63,11 +63,11 @@ export async function createPersonalProject(username: string, projectInfo: Proje
     const projectId = projectRes.rows[0].id;
 
     for (const linkStr of links) {
-      const linkQuery = `INSERT INTO "link" (link) VALUES ($1) RETURNING id`;
+      const linkQuery = "INSERT INTO \"link\" (link) VALUES ($1) RETURNING id";
       const linkRes = await client.query(linkQuery, [linkStr]);
       const linkId = linkRes.rows[0].id;
 
-      const projectLinkQuery = `INSERT INTO "project_link" (project_id, link_id) VALUES ($1, $2)`;
+      const projectLinkQuery = "INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)";
       await client.query(projectLinkQuery, [projectId, linkId]);
     }
   });
