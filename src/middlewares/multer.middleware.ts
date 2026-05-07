@@ -26,3 +26,12 @@ export function checkMulterErrors (req: Request, res: Response, next: NextFuncti
     next();
   });
 }
+
+export function checkProjectImageErrors (req: Request, res: Response, next: NextFunction) {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      return verifyMulter(err, req, res, next);
+    }
+    next();
+  });
+}
