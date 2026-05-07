@@ -28,4 +28,9 @@ router.delete(
   ProjectController.deleteProject
 );
 
+router.get(
+  "/users/:username/projects",
+  ProjectController.getPublicProjects
+);
+
 export default router;

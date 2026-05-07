@@ -26,13 +26,13 @@ export async function deleteLaboralExperience(username: string, id: number) {
 
 export async function deletePersonalProject(projectId: number) {
   await processTransaction(async (client: PoolClient) => {
-    const oldLinksQuery = `SELECT link_id FROM "project_link" WHERE project_id = $1`;
+    const oldLinksQuery = "SELECT link_id FROM \"project_link\" WHERE project_id = $1";
     const oldLinksRes = await client.query(oldLinksQuery, [projectId]);
     const oldLinkIds = oldLinksRes.rows.map(r => r.link_id);
     if (oldLinkIds.length > 0) {
-      await client.query(`DELETE FROM "project_link" WHERE project_id = $1`, [projectId]);
-      await client.query(`DELETE FROM "link" WHERE id = ANY($1::int[])`, [oldLinkIds]);
+      await client.query("DELETE FROM \"project_link\" WHERE project_id = $1", [projectId]);
+      await client.query("DELETE FROM \"link\" WHERE id = ANY($1::int[])", [oldLinkIds]);
     }
-    await client.query(`DELETE FROM "project" WHERE id = $1`, [projectId]);
+    await client.query("DELETE FROM \"project\" WHERE id = $1", [projectId]);
   });
 }

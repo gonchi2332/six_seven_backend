@@ -99,3 +99,26 @@ export async function deletePersonalProject(username: string, projectId: number)
     };
   }
 }
+
+export async function getPublicPersonalProjects(username: string) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    const projects = await Selects.getPublicProjects(username);
+    return {
+      result: true,
+      messageState: "Proyectos obtenidos exitosamente.",
+      data: projects
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno: ${(err as Error).message}`
+    };
+  }
+}

@@ -124,3 +124,32 @@ export async function deleteProject(req: Request, res: Response) {
     });
   }
 }
+
+export async function getPublicProjects(req: Request, res: Response) {
+  try {
+    const { username } = req.params;
+    if (!username || typeof username !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Nombre de usuario inválido."
+      });
+    }
+    const response = await ProjectService.getPublicPersonalProjects(username);
+    if (!response.result) {
+      return res.status(400).json({
+        success: false,
+        message: response.messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState,
+      projects: response.data
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
