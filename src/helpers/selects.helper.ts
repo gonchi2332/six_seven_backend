@@ -58,3 +58,62 @@ export async function getAllSkills(skillType: SkillTypes.SkillType) {
   const skills = await processReturnQuery(selectQuery, [skillType]);
   return skills;
 }
+
+export async function getAllUserLaboralExperiences(username: string) {
+  const selectQuery = `
+    SELECT id, position, company_name, description, visible, start_date, end_date FROM "laboral_experience"
+    WHERE username = $1
+  `;
+  const userLaboralExperiences = await processReturnQuery(selectQuery, [username]);
+  return userLaboralExperiences;
+}
+
+export async function getLaboralExperience(username: string, id: number) {
+  const selectQuery = `
+    SELECT position, company_name, description, visible, start_date, end_date FROM "laboral_experience"
+    WHERE id = $1 AND username = $2
+  `;
+  const foundLaboralExperience = await processReturnQuery(selectQuery, [id, username]);
+  return foundLaboralExperience;
+}
+
+export async function getProjectByIdAndUser(username: string, projectId: number) {
+  const selectQuery = `
+    SELECT id FROM "project" 
+    WHERE id = $1 AND username = $2
+  `;
+  const foundProject = await processReturnQuery(selectQuery, [projectId, username]);
+  return foundProject;
+}
+
+export async function getPublicProjects(username: string) {
+  const query = `
+    SELECT 
+      p.id, p.name, p.description, p.topic, p.status, p.role, p.image,
+      COALESCE(json_agg(l.link) FILTER (WHERE l.link IS NOT NULL), '[]') as links
+    FROM "project" p
+    LEFT JOIN "project_link" pl ON p.id = pl.project_id
+    LEFT JOIN "link" l ON pl.link_id = l.id
+    WHERE p.username = $1 AND p.visible = TRUE
+    GROUP BY p.id
+    ORDER BY p.id DESC
+  `;
+  const projectsFromDB = await processReturnQuery(query, [username]);
+  const formattedProjects = projectsFromDB.map(proj => {
+    let base64Image = null;
+    if (proj.image) {
+      base64Image = `data:image/jpeg;base64,${proj.image.toString("base64")}`;
+    }
+    return {
+      id: proj.id,
+      name: proj.name,
+      description: proj.description,
+      topic: proj.topic,
+      status: proj.status,
+      role: proj.role,
+      links: proj.links,
+      image: base64Image
+    };
+  });
+  return formattedProjects;
+}
