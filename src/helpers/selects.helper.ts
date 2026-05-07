@@ -76,3 +76,12 @@ export async function getLaboralExperience(username: string, id: number) {
   const foundLaboralExperience = await processReturnQuery(selectQuery, [id, username]);
   return foundLaboralExperience;
 }
+
+export async function getProjectByIdAndUser(username: string, projectId: number) {
+  const selectQuery = `
+    SELECT id FROM "project" 
+    WHERE id = $1 AND username = $2
+  `;
+  const foundProject = await processReturnQuery(selectQuery, [projectId, username]);
+  return foundProject;
+}

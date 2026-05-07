@@ -1,4 +1,5 @@
-import { processReturnQuery } from "../utils/query";
+import { processTransaction, processReturnQuery } from "../utils/query";
+import { PoolClient } from "pg";
 import * as SkillTypes from "../types/skill.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 
@@ -46,4 +47,28 @@ export async function createLaboralExperience(username: string, laboralExperienc
   } = laboralExperienceInfo;
   const values = [position, companyName, description, true, startDate, endDate, username];
   await processReturnQuery(insertQuery, values);
+}
+
+export async function createPersonalProject(username: string, projectInfo: ProjectTypes.ProjectInfo) {
+  const { name, description, topic, status, role, imageBuffer, links } = projectInfo;
+
+  await processTransaction(async (client: PoolClient) => {
+    const projectQuery = `
+      INSERT INTO "project" (name, description, topic, status, role, image, username, visible)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `;
+    const projectValues = [name, description, topic, status, role, imageBuffer, username, true];
+    const projectRes = await client.query(projectQuery, projectValues);
+    const projectId = projectRes.rows[0].id;
+
+    for (const linkStr of links) {
+      const linkQuery = `INSERT INTO "link" (link) VALUES ($1) RETURNING id`;
+      const linkRes = await client.query(linkQuery, [linkStr]);
+      const linkId = linkRes.rows[0].id;
+
+      const projectLinkQuery = `INSERT INTO "project_link" (project_id, link_id) VALUES ($1, $2)`;
+      await client.query(projectLinkQuery, [projectId, linkId]);
+    }
+  });
 }
