@@ -3,6 +3,7 @@ import * as Assertions from "../helpers/assertions.helper";
 import * as Inserts from "../helpers/inserts.helper";
 import * as Selects from "../helpers/selects.helper";
 import * as Updates from "../helpers/updates.helper";
+import * as Deletes from "../helpers/deletes.helper";
 import { registerProjectValidations } from "../helpers/project.helper";
 import { modifyProjectValidations } from "../helpers/project.helper";
 
@@ -61,6 +62,35 @@ export async function modifyPersonalProject(username: string, projectId: number,
     return {
       result: true,
       messageState: "Proyecto personal modificado exitosamente."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function deletePersonalProject(username: string, projectId: number) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    const projectExists = await Selects.getProjectByIdAndUser(username, projectId);
+    if (!projectExists || projectExists.length === 0) {
+      return {
+        result: false,
+        messageState: "El proyecto no existe o no tienes permiso para eliminarlo."
+      };
+    }
+    await Deletes.deletePersonalProject(projectId);
+    return {
+      result: true,
+      messageState: "Proyecto personal eliminado exitosamente."
     };
   } catch (err) {
     return {

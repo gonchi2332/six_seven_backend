@@ -21,4 +21,11 @@ router.patch(
   ProjectController.modifyProject
 );
 
+router.delete(
+  "/users/projects",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  ProjectController.deleteProject
+);
+
 export default router;
