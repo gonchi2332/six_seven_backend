@@ -1,3 +1,8 @@
+export interface ProjectLink {
+  label: string;
+  url: string;
+}
+
 export interface ProjectInfo {
   name: string;
   description: string;
@@ -5,6 +10,6 @@ export interface ProjectInfo {
   role: string;
   //visible: boolean;
   status: string;
-  links: string[];
+  links: ProjectLink[];
   imageBuffer?: Buffer;
 }

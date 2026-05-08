@@ -81,9 +81,9 @@ export async function createPersonalProject(username: string, projectInfo: Proje
     const projectRes = await client.query(projectQuery, projectValues);
     const projectId = projectRes.rows[0].id;
 
-    for (const linkStr of links) {
-      const linkQuery = "INSERT INTO \"link\" (link) VALUES ($1) RETURNING id";
-      const linkRes = await client.query(linkQuery, [linkStr]);
+    for (const item of links) {
+      const linkQuery = "INSERT INTO \"link\" (label, link) VALUES ($1, $2) RETURNING id";
+      const linkRes = await client.query(linkQuery, [item.label, item.url]);
       const linkId = linkRes.rows[0].id;
 
       const projectLinkQuery = "INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)";

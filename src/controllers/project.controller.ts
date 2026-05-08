@@ -6,12 +6,12 @@ import * as ProjectTypes from "../types/project.types";
 export async function registerProject(req: Request, res: Response) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
-    let parsedLinks: string[] = [];
+    let parsedLinks: ProjectTypes.ProjectLink[] = [];
     if (req.body.links) {
       try {
         parsedLinks = Array.isArray(req.body.links) ? req.body.links : JSON.parse(req.body.links);
       } catch {
-        parsedLinks = [req.body.links];
+        parsedLinks = []; 
       }
     }
     const projectInfo: ProjectTypes.ProjectInfo = {
@@ -59,12 +59,12 @@ export async function modifyProject(req: Request, res: Response) {
         message: "ID de proyecto inválido."
       });
     }
-    let links: string[] = [];
+    let links: ProjectTypes.ProjectLink[] = [];
     if (req.body.links) {
       try {
         links = Array.isArray(req.body.links) ? req.body.links : JSON.parse(req.body.links);
       } catch {
-        links = [req.body.links];
+        links = [];
       }
     }
     const projectInfo: ProjectTypes.ProjectInfo = {
