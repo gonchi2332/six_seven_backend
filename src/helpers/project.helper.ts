@@ -45,18 +45,18 @@ async function commonProjectValidations(projectInfo: ProjectTypes.ProjectInfo) {
       messageState: "Al menos un enlace es requerido"
     };
   }
-  if (links.length > 2) {
-    return {
-      result: false,
-      messageState: "Solo se permiten un máximo de 2 enlaces."
-    };
-  }
   const domainRegex = /^((https?:\/\/)?(www\.)?)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/.*)?$/;
-  for (const link of links) {
-    if (!domainRegex.test(link)) {
+  for (const item of links) {
+    if (!item.label || typeof item.label !== "string" || item.label.trim() === "") {
       return {
         result: false,
-        messageState: `El enlace '${link}' no cumple con el formato válido (dominio.extension).`
+        messageState: "Todos los enlaces deben tener una etiqueta."
+      };
+    }
+    if (!item.url || !domainRegex.test(item.url)) {
+      return {
+        result: false,
+        messageState: `El enlace '${item.url || "vacío"}' no cumple con el formato válido (dominio.extension).`
       };
     }
   }

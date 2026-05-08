@@ -140,8 +140,8 @@ export async function updatePersonalProject(username: string, projectId: number,
       await client.query("DELETE FROM \"project_link\" WHERE project_id = $1", [projectId]);
       await client.query("DELETE FROM \"link\" WHERE id = ANY($1::int[])", [oldLinkIds]);
     }
-    for (const linkStr of links) {
-      const linkRes = await client.query("INSERT INTO \"link\" (link) VALUES ($1) RETURNING id", [linkStr]);
+    for (const item of links) {
+      const linkRes = await client.query("INSERT INTO \"link\" (label, link) VALUES ($1, $2) RETURNING id", [item.label, item.url]);
       const linkId = linkRes.rows[0].id;
       await client.query("INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)", [projectId, linkId]);
     }
