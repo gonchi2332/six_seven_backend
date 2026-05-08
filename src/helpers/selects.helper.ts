@@ -135,7 +135,7 @@ export async function getPublicProjects(username: string) {
   const query = `
     SELECT 
       p.id, p.name, p.description, p.topic, p.status, p.role, p.image,
-      COALESCE(json_agg(l.link) FILTER (WHERE l.link IS NOT NULL), '[]') as links
+      COALESCE(json_agg(json_build_object('label', l.label, 'url', l.link)) FILTER (WHERE l.link IS NOT NULL), '[]') as links
     FROM "project" p
     LEFT JOIN "project_link" pl ON p.id = pl.project_id
     LEFT JOIN "link" l ON pl.link_id = l.id
