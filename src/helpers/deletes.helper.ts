@@ -36,3 +36,13 @@ export async function deletePersonalProject(projectId: number) {
     await client.query("DELETE FROM \"project\" WHERE id = $1", [projectId]);
   });
 }
+
+export async function deleteEducation(educationId: number) {
+  const deleteQuery = `
+    DELETE FROM "academic_training"
+    WHERE id = $1
+    RETURNING name
+  `;
+  const deletedEducation = await processReturnQuery(deleteQuery, [educationId]);
+  return deletedEducation;
+}

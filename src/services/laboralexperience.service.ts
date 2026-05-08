@@ -165,7 +165,7 @@ async function handleUserLaboralExperience(
       if (deletedLaboralExperience.length === 0) {
         return {
           result: false,
-          messageState: "La experiencia asociada a eliminar no esta asociada a este usuario o no existe." 
+          messageState: "La experiencia laboral a eliminar no esta asociada a este usuario o no existe." 
         };
       }
       return {

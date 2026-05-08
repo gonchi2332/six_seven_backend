@@ -1,6 +1,7 @@
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/query";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
+import * as educacionTypes from "../types/education.types";
 import * as ProjectTypes from "../types/project.types";
 
 export async function updateUserHardSkill(newPunctuation: number, username: string, skillName: string) {
@@ -68,6 +69,50 @@ export async function updateUserLaboralExperience(
     await processReturnQuery(updateQuery, [endDate, id, username]);
   }
 }
+
+export async function updateEducation(
+  educacionInfo: educacionTypes.EducationInfo,
+  id: number
+) {
+  const { title, institution, academyDegreeId, startDate, endDate = null } = educacionInfo;
+
+  const setParts: string[] = [];
+  const values: unknown[] = [];
+  let placeholderIndex = 1;
+
+  if (title) {
+    setParts.push(`name = $${placeholderIndex++}`);
+    values.push(title);
+  }
+  if (institution) {
+    setParts.push(`institution = $${placeholderIndex++}`);
+    values.push(institution);
+  }
+  if (academyDegreeId) {
+    setParts.push(`academic_degree_id = $${placeholderIndex++}`);
+    values.push(academyDegreeId);
+  }
+  if (startDate) {
+    setParts.push(`start_date = $${placeholderIndex++}`);
+    values.push(startDate);
+  }
+  if (endDate) {
+    setParts.push(`end_date = $${placeholderIndex++}`);
+    values.push(endDate);
+  }
+
+  if (setParts.length === 0) return;
+
+  values.push(id);
+  const whereQuery = `WHERE id = $${placeholderIndex}`;
+
+  const updateQuery = `UPDATE "academic_training" 
+                       SET ${setParts.join(", ")}
+                       ${whereQuery}`;
+
+  await processReturnQuery(updateQuery, values);
+}
+
 
 export async function updatePersonalProject(username: string, projectId: number, projectInfo: ProjectTypes.ProjectInfo) {
   const { description, topic, status, role, imageBuffer, links } = projectInfo;
