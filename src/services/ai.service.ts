@@ -3,6 +3,7 @@ import { groq } from "../config/ai.config";
 import { getSkillTypeData } from "../helpers/skill.helper";
 import * as SkillTypes from "../types/skill.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
+import * as EducacionTypes from "../types/education.types";
 import * as Selects from "../helpers/selects.helper";
 
 export async function skillValidation(skillName: string, skillType: "hard" | "soft") {
@@ -165,6 +166,53 @@ export async function positionValidation(position: string) {
     return {
       valid: false,
       reason: `Error: ${(err as Error).message ?? String(err)}`
+    };
+  }
+}
+
+export async function academicTitleValidation(title: string) {
+  try {
+    const prompt = `Nombre del Título: "${title}"`;
+
+    const systemPrompt = `Eres un validador estricto de títulos académicos para un portafolio profesional de tecnología.
+      Tu tarea es analizar si el nombre de un título académico es coherente con el ámbito de la informática y si corresponde a un título real.
+      Responde ÚNICAMENTE con un objeto JSON válido. Sin texto adicional ni backticks.
+
+      Estructura del JSON:
+      {"valid": true/false, "reason": "..."}
+
+      REGLAS PARA "valid":
+      - true: Es un titulo de grado o certificación reconocible en Computación, Software, Informática, Sistemas o TI.
+      - Ejemplos válidos: Lic. en Ingeniería de Sistemas, Mgrt. en Ciencias de la Computación, Dr. en Análisis de Sistemas, Licencitura en Desarrollo de Software, Ing. en Programación Web, Ingenieria en Ciberseguridad, Diplomado en Redes y Telecomunicaciones, PhD. en Inteligencia Artificial, etc.
+
+      - false: La carrera no pertenece al ámbito tecnológico (ej. Medicina, Derecho, Chef), son palabras sin sentido, insultos o el título es demasiado genérico/ficticio.
+
+      REGLAS PARA EL TEXTO DE "reason" (Usa EXACTAMENTE estos):
+
+      CASO 1 - Título válido:
+      {"valid": true, "reason": "Título académico válido dentro del ámbito de las ciencias de la computación e informática."}
+
+      CASO 2 - Título inválido:
+      {"valid": false, "reason": "El título introducido no está relacionado con el ámbito de las ciencias de la computación, desarrollo de software o informática."}`;
+
+    const response = await groq.chat.completions.create({
+      model: env.AI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0
+    });
+
+    const raw = response.choices[0].message.content?.trim() ?? "";
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+
+    const parsedResponse = JSON.parse(cleaned) as EducacionTypes.TitleModerationResponse;
+    return parsedResponse;
+  } catch (err) {
+    return {
+      valid: false,
+      reason: `Error de validación: ${(err as Error).message ?? String(err)}`
     };
   }
 }

@@ -77,6 +77,51 @@ export async function getLaboralExperience(username: string, id: number) {
   return foundLaboralExperience;
 }
 
+export async function getEducation(id: number) {
+  const selectQuery = `
+    SELECT a.name AS title, a.institution, d.name AS academicDegree,
+    a.visible, a.start_date, a.end_date 
+    FROM "academic_training" a
+    LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
+    WHERE a.id = $1 AND a.visible
+  `;
+  const foundEducation = await processReturnQuery(selectQuery, [id]);
+  return foundEducation;
+}
+
+export async function getAllPublicUserEducation(username: string) {
+  const selectQuery = `
+    SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
+    a.visible, a.start_date, a.end_date 
+    FROM "academic_training" a
+    LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
+    WHERE username = $1 AND a.visible
+  `;
+  const foundPublicUserEducation = await processReturnQuery(selectQuery, [username]);
+  return foundPublicUserEducation;
+}
+
+export async function getAllUserEducation(username: string) {
+  const selectQuery = `
+    SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
+    a.visible, a.start_date, a.end_date 
+    FROM "academic_training" a
+    LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
+    WHERE username = $1
+  `;
+  const foundUserEducations = await processReturnQuery(selectQuery, [username]);
+  return foundUserEducations;
+}
+
+export async function getAcademicDegrees() {
+  const selectQuery = `
+    SELECT id, name AS academicDegree
+    FROM "academic_degree"
+  `;
+  const foundAcademicDegree = await processReturnQuery(selectQuery, []);
+  return foundAcademicDegree;
+}
+
 export async function getProjectByIdAndUser(username: string, projectId: number) {
   const selectQuery = `
     SELECT id FROM "project" 
