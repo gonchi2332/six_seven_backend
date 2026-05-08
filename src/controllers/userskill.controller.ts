@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { profanity, uniqueWords } from "../config/leoprofanity.config";
+import { profanity, uniqueWords, uniqueTrickyWords } from "../config/leoprofanity.config";
 import { containsBadWord } from "../utils/validations";
 import { getSkillTypeData } from "../helpers/skill.helper";
 import * as MeasureConstants from "../utils/constants/measure.constants";
@@ -33,7 +33,7 @@ async function registerNewSkill(
         message: "El nombre de habilidad supera el limite de caracteres o es invalido."
       });
     }
-    if (profanity.check(formatedSkillName) || containsBadWord(formatedSkillName, uniqueWords)) {
+    if (profanity.check(formatedSkillName) || containsBadWord(formatedSkillName, uniqueWords, uniqueTrickyWords)) {
       return res.status(400).json({
         success: false,
         message: "El nombre de la habilidad es inapropiado."
