@@ -1,0 +1,13 @@
+DELETE FROM "academic_training";
+
+DELETE FROM "academic_degree";
+
+INSERT INTO "academic_degree" (name) VALUES 
+('Bachillerato'), 
+('Tecnico Medio'),
+('Tecnico Superior'), 
+('Licenciatura'), 
+('Diplomado'), 
+('Maestria'), 
+('Doctorado'), 
+('Postdoctorado');

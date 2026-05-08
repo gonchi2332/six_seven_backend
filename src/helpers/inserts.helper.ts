@@ -3,6 +3,8 @@ import { PoolClient } from "pg";
 import * as SkillTypes from "../types/skill.types";
 import * as ProjectTypes from "../types/project.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
+import * as ProjectTypes from "../types/project.types";
+import * as EducacionTypes from "../types/education.types";
 
 export async function createSkill(skillName: string, canonSkillName: string, skillType: SkillTypes.SkillType) {
   const insertQuery = `
@@ -47,6 +49,23 @@ export async function createLaboralExperience(username: string, laboralExperienc
     endDate = null
   } = laboralExperienceInfo;
   const values = [position, companyName, description, true, startDate, endDate, username];
+  await processReturnQuery(insertQuery, values);
+}
+
+export async function createEducation(username: string, educacionInfo: EducacionTypes.EducationInfo) {
+  const insertQuery = `
+    INSERT INTO "academic_training" (name, academic_degree_id, institution, visible, start_date, 
+      end_date, username)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `;
+  const {
+    title,
+    institution,
+    academyDegreeId,
+    startDate,
+    endDate = null
+  } = educacionInfo;
+  const values = [title, academyDegreeId, institution, true, startDate, endDate, username];
   await processReturnQuery(insertQuery, values);
 }
 

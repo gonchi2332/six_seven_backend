@@ -21,7 +21,7 @@ async function manageUserLaboralExperience(
     if (!laboralExperienceInfo || Object.keys(laboralExperienceInfo).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Parametros de informacion personal del usuario insuficientes."
+        message: "Parametros de informacion laboral del usuario insuficientes."
       });
     }
 
