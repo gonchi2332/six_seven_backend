@@ -1,6 +1,7 @@
 import { processTransaction, processReturnQuery } from "../utils/query";
 import { PoolClient } from "pg";
 import * as SkillTypes from "../types/skill.types";
+import * as ProjectTypes from "../types/project.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 
 export async function createSkill(skillName: string, canonSkillName: string, skillType: SkillTypes.SkillType) {
