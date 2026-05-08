@@ -7,21 +7,21 @@ const router = Router();
 router.post(
   "/users/education",
   Authorization.tokenAuthorization,
-  //Authorization.onlyVerifiedUsers,
+  Authorization.onlyVerifiedUsers,
   EducationController.registerEducation
 );
 
 router.patch(
   "/users/education",
   Authorization.tokenAuthorization,
-  //Authorization.onlyVerifiedUsers,
+  Authorization.onlyVerifiedUsers,
   EducationController.modifyEducation
 );
 
 router.delete(
   "/users/education",
   Authorization.tokenAuthorization,
-  //Authorization.onlyVerifiedUsers,
+  Authorization.onlyVerifiedUsers,
   EducationController.deleteEducation
 );
 
