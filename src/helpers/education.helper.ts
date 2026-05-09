@@ -1,4 +1,4 @@
-import { profanity, uniqueWords } from "../config/leoprofanity.config";
+import { profanity, uniqueWords, uniqueTrickyWords } from "../config/leoprofanity.config";
 import { containsBadWord, isGarbageInput } from "../utils/validations";
 import * as RegexConstants from "../utils/constants/regex.constants";
 import * as EducationTypes from "../types/education.types";
@@ -33,7 +33,7 @@ async function registerEducationValidations(educationInfo: EducationTypes.Educat
     };
   }
   if (!RegexConstants.titleRegex.test(title) || profanity.check(title) ||
-    containsBadWord(title, uniqueWords) || isGarbageInput(title)) {
+    containsBadWord(title, uniqueWords, uniqueTrickyWords) || isGarbageInput(title)) {
     return {
       result: false,
       messageState: "Nombre del titulo invalido."
