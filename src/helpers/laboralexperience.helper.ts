@@ -1,4 +1,4 @@
-import { profanity, uniqueWords } from "../config/leoprofanity.config";
+import { profanity, uniqueWords, uniqueTrickyWords } from "../config/leoprofanity.config";
 import { containsBadWord, isGarbageInput } from "../utils/validations";
 import * as RegexConstants from "../utils/constants/regex.constants";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
@@ -40,7 +40,7 @@ async function registerLaboralExpValidations(laboralExperienceInfo: LaboralExpTy
     };
   }
   if (!RegexConstants.positionRegex.test(position) || profanity.check(position) ||
-    containsBadWord(position, uniqueWords) || isGarbageInput(position)) {
+    containsBadWord(position, uniqueWords, uniqueTrickyWords) || isGarbageInput(position)) {
     return {
       result: false,
       messageState: "Nombre del puesto invalido."
@@ -109,7 +109,7 @@ async function modifyLaboralExpValidations(laboralExperienceInfo: LaboralExpType
       };
     }
     if (!RegexConstants.positionRegex.test(position) || profanity.check(position) ||
-      containsBadWord(position, uniqueWords) || isGarbageInput(position)) {
+      containsBadWord(position, uniqueWords, uniqueTrickyWords) || isGarbageInput(position)) {
       return {
         result: false,
         messageState: "Nombre del puesto invalido."
