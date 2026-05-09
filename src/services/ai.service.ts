@@ -58,7 +58,7 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
       - false: cualquier cosa que no sea una tecnología o concepto reconocible del campo de la informática.
 
       HABILIDAD BLANDA (soft skill):
-      - true: es una habilidad interpersonal, idioma o habilidad cognitiva reconocida en entornos laborales y todo lo relacionado a como se desenvuelve una persona en entornos laborales e interpersonales, NO SE CONTEMPLA NINGUN TIPO DE CONOCIMIENTO NI TECNICO, TEORICO, MATEMATICO NI EXACTO. Ejemplos válidos: Inglés, Liderazgo, Trabajo en equipo, Chino, Pensamiento crítico, Comunicación.
+      - true: es una habilidad interpersonal, idioma o habilidad cognitiva reconocida en entornos laborales y todo lo relacionado a como se desenvuelve una persona en entornos laborales e interpersonales, NO SE CONTEMPLA NINGUN TIPO DE CONOCIMIENTO NI TECNICO, TEORICO, MATEMATICO NI EXACTO. Ejemplos válidos: Inglés, Liderazgo, Trabajo en equipo, Chino, Pensamiento crítico, Comunicación, Analisis de problemas, Oratoria, Negociacion, Exposiciones, Redaccion, etc.
       - false: cualquier cosa que no sea una habilidad blanda reconocida.
 
       REGLA DE MALAS PALABRAS (aplica siempre, para cualquier tipo):
