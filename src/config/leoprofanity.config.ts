@@ -27,3 +27,11 @@ export const uniqueWords = [...new Set(words)];
 
 LeoProfanity.add(uniqueWords);
 export const profanity = LeoProfanity;
+
+const trickyWords = fs.readFileSync(path.join(__dirname, "../resources/trickywords.txt"), "utf-8");
+const formatedTrickyWords = trickyWords
+  .split("\n")
+  .map(w => w.trim().toLowerCase())
+  .filter(w => w.length > 0);
+
+export const uniqueTrickyWords = [...new Set(formatedTrickyWords)];
