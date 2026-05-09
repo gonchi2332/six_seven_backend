@@ -13,8 +13,27 @@ async function manageEducation(
   action: "register" | "modify",
   id?: number) {
   try {
-    const { startDate, endDate = null } = educationInfo;
+    if (educationInfo.startDate) {
+      educationInfo.startDate = new Date(educationInfo.startDate);
+      if (isNaN(educationInfo.startDate.getTime())) {
+        return {
+          result: false,
+          messageState: "La fecha de inicio es inválida."
+        };
+      }
+    }
+    if (educationInfo.endDate) {
+      educationInfo.endDate = new Date(educationInfo.endDate);
+      if (isNaN((educationInfo.endDate as Date).getTime())) {
+        return {
+          result: false,
+          messageState: "La fecha de fin es inválida." 
+        };
+      }
+    }
 
+    const { startDate, endDate = null } = educationInfo;
+    
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
       return {
@@ -24,7 +43,6 @@ async function manageEducation(
     }
 
     if (action === "modify") {
-
       const foundEducation = await Selects.getEducation(id!);
       if (!foundEducation || foundEducation.length === 0) {
         return {
@@ -53,13 +71,6 @@ async function manageEducation(
       }
     }
 
-    if (educationInfo.startDate) {
-      educationInfo.startDate = new Date(educationInfo.startDate);
-    }
-    if (educationInfo.endDate) {
-      educationInfo.endDate = new Date(educationInfo.endDate);
-    }
-
     const educationAction = getEducationAction(action);
     const validationResult = await educationAction.serviceValidations(educationInfo);
     if (validationResult && !validationResult.result) {
@@ -68,13 +79,6 @@ async function manageEducation(
         messageState: validationResult.messageState
       };
     }
-
-    //if (visible && typeof visible !== "boolean") {
-    //  return {
-    //    result: false,
-    //    messageState: "Parametro de visibilidad invalido."
-    //  };
-    //}
 
     if (action === "register") {
       await Inserts.createEducation(username, educationInfo);
