@@ -5,11 +5,11 @@ import LeoProfanity from "leo-profanity";
 LeoProfanity.loadDictionary("en");
 LeoProfanity.loadDictionary("es");
 
-const spanishBadWords = fs.readFileSync(path.join(__dirname, "../resources/ESP.txt"), "utf-8");
-const mexicanBadWords = fs.readFileSync(path.join(__dirname, "../resources/MEX.txt"), "utf-8");
-const argentinianBadWords = fs.readFileSync(path.join(__dirname, "../resources/ARG.txt"), "utf-8");
-const bolivianBadWords = fs.readFileSync(path.join(__dirname, "../resources/BOL.txt"), "utf-8");
-const englishBadWords = fs.readFileSync(path.join(__dirname, "../resources/ENG.txt"), "utf-8");
+const spanishBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/ESP.txt"), "utf-8");
+const mexicanBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/MEX.txt"), "utf-8");
+const argentinianBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/ARG.txt"), "utf-8");
+const bolivianBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/BOL.txt"), "utf-8");
+const englishBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/ENG.txt"), "utf-8");
 
 const batchBadWords = [spanishBadWords, mexicanBadWords, argentinianBadWords, bolivianBadWords, englishBadWords];
 
@@ -28,7 +28,7 @@ export const uniqueWords = [...new Set(words)];
 LeoProfanity.add(uniqueWords);
 export const profanity = LeoProfanity;
 
-const trickyWords = fs.readFileSync(path.join(__dirname, "../resources/trickywords.txt"), "utf-8");
+const trickyWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/trickywords.txt"), "utf-8");
 const formatedTrickyWords = trickyWords
   .split("\n")
   .map(w => w.trim().toLowerCase())

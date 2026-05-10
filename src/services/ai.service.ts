@@ -1,6 +1,7 @@
 import { env } from "../config/env.config";
 import { groq } from "../config/ai.config";
 import { getSkillTypeData } from "../helpers/skill.helper";
+import { techs } from "../utils/constants/array.constants";
 import * as SkillTypes from "../types/skill.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as EducacionTypes from "../types/education.types";
@@ -35,9 +36,6 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
     ` : `
       Aún no hay habilidades registradas en el sistema. Retorna "canonName": null y "name": null.
     `;
-
-    //- Ejemplo Calculo != Matematicas (pero esta relacionado) -> canonName: null, name: null
-    //- El Caluculo o calculo se considera como algo una HABILIDAD TECNICA A PARTE DE LAS MATEMATICAS, por lo tanto NO TOMAR EN ESE CASO canonName: matematicas y name: Matematicas
       
     const prompt = `Tipo de skill: ${skillType === "hard" ? "HARD SKILL" : "SOFT SKILL"}
       Nombre a validar: "${skillName}"`;
@@ -73,6 +71,8 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
       - Ejemplo: "Teoría de Números" es válida → canonName: null, name: null (NO asociar con "Matematicas")
       - La coincidencia con habilidades existentes solo aplica si el nombre ingresado es 
         exactamente la misma habilidad o un alias/abreviación directa de ella.
+            
+      PARA HABILIDADES TECNICAS: Si sirve de ayuda puedes basarte en el siguiente listado de tecnologias para determinar si la habilidad introducida (EN CASO DE HABILIDADES TECNICAS) coincide o se parece a alguna habilidad de este listado: ${techs}
 
       Reglas para el texto de reason, usa EXACTAMENTE estos mensajes según el caso:
 
