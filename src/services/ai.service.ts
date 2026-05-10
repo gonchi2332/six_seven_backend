@@ -133,7 +133,7 @@ export async function positionValidation(position: string) {
 
       PUESTO DE TRABAJO VÁLIDO:
       - true: es un puesto de trabajo reconocible dentro del ámbito del desarrollo de software, ciencias de la computación e informática.
-      - Ejemplos válidos: Desarrollador Frontend, Desarrollador Backend, Desarrollador Full Stack, Desarrollador Mobile, Ingeniero de Software, Arquitecto de Software, Diseñador UI/UX, Scrum Master, Product Owner, DevOps Engineer, QA Engineer, Data Scientist, Data Engineer, Machine Learning Engineer, Analista de Sistemas, Administrador de Base de Datos, Ingeniero de Redes, Técnico en Soporte, Project Manager, Tech Lead, CTO, etc.
+      - Ejemplos válidos: Desarrollador Frontend, Desarrollador Backend, Desarrollador Full Stack, Desarrollador Mobile, Ingeniero de Software, Arquitecto de Software, Diseñador UI/UX, Scrum Master, Product Owner, DevOps Engineer, QA Engineer, Data Scientist, Data Engineer, Machine Learning Engineer, Analista de Sistemas, Administrador de Base de Datos, Ingeniero de Redes, Técnico en Soporte, Project Manager, Tech Lead, CTO, puestos de trabajo relacionados a redes de telecomunicaciones, redes de computadoras, IT, puestos de trabajo relacionados a sistemas operativos, mantenimiento, puestos de trabajo relacionados a aplicacion de conocimientos en teoria de computacion como: algoritmos, teoria de automatas, grafos,  etc.
 
       PUESTO DE TRABAJO INVÁLIDO:
       - false: cualquier caso que no sea un puesto de trabajo válido del ámbito mencionado. Esto incluye: puestos de otros sectores, palabras que no son puestos de trabajo, groserías, insultos o cualquier contenido inapropiado.
@@ -182,8 +182,8 @@ export async function academicTitleValidation(title: string) {
       {"valid": true/false, "reason": "..."}
 
       REGLAS PARA "valid":
-      - true: Es un titulo de grado o certificación reconocible en Computación, Software, Informática, Sistemas o TI.
-      - Ejemplos válidos: Lic. en Ingeniería de Sistemas, Mgrt. en Ciencias de la Computación, Dr. en Análisis de Sistemas, Licencitura en Desarrollo de Software, Ing. en Programación Web, Ingenieria en Ciberseguridad, Diplomado en Redes y Telecomunicaciones, PhD. en Inteligencia Artificial, etc.
+      - true: Es un titulo de grado o certificación reconocible en Computación, Software, Informática, Sistemas o TI, tambien cuentan titulos referidos a educacion o conocimiento tecnico sobre disenio de interfaces como UI/UX, Frontend, etc.
+      - Ejemplos válidos: Lic. en Ingeniería de Sistemas, Mgrt. en Ciencias de la Computación, Dr. en Análisis de Sistemas, Licencitura en Desarrollo de Software, Ing. en Programación Web, Ingenieria en Ciberseguridad, Diplomado en Redes y Telecomunicaciones, PhD. en Inteligencia Artificial, Tecnico medio en UI/UX, etc.
 
       - false: La carrera no pertenece al ámbito tecnológico (ej. Medicina, Derecho, Chef), son palabras sin sentido, insultos o el título es demasiado genérico/ficticio.
 
