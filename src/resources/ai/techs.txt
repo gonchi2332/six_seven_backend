@@ -1,0 +1,539 @@
+ABAP
+ActionScript
+Ada
+Apex
+Assembly (x86/ARM)
+Bash
+C
+C#
+C++
+COBOL
+CSS
+Clojure
+ColdFusion
+Crystal
+D
+Dart
+Delphi
+Elixir
+Erlang
+F#
+Fortran
+Go
+Groovy
+HTML
+Haskell
+Java
+JavaScript
+Julia
+Kotlin
+Lisp
+Lua
+Mojo
+Nim
+OCaml
+Objective-C
+PHP
+PL/SQL
+Pascal
+Perl
+PowerShell
+Prolog
+Python
+R
+Racket
+Ruby
+Rust
+SQL
+Scala
+Scheme
+Smalltalk
+Solidity
+Swift
+Tcl
+Transact-SQL
+TypeScript
+V
+VHDL
+Verilog
+Vyper
+Zig
+Alpine.js
+Angular
+Ant Design
+Apollo Client
+Astro
+Axios
+Backbone.js
+Blazor
+Bootstrap
+Bulma
+Chakra UI
+DaisyUI
+Eleventy
+Ember.js
+Emotion
+Foundation
+Gatsby
+HTMX
+Headless UI
+Less
+Lit
+Material UI (MUI)
+MobX
+Next.js
+Nuxt.js
+PostCSS
+Preact
+Qwik
+Radix UI
+React
+Recoil
+Redux
+Relay
+Remix
+Sass
+Semantic UI
+SolidJS
+Stencil
+Styled Components
+Svelte
+Tailwind CSS
+TanStack Query
+Vue.js
+Wasm
+Zustand
+jQuery
+ASP.NET Core
+Actix-web (Rust)
+AdonisJS
+Buffalo
+CodeIgniter
+Directus
+Django
+Echo (Go)
+Express.js
+FastAPI
+Fastify
+FeathersJS
+Fiber (Go)
+Flask
+Gin (Go)
+Grails
+Hapi
+KeystoneJS
+Koa
+Ktor (Kotlin)
+Laravel
+Lumen
+Micronaut
+NestJS
+Node.js
+Phoenix (Elixir)
+Play Framework
+Pyramid
+Quarkus
+Rocket (Rust)
+Ruby on Rails
+Sinatra
+Spring Boot
+Spring MVC
+Strapi
+Symfony
+Yii
+Android SDK
+Appcelerator Titanium
+Cordova
+Expo
+Flutter
+Ionic
+Jetpack Compose
+Kotlin Multiplatform (KMP)
+MAUI
+NativeScript
+PhoneGap
+React Native
+SwiftUI
+UIKit
+Unity (Mobile)
+Xamarin
+Algolia
+ArangoDB
+BigQuery
+Cassandra
+ClickHouse
+CockroachDB
+CouchDB
+DynamoDB
+Elasticsearch
+FaunaDB
+Firebase Realtime Database
+Firestore
+InfluxDB
+LevelDB
+MariaDB
+Meilisearch
+Memcached
+Microsoft SQL Server
+MongoDB
+MySQL
+Neo4j
+Oracle Database
+PlanetScale
+PostgreSQL
+Prometheus
+RavenDB
+Redis
+RocksDB
+SQLite
+Snowflake
+Supabase
+SurrealDB
+TimescaleDB
+AWS (Amazon Web Services)
+Ansible
+Apache HTTP Server
+Argocd
+Caddy
+Chef
+CircleCI
+CloudFormation
+Cloudflare
+Consul
+DigitalOcean
+Docker
+Docker Compose
+GitHub Actions
+GitLab CI/CD
+Google Cloud Platform (GCP)
+HAProxy
+Helm
+Heroku
+Istio
+Jenkins
+Kubernetes
+Linkerd
+Linode
+Microsoft Azure
+Netlify
+Nginx
+OpenStack
+Podman
+Proxmox
+Pulumi
+Puppet
+Terraform
+Traefik
+Travis CI
+VMware
+Vagrant
+Vault
+Vercel
+Airflow
+Apache Spark
+Bokeh
+CatBoost
+DVC
+Dagster
+Dask
+Flink
+Gensim
+Gradio
+Hadoop
+Hugging Face Transformers
+JAX
+Kafka
+Keras
+LangChain
+LightGBM
+LlamaIndex
+MLflow
+Matplotlib
+NLTK
+NumPy
+ONNX
+OpenCV
+Pandas
+Plotly
+Prefect
+PyTorch
+Ray
+Scikit-learn
+Seaborn
+SpaCy
+Streamlit
+TensorFlow
+TensorRT
+Weights & Biases
+XGBoost
+Babylon.js
+Blender API
+Cocos2d-x
+CryEngine
+Defold
+DirectX
+GameMaker Studio
+Godot
+Metal
+Ogre3D
+OpenGL
+Panda3D
+Phaser
+PixiJS
+Pygame
+RPG Maker
+Raylib
+SDL
+SFML
+Three.js
+Unity
+Unreal Engine
+Vulkan
+WebGPU
+Aircrack-ng
+Burp Suite
+Ghidra
+Hashcat
+IDA Pro
+John the Ripper
+Kali Linux Tools
+Metasploit
+Nmap
+OWASP ZAP
+OllyDbg
+OpenSSL
+OpenVPN
+Snort
+Suricata
+Tailscale
+Tor
+WireGuard
+Wireshark
+ZeroTier
+Adobe XD
+Atom
+Charles Proxy
+Compass
+Confluence
+DBeaver
+Discord API
+Docker Desktop
+Eclipse
+Emacs
+Figma
+Git
+HeidiSQL
+Insomnia
+IntelliJ IDEA
+Jira
+Mercurial
+Nano
+Neovim
+NetBeans
+Notepad++
+Postman
+PyCharm
+SVN
+Slack
+Sublime Text
+TablePlus
+Trello
+Vim
+Visual Studio
+Visual Studio Code
+WebStorm
+ARM Cortex-M
+AVR
+Arduino
+CircuitPython
+CoAP
+ESP32
+ESP8266
+FreeRTOS
+LoRaWAN
+MQTT
+Mbed OS
+MicroPython
+PIC
+PlatformIO
+Raspberry Pi
+STM32
+TinyOS
+Zephyr
+Zigbee
+AsciiDoc
+Beamer
+BibTeX
+Biber
+Doxygen
+Jupyter Notebooks
+LaTeX
+Markdown
+Memoir
+MiKTeX
+ModernCV
+Overleaf
+PGFPlots
+Pandoc
+RevTeX
+Sphinx
+TeX Live
+TikZ
+reStructuredText
+Arweave
+Bitcoin SDK
+Chainlink
+Ethereum
+Ethers.js
+Foundry
+Hardhat
+IPFS
+Metamask API
+OpenZeppelin
+Solana SDK
+The Graph
+Truffle
+WalletConnect
+Web3.js
+Behat
+Chai
+Cucumber
+Cypress
+JUnit
+Jest
+Mocha
+NUnit
+Playwright
+Postman Tests
+Puppeteer
+Pytest
+RSpec
+Selenium
+SonarQube
+TestNG
+Vitest
+XUnit
+APT
+Babel
+Bun
+Cargo
+Chocolatey
+Composer
+Conda
+DNF
+Esbuild
+Gradle
+Homebrew
+Maven
+NPM
+NuGet
+PNPM
+Pacman
+Parcel
+Pip
+Poetry
+Rollup
+Scoop
+Vite
+Webpack
+Yarn
+ActiveMQ
+ActiveRecord
+Apache Thrift
+AppDynamics
+Auth0
+Avro
+Bookshelf.js
+BullMQ
+Celery
+Chart.js
+Chef
+Clerk
+D3.js
+Dapper
+Datadog
+Date-fns
+Day.js
+Diesel
+Doctrine
+Electron
+Eloquent
+Entity Framework
+EsLint
+Etcd
+FFmpeg
+Filebeat
+Firebase Auth
+Fluentd
+GORM
+GTK
+Grafana
+Graylog
+Hangfire
+Hibernate
+Highcharts
+ImageMagick
+Jaeger
+Joi
+K6
+Keycloak
+Kibana
+Kinde
+Knex.js
+Leaflet
+Lodash
+Logstash
+Lucia Auth
+Luxon
+Mapbox GL JS
+Moment.js
+Mongoose
+NATS
+NSQ
+New Relic
+NextAuth.js
+Okta
+OpenTelemetry
+Orc
+Parquet
+Passport.js
+Peewee
+PonyORM
+Prettier
+Prisma
+Protocol Buffers
+Puppet
+Qt
+Quartz.NET
+RabbitMQ
+Resque
+SQLAlchemy
+Sentry
+Sequelize
+Sidekiq
+SignalR
+Socket.io
+SocketCluster
+Sqlx
+Tauri
+TypeORM
+Underscore.js
+Waterline
+WebRTC
+Xray
+Yup
+ZeroMQ
+Zipkin
+Zod
+Zookeeper
+Angular
+Aws
+Django
+Flask
+gRPC
+Node
+Py
+React
+React native
+Spring-boot
+Vue
