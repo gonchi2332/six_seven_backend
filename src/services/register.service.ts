@@ -273,8 +273,9 @@ export async function viewUserPersonalInfo(username: string) {
 
     const getQuery = `
       SELECT 
-        u.username, u.is_new, u.state, u.names, u.first_surname, upn.phone_number, umn.second_surname, 
-        rci.name AS residence_city_name, rc.name AS residence_country_name, uce.contact_email, 
+        u.username, u.is_new, u.state, u.names, u.first_surname, u.main_registration_email, 
+        upn.phone_number, umn.second_surname, rci.name AS residence_city_name, 
+        rc.name AS residence_country_name, uce.contact_email, 
         ure.registration_email, pp.profile_picture
       FROM "user" u
       LEFT JOIN "user_phone_number" upn ON u.username = upn.username
