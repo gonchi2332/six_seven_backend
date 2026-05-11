@@ -4,7 +4,7 @@ export interface LaboralExperienceInfo {
   description: string;
   //visible: boolean;
   startDate: Date;
-  endDate?: Date;
+  endDate?: Date | string;
 }
 
 export interface PositionModerationResponse {

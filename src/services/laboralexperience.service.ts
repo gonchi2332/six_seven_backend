@@ -23,13 +23,12 @@ async function manageUserLaboralExperience(
     }
     if (laboralExperienceInfo.endDate) {
       laboralExperienceInfo.endDate = new Date(laboralExperienceInfo.endDate);
-    }
-
-    if (laboralExperienceInfo.endDate && isNaN((laboralExperienceInfo.endDate as Date).getTime())) {
-      return {
-        result: false,
-        messageState: "La fecha de fin es inválida." 
-      };
+      if (isNaN((laboralExperienceInfo.endDate as Date).getTime())) {
+        return {
+          result: false,
+          messageState: "La fecha de fin es inválida." 
+        };
+      }
     }
     
     const { startDate, endDate = null } = laboralExperienceInfo;
