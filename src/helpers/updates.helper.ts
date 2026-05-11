@@ -60,13 +60,20 @@ export async function updateUserLaboralExperience(
     `;
     await processReturnQuery(updateQuery, [startDate, id, username]);
   }
-  if (endDate) {
+  if (endDate || endDate === "") {
     updateQuery = `
       UPDATE "laboral_experience"
       SET end_date = $1
       WHERE id = $2 AND username = $3
     `;
-    await processReturnQuery(updateQuery, [endDate, id, username]);
+    let values;
+    if (endDate === "") {
+      values = [null, id, username];
+      await processReturnQuery(updateQuery, values);
+    } else {
+      values = [endDate, id, username];
+      await processReturnQuery(updateQuery, values);
+    }
   }
 }
 
@@ -96,11 +103,14 @@ export async function updateEducation(
     setParts.push(`start_date = $${placeholderIndex++}`);
     values.push(startDate);
   }
-  if (endDate) {
+  if (endDate || endDate === "") {
     setParts.push(`end_date = $${placeholderIndex++}`);
-    values.push(endDate);
+    if (endDate === "") {
+      values.push(null);
+    } else {
+      values.push(endDate);
+    }
   }
-
   if (setParts.length === 0) return;
 
   values.push(id);
