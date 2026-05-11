@@ -4,7 +4,7 @@ export interface EducationInfo {
   institution: string;
   //visible: boolean;
   startDate: Date;
-  endDate?: Date;
+  endDate?: Date | string;
 }
 
 export interface AcademicGradeInfo {

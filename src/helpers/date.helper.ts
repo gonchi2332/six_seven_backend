@@ -1,4 +1,4 @@
-export function registerDateValidations(startDateStr: Date, endDateStr?: Date | null) {
+export function registerDateValidations(startDateStr: Date, endDateStr?: Date | string | null) {
   const startDate = new Date(startDateStr);
   if (isNaN(startDate.getTime())) {
     return {
