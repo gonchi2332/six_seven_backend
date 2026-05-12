@@ -44,13 +44,21 @@ async function manageEducation(
 
     if (action === "modify") {
       const foundEducation = await Selects.getEducation(id!);
+      const currentStartDate = foundEducation[0].start_date;
       if (!foundEducation || foundEducation.length === 0) {
         return {
           result: false,
           messageState: "La educacion educacion consultada no existe"
         };
       }
+      const dateValidationResult = registerDateValidations(currentStartDate, endDate);
       if (endDate) {
+        if (dateValidationResult && !dateValidationResult.result) {
+          return {
+            result: false,
+            messageState: dateValidationResult.messageState
+          };
+        }
         if (startDate) {
           if (startDate > endDate) {
             return {
@@ -60,7 +68,6 @@ async function manageEducation(
           }
         }
         else {
-          const currentStartDate = foundEducation[0].start_date;
           if (currentStartDate > endDate) {
             return {
               result: false,
