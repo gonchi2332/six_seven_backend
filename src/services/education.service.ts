@@ -44,7 +44,12 @@ async function manageEducation(
 
     if (action === "modify") {
       const foundEducation = await Selects.getEducation(id!);
-      const currentStartDate = foundEducation[0].start_date;
+      let currentStartDate;
+      if (!educationInfo.startDate) {
+        currentStartDate = foundEducation[0].start_date;
+      } else {
+        currentStartDate = educationInfo.startDate;
+      }
       if (!foundEducation || foundEducation.length === 0) {
         return {
           result: false,
