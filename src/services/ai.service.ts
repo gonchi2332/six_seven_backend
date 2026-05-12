@@ -28,6 +28,15 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
       Antes de validar, verifica si "${skillName}" corresponde a alguna habilidad ya registrada.
       Esto incluye: abreviaciones (js → javascript), aliases (postgres → postgresql), 
       variantes de capitalización (nodeJS → node.js), nombres alternativos (react.js → react).
+      
+      La coincidencia SOLO aplica cuando el nombre ingresado es:
+      - Exactamente igual (ignorando mayúsculas)
+      - Una abreviación técnica directa y ampliamente reconocida (js → javascript, ts → typescript)
+      - Un alias de la industria universalmente aceptado (postgres → postgresql, react.js → react)
+      NO aplica cuando el nombre ingresado es un término más genérico o parcial de una habilidad existente.
+      Ejemplo: "Análisis" NO coincide con "Análisis de Problemas" porque es un concepto más amplio, no un alias.
+      Ejemplo: "Comunicación" NO coincide con "Comunicación Efectiva" por la misma razón.
+      
       Si hay coincidencia:
       - Retorna valid: true
       - Retorna el canon_name exacto de la lista en el campo "canonName"
