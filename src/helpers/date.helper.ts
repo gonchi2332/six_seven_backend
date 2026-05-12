@@ -3,13 +3,12 @@ export function registerDateValidations(startDateStr: Date, endDateStr?: Date | 
   if (isNaN(startDate.getTime())) {
     return {
       result: false,
-      messageState: "La fecha de inicio es inválida."
-    };
-  }
+      messageState: "El año de inicio es inválido."
+    };  }
   if (!isWithinLast100Years(startDate)) {
     return {
       result: false,
-      messageState: "La fecha de inicio tiene que estar dentro del rango de hoy y hace 100 años."
+      messageState: "El año de inicio tiene que estar dentro del rango de hoy y hace 100 años."
     };
   }
   if (endDateStr) {
@@ -17,7 +16,7 @@ export function registerDateValidations(startDateStr: Date, endDateStr?: Date | 
     if (isNaN((endDate as Date).getTime())) {
       return {
         result: false,
-        messageState: "La fecha de fin es inválida."
+        messageState: "El año de finalización es inválido."
       };
     }
     if (!isWithinLast100Years(endDate)) {
@@ -29,7 +28,7 @@ export function registerDateValidations(startDateStr: Date, endDateStr?: Date | 
     if (startDate > endDate) {
       return {
         result: false,
-        messageState: "La fecha de inicio no puede ser posterior a la fecha de finalización"
+        messageState: "El año de inicio no puede ser posterior al año de finalización"
       };
     }
   }
@@ -54,7 +53,7 @@ export function updateDateValidations(
       if (newStartDate > oldEndDate) {
         return {
           result: false,
-          messageState: "La fecha de inicio no puede ser posterior a la fecha de finalización"
+          messageState: "El año de inicio no puede ser posterior al año de finalización"
         };
       }
     }
@@ -64,13 +63,13 @@ export function updateDateValidations(
     if (!isWithinLast100Years(newEndDate)) {
       return {
         result: false,
-        messageState: "La fecha de fin tiene que estar dentro del rango de hoy y hace 100 años."
+        messageState: "El año de fin tiene que estar dentro del rango de hoy y hace 100 años."
       };
     }
     if (oldStartDate > newEndDate) {
       return {
         result: false,
-        messageState: "La fecha de fin no puede ser anterior a la fecha de inicio"
+        messageState: "El año de fin no puede ser anterior al año de inicio"
       };
     }
   }

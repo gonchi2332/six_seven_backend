@@ -18,7 +18,7 @@ async function manageEducation(
       if (isNaN(educationInfo.startDate.getTime())) {
         return {
           result: false,
-          messageState: "La fecha de inicio es inválida."
+          messageState: "El año de inicio es inválido"
         };
       }
     }
@@ -27,13 +27,13 @@ async function manageEducation(
       if (isNaN((educationInfo.endDate as Date).getTime())) {
         return {
           result: false,
-          messageState: "La fecha de fin es inválida." 
+          messageState: "El año de finalización es inválido"
         };
       }
     }
 
     const { startDate, endDate = null } = educationInfo;
-    
+
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
       return {
@@ -47,16 +47,26 @@ async function manageEducation(
       if (!foundEducation || foundEducation.length === 0) {
         return {
           result: false,
-          messageState: "La educacion educacion consultada no existe."
+          messageState: "La educacion educacion consultada no existe"
         };
       }
       if (endDate) {
-        const currentStartDate = foundEducation[0].start_date;
-        if (currentStartDate > endDate) {
-          return {
-            result: false,
-            messageState: "La fecha de inicio no puede ser luego de fecha de finalización"
-          };
+        if (startDate) {
+          if (startDate > endDate) {
+            return {
+              result: false,
+              messageState: "El año de inicio no puede ser luego del año de finalización"
+            };
+          }
+        }
+        else {
+          const currentStartDate = foundEducation[0].start_date;
+          if (currentStartDate > endDate) {
+            return {
+              result: false,
+              messageState: "El año de inicio no puede ser luego del año de finalización"
+            };
+          }
         }
       }
     } else {
