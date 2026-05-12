@@ -28,7 +28,7 @@ export function registerDateValidations(startDateStr: Date, endDateStr?: Date | 
     if (startDate > endDate) {
       return {
         result: false,
-        messageState: "El año de inicio no puede ser antes del año de finalización"
+        messageState: "El año de inicio no puede ser despues del año de finalización"
       };
     }
   }
