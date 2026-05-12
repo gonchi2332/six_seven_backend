@@ -56,7 +56,13 @@ async function manageUserLaboralExperience(
             messageState: "La fecha de fin es invalida"
           };
         }
-        const currentStartDate = foundLaboralExperience[0].start_date;
+        //const currentStartDate = foundLaboralExperience[0].start_date;
+        let currentStartDate;
+        if (!laboralExperienceInfo.startDate) {
+          currentStartDate = foundLaboralExperience[0].start_date;
+        } else {
+          currentStartDate = laboralExperienceInfo.startDate;
+        }
         if (currentStartDate > endDate) {
           return {
             result: false,
