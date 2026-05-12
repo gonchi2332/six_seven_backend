@@ -8,7 +8,7 @@ export function registerDateValidations(startDateStr: Date, endDateStr?: Date | 
   if (!isWithinLast100Years(startDate)) {
     return {
       result: false,
-      messageState: "El año de inicio tiene que estar dentro del rango de hoy y hace 100 años."
+      messageState: "El año de inicio tiene que estar dentro del rango de hoy y hace 100 años"
     };
   }
   if (endDateStr) {
@@ -16,19 +16,19 @@ export function registerDateValidations(startDateStr: Date, endDateStr?: Date | 
     if (isNaN((endDate as Date).getTime())) {
       return {
         result: false,
-        messageState: "El año de finalización es inválido."
+        messageState: "El año de finalización es inválido"
       };
     }
     if (!isWithinLast100Years(endDate)) {
       return {
         result: false,
-        messageState: "La fecha de fin tiene que estar dentro del rango de hoy y hace 100 años."
+        messageState: "La fecha de finalización tiene que estar dentro del rango de hoy y hace 100 años"
       };
     }
     if (startDate > endDate) {
       return {
         result: false,
-        messageState: "El año de inicio no puede ser posterior al año de finalización"
+        messageState: "El año de inicio no puede ser antes del año de finalización"
       };
     }
   }
@@ -53,7 +53,7 @@ export function updateDateValidations(
       if (newStartDate > oldEndDate) {
         return {
           result: false,
-          messageState: "El año de inicio no puede ser posterior al año de finalización"
+          messageState: "El año de inicio no puede ser despues del año de finalización"
         };
       }
     }
@@ -63,13 +63,13 @@ export function updateDateValidations(
     if (!isWithinLast100Years(newEndDate)) {
       return {
         result: false,
-        messageState: "El año de fin tiene que estar dentro del rango de hoy y hace 100 años."
+        messageState: "El año de finalización tiene que estar dentro del rango de hoy y hace 100 años"
       };
     }
     if (oldStartDate > newEndDate) {
       return {
         result: false,
-        messageState: "El año de fin no puede ser anterior al año de inicio"
+        messageState: "El año de finalización no puede ser antes del año de inicio"
       };
     }
   }
