@@ -41,6 +41,15 @@ async function manageUserLaboralExperience(
       };
     }
 
+    const laboralExperienceAction = getLaboralExpAction(action);
+    const laboralExperienceExits = await Assertions.laboralExperienceExists(laboralExperienceInfo, username);
+    if (laboralExperienceExits) {
+      return {
+        result: false,
+        messageState: `La experiencia laboral que trata de ser ${laboralExperienceAction.singleWord} ya existe y esta asociada a este usuario.`
+      };
+    }
+
     if (action === "modify") {
       const foundLaboralExperience = await Selects.getLaboralExperience(username, id!);
       if (!foundLaboralExperience || foundLaboralExperience.length === 0) {
@@ -87,7 +96,6 @@ async function manageUserLaboralExperience(
       }
     }
 
-    const laboralExperienceAction = getLaboralExpAction(action);
     const validationResult = await laboralExperienceAction.serviceValidations(laboralExperienceInfo);
     if (validationResult && !validationResult.result) {
       return {
