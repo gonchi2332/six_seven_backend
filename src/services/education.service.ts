@@ -42,6 +42,15 @@ async function manageEducation(
       };
     }
 
+    const educationAction = getEducationAction(action);
+    const educationExists = await Assertions.educationExists(educationInfo, username);
+    if (educationExists) {
+      return {
+        result: false,
+        messageState: `La formacion academica que trata de ser ${educationAction.singleWord} ya existe y esta asociada a este usuario.`
+      };
+    }
+
     if (action === "modify") {
       const foundEducation = await Selects.getEducation(id!);
       let currentStartDate;
@@ -93,7 +102,6 @@ async function manageEducation(
       }
     }
 
-    const educationAction = getEducationAction(action);
     const validationResult = await educationAction.serviceValidations(educationInfo);
     if (validationResult && !validationResult.result) {
       return {

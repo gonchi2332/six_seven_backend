@@ -1,0 +1,9 @@
+-- This migration adds a unique constraint to the academic_training table to ensure that there are no
+-- duplicate entries for the same academic training name, institution and username.
+
+ALTER TABLE "academic_training"
+DROP CONSTRAINT IF EXISTS "unique_academic_training";
+
+ALTER TABLE "academic_training"
+ADD CONSTRAINT "unique_academic_training"
+UNIQUE("username", "canon_name", "institution_canon_name");
