@@ -1,5 +1,6 @@
 import { processReturnQuery } from "../utils/query";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
+import * as ProjectTypes from "../types/project.types";
 
 export async function userExists(username: string) {
   const checkQuery = `
@@ -26,4 +27,16 @@ export async function laboralExperienceExists(
   const values = [position, companyName, startDate, username];
   const foundLaboralExperience = await processReturnQuery(checkQuery, values);
   return !(foundLaboralExperience.length === 0);
+}
+
+export async function projectExists(projectInfo: ProjectTypes.ProjectInfo, username: string) {
+  const { name } = projectInfo;
+  
+  const checkQuery = `
+    SELECT id FROM "project"
+    WHERE name = $1 AND username = $2
+  `;
+  const values = [name, username];
+  const foundProjects = await processReturnQuery(checkQuery, values);
+  return !(foundProjects.length === 0);
 }

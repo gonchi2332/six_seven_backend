@@ -1,0 +1,6 @@
+-- This migration adds a unique constraint to the projects table to ensure that there are no
+-- dupicate entries for the same project name and username.
+
+ALTER TABLE "project"
+ADD CONSTRAINT "unique_project"
+UNIQUE("username", "name");
