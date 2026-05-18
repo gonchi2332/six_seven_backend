@@ -115,7 +115,7 @@ async function handleUserLaboralExperience(
       }
       return res.status(200).json({
         success: true,
-        message: "La experiencias laboral se ha eliminado correctamente.",
+        message: "La experiencia laboral se ha eliminado correctamente.",
       });
     }
   } catch (err) {

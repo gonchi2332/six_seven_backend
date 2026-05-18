@@ -5,6 +5,7 @@ import * as SkillTypes from "../types/skill.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as ProjectTypes from "../types/project.types";
 import * as EducacionTypes from "../types/education.types";
+import * as CertificateTypes from "../types/certificate.types";
 
 export async function createSkill(skillName: string, canonSkillName: string, skillType: SkillTypes.SkillType) {
   const insertQuery = `
@@ -55,7 +56,7 @@ export async function createLaboralExperience(username: string, laboralExperienc
 export async function createEducation(username: string, educacionInfo: EducacionTypes.EducationInfo) {
   const insertQuery = `
     INSERT INTO "academic_training" (name, academic_degree_id, institution, visible, start_date, 
-      end_date, username, canon_title, canon_institution)
+      username, canon_title, canon_institution, education_state)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   `;
   const {
@@ -63,12 +64,12 @@ export async function createEducation(username: string, educacionInfo: Educacion
     institution,
     academyDegreeId,
     startDate,
-    endDate = null
+    educationState
   } = educacionInfo;
   const formatedTitle = await formatAcademicInfo(title);
   const formatedInstitution = await formatAcademicInfo(institution);
-  const values = [title, academyDegreeId, institution, true, startDate, endDate, username, 
-    formatedTitle, formatedInstitution];
+  const values = [title, academyDegreeId, institution, true, startDate, username, formatedTitle, 
+    formatedInstitution, educationState];
   await processReturnQuery(insertQuery, values);
 }
 
@@ -94,4 +95,18 @@ export async function createPersonalProject(username: string, projectInfo: Proje
       await client.query(projectLinkQuery, [projectId, linkId]);
     }
   });
+}
+
+export async function createCertificate(
+  username: string,
+  certificateInfo: CertificateTypes.CertificateInfo,
+  coverImageBuffer: Express.Multer.File ) {
+  const { title, description, area, issueDate } = certificateInfo;
+  
+  const insertQuery = `
+    INSERT INTO "certificate" (title, description, area, issue_date, file, username, visible)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `;
+  const values = [title, description, area, issueDate, coverImageBuffer.buffer, username, true];
+  await processReturnQuery(insertQuery, values);
 }

@@ -80,7 +80,7 @@ export async function getLaboralExperience(username: string, id: number) {
 export async function getEducation(id: number) {
   const selectQuery = `
     SELECT a.name AS title, a.institution, d.name AS academicDegree,
-    a.visible, a.start_date, a.end_date 
+    a.visible, a.start_date, a.education_state
     FROM "academic_training" a
     LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
     WHERE a.id = $1 AND a.visible
@@ -92,7 +92,7 @@ export async function getEducation(id: number) {
 export async function getAllPublicUserEducation(username: string) {
   const selectQuery = `
     SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
-    a.visible, a.start_date, a.end_date 
+    a.visible, a.start_date, a.education_state
     FROM "academic_training" a
     LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
     WHERE username = $1 AND a.visible
@@ -104,7 +104,7 @@ export async function getAllPublicUserEducation(username: string) {
 export async function getAllUserEducation(username: string) {
   const selectQuery = `
     SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
-    a.visible, a.start_date, a.end_date 
+    a.visible, a.start_date, a.education_state
     FROM "academic_training" a
     LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
     WHERE username = $1
@@ -161,4 +161,37 @@ export async function getPublicProjects(username: string) {
     };
   });
   return formattedProjects;
+}
+
+export async function getAllUserCertificates(username: string) {
+  const selectQuery = `
+    SELECT id, title, description, area, file, issue_date, visible FROM "certificate"
+    WHERE username = $1
+  `;
+  const userCertificates = await processReturnQuery(selectQuery, [username]);
+  const formatedCertificates = userCertificates.map(cert => {
+    let base64File = null;
+    if (cert.file) {
+      base64File = `data:image/jpeg;base64,${cert.file.toString("base64")}`;
+    }
+    return {
+      id: cert.id,
+      title: cert.title,
+      description: cert.description,
+      area: cert.area,
+      issue_date: cert.issue_date,
+      visible: cert.visible,
+      file: base64File
+    };
+  });
+  return formatedCertificates;
+}
+
+export async function getUserCertificate(username: string, id: number) {
+  const selectQuery = `
+    SELECT id, title, description, area, issue_date, visible FROM "certificate"
+    WHERE id = $1 AND username = $2
+  `;
+  const foundCertificate = await processReturnQuery(selectQuery, [id, username]);
+  return foundCertificate;
 }
