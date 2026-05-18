@@ -75,3 +75,41 @@ export async function modifyUserCertificate(req: Request, res: Response) {
   }
   return await manageUserCertificate(req, res, "modify", parsedId);
 }
+
+export async function viewUserCertificates(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload || req.query;
+
+    if (!username || typeof username !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Nombre de usuario faltante o invalido."
+      });
+    }
+
+    const {  result, messageState, certificates } = await CertificateService.
+      viewUserCertificates(username);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    if (!certificates || certificates.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "El usuario no tiene certificados registrados."
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Certificados obtenidos exitosamente.",
+      certificates: certificates
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno del servidor: ${(err as Error).message}`
+    });
+  }
+}

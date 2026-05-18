@@ -162,3 +162,12 @@ export async function getPublicProjects(username: string) {
   });
   return formattedProjects;
 }
+
+export async function getAllUserCertificates(username: string) {
+  const selectQuery = `
+    SELECT id, title, description, area, issue_date, visible FROM "certificate"
+    WHERE username = $1
+  `;
+  const userCertificates = await processReturnQuery(selectQuery, [username]);
+  return userCertificates;
+}

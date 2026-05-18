@@ -21,4 +21,9 @@ router.patch(
   CertificatesController.modifyUserCertificate
 );
 
+router.get(
+  "/users/certificates",
+  CertificatesController.viewUserCertificates
+);
+
 export default router;

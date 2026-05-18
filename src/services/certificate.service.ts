@@ -3,6 +3,7 @@ import * as CertificateTypes from "../types/certificate.types";
 import * as Assertions from "../helpers/assertions.helper";
 import * as Inserts from "../helpers/inserts.helper";
 import * as Updates from "../helpers/updates.helper";
+import * as Selects from "../helpers/selects.helper";
 
 async function manageUserCertificate(
   username: string, 
@@ -104,4 +105,34 @@ export async function modifyUserCertificate(
   coverImage: Express.Multer.File,
   id: number) {
   return await manageUserCertificate(username, certificateInfo, coverImage, "modify", id);
+}
+
+export async function viewUserCertificates(username: string) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+
+    const userCertificates = await Selects.getAllUserCertificates(username);
+    if (!userCertificates || userCertificates.length === 0) {
+      return {
+        result: true,
+        messageState: "El usuario no tiene certificados registrados."
+      };
+    }
+    return {
+      result: true,
+      messageState: "Certificados obtenidos exitosamente.",
+      certificates: userCertificates
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
 }
