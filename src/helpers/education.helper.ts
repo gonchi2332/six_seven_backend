@@ -24,7 +24,8 @@ async function registerEducationValidations(educationInfo: EducationTypes.Educat
   const {
     title,
     academyDegreeId,
-    institution
+    institution,
+    educationState
   } = educationInfo;
   if (!title || typeof title !== "string") {
     return {
@@ -52,6 +53,12 @@ async function registerEducationValidations(educationInfo: EducationTypes.Educat
       messageState: "El titulo superan el limite de caracteres"
     };
   }
+  if (!academyDegreeId || typeof academyDegreeId !== "number") {
+    return {
+      result: false,
+      messageState: "El Id del grado academico es requerido"
+    };
+  }
   if (!institution || typeof institution !== "string") {
     return {
       result: false,
@@ -70,11 +77,16 @@ async function registerEducationValidations(educationInfo: EducationTypes.Educat
       messageState: "El nombre de la institucion superan el limite de caracteres"
     };
   }
-
-  if (!academyDegreeId || typeof academyDegreeId !== "number") {
+  if (!educationState || typeof educationState !== "string") {
     return {
       result: false,
-      messageState: "El Id del grado academico es requerido"
+      messageState: "El estado de la educacion es requerido"
+    };
+  }
+  if (!Object.values(EducationTypes.EducationState).includes(educationState)) {
+    return {
+      result: false,
+      messageState: "El estado de la educacion es invalido"
     };
   }
 }
@@ -83,7 +95,16 @@ async function modifyEducationValidations(educationInfo: EducationTypes.Educatio
   const {
     academyDegreeId,
     institution,
+    educationState
   } = educationInfo;
+  if (academyDegreeId) {
+    if (typeof academyDegreeId !== "number") {
+      return {
+        result: false,
+        messageState: "El Id del grado academico es invalido"
+      };
+    }
+  }
   if (institution) {
     if (typeof institution !== "string") {
       return {
@@ -104,14 +125,20 @@ async function modifyEducationValidations(educationInfo: EducationTypes.Educatio
       };
     }
   }
-
-  if (academyDegreeId)
-    if (typeof academyDegreeId !== "number") {
+  if (educationState) {
+    if (typeof educationState !== "string") {
       return {
         result: false,
-        messageState: "El Id del grado academico es invalido"
+        messageState: "El estado de la educacion es invalido"
       };
     }
+    if (!Object.values(EducationTypes.EducationState).includes(educationState)) {
+      return {
+        result: false,
+        messageState: "El estado de la educacion es invalido"
+      };
+    }
+  }
 }
 
 export async function formatAcademicInfo(title: string) {

@@ -35,3 +35,12 @@ export function checkProjectImageErrors (req: Request, res: Response, next: Next
     next();
   });
 }
+
+export function checkCertificateCoverImageErrors (req: Request, res: Response, next: NextFunction) {
+  upload.single("coverImage")(req, res, (err) => {
+    if (err) {
+      return verifyMulter(err, req, res, next);
+    }
+    next();
+  });
+}

@@ -4,7 +4,12 @@ export interface EducationInfo {
   institution: string;
   //visible: boolean;
   startDate: Date;
-  endDate?: Date | string;
+  educationState: EducationState;
+}
+
+export enum EducationState {
+  CURSANDO = "Cursando",
+  FINALIZADA = "Egresado"
 }
 
 export interface AcademicGradeInfo {

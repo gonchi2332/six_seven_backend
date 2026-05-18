@@ -46,3 +46,13 @@ export async function deleteEducation(educationId: number) {
   const deletedEducation = await processReturnQuery(deleteQuery, [educationId]);
   return deletedEducation;
 }
+
+export async function deleteUserCertificate(username: string, id: number) {
+  const deleteQuery = `
+    DELETE FROM "certificate"
+    WHERE id = $1 AND username = $2
+    RETURNING title
+  `;
+  const deletedCertificate = await processReturnQuery(deleteQuery, [id, username]);
+  return deletedCertificate;
+}
