@@ -1,5 +1,4 @@
 import { getEducationAction } from "../helpers/education.helper";
-import { registerDateValidations } from "../helpers/date.helper";
 import * as EducationTypes from "../types/education.types";
 import * as Assertions from "../helpers/assertions.helper";
 import * as Selects from "../helpers/selects.helper";
@@ -22,17 +21,8 @@ async function manageEducation(
         };
       }
     }
-    if (educationInfo.endDate) {
-      educationInfo.endDate = new Date(educationInfo.endDate);
-      if (isNaN((educationInfo.endDate as Date).getTime())) {
-        return {
-          result: false,
-          messageState: "El año de finalización es inválido"
-        };
-      }
-    }
 
-    const { startDate, endDate = null } = educationInfo;
+    const { startDate } = educationInfo;
 
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
@@ -53,52 +43,38 @@ async function manageEducation(
 
     if (action === "modify") {
       const foundEducation = await Selects.getEducation(id!);
-      let currentStartDate;
-      if (!educationInfo.startDate) {
-        currentStartDate = foundEducation[0].start_date;
-      } else {
-        currentStartDate = educationInfo.startDate;
-      }
       if (!foundEducation || foundEducation.length === 0) {
         return {
           result: false,
           messageState: "La educacion educacion consultada no existe"
         };
       }
-      const dateValidationResult = registerDateValidations(currentStartDate, endDate);
-      if (endDate) {
-        if (dateValidationResult && !dateValidationResult.result) {
-          return {
-            result: false,
-            messageState: dateValidationResult.messageState
-          };
-        }
-        if (startDate) {
-          if (startDate > endDate) {
-            return {
-              result: false,
-              messageState: "El año de inicio no puede ser luego del año de finalización"
-            };
-          }
-        }
-        else {
-          if (currentStartDate > endDate) {
-            return {
-              result: false,
-              messageState: "El año de inicio no puede ser luego del año de finalización"
-            };
-          }
-        }
+    }
+
+    if (!startDate) {
+      return {
+        result: false,
+        messageState: "Fecha de inicio o egreso invalida."
+      };
+    }
+    if (startDate) {
+      if (isNaN(startDate.getTime())) {
+        return {
+          result: false,
+          messageState: "Fecha de inicio o egreso invalida."
+        };
       }
-    } else {
-      const dateValidationResult = registerDateValidations(startDate, endDate);
-      if (endDate) {
-        if (dateValidationResult && !dateValidationResult.result) {
-          return {
-            result: false,
-            messageState: dateValidationResult.messageState
-          };
-        }
+      if (startDate > new Date()) {
+        return {
+          result: false,
+          messageState: "Fecha de inicio o egreso no puede ser futura."
+        };
+      }
+      if (startDate < new Date(new Date().setFullYear(new Date().getFullYear() - 100))) {
+        return {
+          result: false,
+          messageState: "Fecha de inicio o egreso tiene que estar dentro del rango de hoy y hace 100 años."
+        };
       }
     }
 

@@ -82,7 +82,7 @@ export async function updateEducation(
   educacionInfo: educacionTypes.EducationInfo,
   id: number
 ) {
-  const { title, institution, academyDegreeId, startDate, endDate = null } = educacionInfo;
+  const { title, institution, academyDegreeId, startDate, educationState } = educacionInfo;
 
   const setParts: string[] = [];
   const values: unknown[] = [];
@@ -104,13 +104,9 @@ export async function updateEducation(
     setParts.push(`start_date = $${placeholderIndex++}`);
     values.push(startDate);
   }
-  if (endDate || endDate === "") {
-    setParts.push(`end_date = $${placeholderIndex++}`);
-    if (endDate === "") {
-      values.push(null);
-    } else {
-      values.push(endDate);
-    }
+  if (educationState) {
+    setParts.push(`education_state = $${placeholderIndex++}`);
+    values.push(educationState);
   }
   if (setParts.length === 0) return;
 

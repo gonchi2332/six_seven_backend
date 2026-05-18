@@ -80,7 +80,7 @@ export async function getLaboralExperience(username: string, id: number) {
 export async function getEducation(id: number) {
   const selectQuery = `
     SELECT a.name AS title, a.institution, d.name AS academicDegree,
-    a.visible, a.start_date, a.end_date 
+    a.visible, a.start_date, a.education_state
     FROM "academic_training" a
     LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
     WHERE a.id = $1 AND a.visible
@@ -92,7 +92,7 @@ export async function getEducation(id: number) {
 export async function getAllPublicUserEducation(username: string) {
   const selectQuery = `
     SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
-    a.visible, a.start_date, a.end_date 
+    a.visible, a.start_date, a.education_state
     FROM "academic_training" a
     LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
     WHERE username = $1 AND a.visible
@@ -104,7 +104,7 @@ export async function getAllPublicUserEducation(username: string) {
 export async function getAllUserEducation(username: string) {
   const selectQuery = `
     SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
-    a.visible, a.start_date, a.end_date 
+    a.visible, a.start_date, a.education_state
     FROM "academic_training" a
     LEFT JOIN "academic_degree" d ON d.id = a.academic_degree_id
     WHERE username = $1
