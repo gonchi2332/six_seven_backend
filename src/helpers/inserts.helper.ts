@@ -1,5 +1,6 @@
 import { processTransaction, processReturnQuery } from "../utils/query";
 import { PoolClient } from "pg";
+import { formatAcademicInfo } from "./education.helper";
 import * as SkillTypes from "../types/skill.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as ProjectTypes from "../types/project.types";
@@ -54,8 +55,8 @@ export async function createLaboralExperience(username: string, laboralExperienc
 export async function createEducation(username: string, educacionInfo: EducacionTypes.EducationInfo) {
   const insertQuery = `
     INSERT INTO "academic_training" (name, academic_degree_id, institution, visible, start_date, 
-      end_date, username)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+      end_date, username, canon_title, canon_institution)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   `;
   const {
     title,
@@ -64,7 +65,10 @@ export async function createEducation(username: string, educacionInfo: Educacion
     startDate,
     endDate = null
   } = educacionInfo;
-  const values = [title, academyDegreeId, institution, true, startDate, endDate, username];
+  const formatedTitle = await formatAcademicInfo(title);
+  const formatedInstitution = await formatAcademicInfo(institution);
+  const values = [title, academyDegreeId, institution, true, startDate, endDate, username, 
+    formatedTitle, formatedInstitution];
   await processReturnQuery(insertQuery, values);
 }
 

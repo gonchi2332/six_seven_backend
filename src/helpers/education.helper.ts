@@ -113,3 +113,11 @@ async function modifyEducationValidations(educationInfo: EducationTypes.Educatio
       };
     }
 }
+
+export async function formatAcademicInfo(title: string) {
+  return title
+    .trim()
+    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "")
+    .replace(/\s+/g, " ")                          
+    .toLowerCase();
+}
