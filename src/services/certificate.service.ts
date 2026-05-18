@@ -1,16 +1,26 @@
-import { profanity, uniqueWords, uniqueTrickyWords } from "../config/leoprofanity.config";
-import { containsBadWord, isGarbageInput } from "../utils/validations";
-import * as RegexConstants from "../utils/constants/regex.constants";
+import { getCertificateAction } from "../helpers/certificate.helper";
 import * as CertificateTypes from "../types/certificate.types";
 import * as Assertions from "../helpers/assertions.helper";
 import * as Inserts from "../helpers/inserts.helper";
+import * as Updates from "../helpers/updates.helper";
 
-export async function registerUserCertificate(
+async function manageUserCertificate(
   username: string, 
   certificateInfo: CertificateTypes.CertificateInfo,
-  coverImage: Express.Multer.File) {
+  coverImage: Express.Multer.File,
+  action: "register" | "modify",
+  id?: number) {
   try {
-    const { title, description, area, issueDate } = certificateInfo;
+    if (certificateInfo.issueDate) {
+      certificateInfo.issueDate = new Date(certificateInfo.issueDate);
+      if (isNaN(certificateInfo.issueDate.getTime())) {
+        return {
+          result: false,
+          messageState: "Fecha de certificacion invalida."
+        };
+      }
+    }
+    const { issueDate } = certificateInfo;
 
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
@@ -28,41 +38,6 @@ export async function registerUserCertificate(
       };
     }
 
-    if ((!title || typeof title !== "string") ||
-      (!description || typeof description !== "string") ||
-      (!area || typeof area !== "string")) {
-      return {
-        result: false,
-        messageState: "Datos del certificado incompletos o invalidos."
-      };
-    }
-    if ((title.length < 0 || title.length > 100) || 
-      (area.length < 0 || area.length > 100)) {
-      return {
-        result: false,
-        messageState: "Titulo o area del certificado fuera del rango de caracteres permitido."
-      };
-    }
-    if (!RegexConstants.certificateTitleRegex.test(title) || profanity.check(title) || 
-      containsBadWord(title, uniqueWords, uniqueTrickyWords) || isGarbageInput(title)) {
-      return {
-        result: false,
-        messageState: "Titulo del certificado invalido."
-      };
-    }
-    if (!RegexConstants.areaRegex.test(area) || profanity.check(area) || 
-      containsBadWord(area, uniqueWords, uniqueTrickyWords) || isGarbageInput(area)) {
-      return {
-        result: false,
-        messageState: "Area invalida."
-      };
-    }
-    if (description.length < 0 || description.length > 200) {
-      return {
-        result: false,
-        messageState: "Descripción del certificado fuera del rango de caracteres permitido."
-      };
-    }
     if (!issueDate) {
       return {
         result: false,
@@ -70,19 +45,43 @@ export async function registerUserCertificate(
       };
     }
     if (issueDate) {
-      const formatedIssueDate = new Date(issueDate);
-      if (isNaN(formatedIssueDate.getTime())) {
+      if (isNaN(issueDate.getTime())) {
         return {
           result: false,
           messageState: "Fecha de certificacion invalida."
         };
       }
+      if (issueDate > new Date()) {
+        return {
+          result: false,
+          messageState: "La fecha de certificacion no puede ser futura."
+        };
+      }
+      if (issueDate < new Date(new Date().setFullYear(new Date().getFullYear() - 100))) {
+        return {
+          result: false,
+          messageState: "La fecha de certificacion tiene que estar dentro del rango de hoy y hace 100 años."
+        };
+      }
     }
 
-    await Inserts.createCertificate(username, certificateInfo, coverImage);
+    const certificateAction = getCertificateAction(action);
+    const validationsResult = await certificateAction.serviceValidations(certificateInfo);
+    if (validationsResult && !validationsResult.result) {
+      return {
+        result: false,
+        messageState: validationsResult.messageState
+      };
+    }
+
+    if (action === "register") {
+      await Inserts.createCertificate(username, certificateInfo, coverImage);
+    }else {
+      await Updates.updateCertificate(username, certificateInfo, coverImage, id!);
+    }
     return {
       result: true,
-      messageState: "Certificado registrado exitosamente."
+      messageState: `Certificado ${certificateAction.singleWord} exitosamente.`
     };
   } catch (err) {
     return {
@@ -90,4 +89,19 @@ export async function registerUserCertificate(
       messageState: `Error interno del servidor: ${(err as Error).message}`
     };
   }
+}
+
+export async function registerUserCertificate(
+  username: string,
+  certificateInfo: CertificateTypes.CertificateInfo,
+  coverImage: Express.Multer.File) {
+  return await manageUserCertificate(username, certificateInfo, coverImage, "register");
+}
+
+export async function modifyUserCertificate(
+  username: string,
+  certificateInfo: CertificateTypes.CertificateInfo,
+  coverImage: Express.Multer.File,
+  id: number) {
+  return await manageUserCertificate(username, certificateInfo, coverImage, "modify", id);
 }

@@ -13,4 +13,12 @@ router.post(
   CertificatesController.registerUserCertificate
 );
 
+router.patch(
+  "/users/certificates",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  MulterCheck.checkCertificateCoverImageErrors,
+  CertificatesController.modifyUserCertificate
+);
+
 export default router;

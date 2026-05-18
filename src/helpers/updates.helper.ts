@@ -3,6 +3,7 @@ import { processTransaction, processReturnQuery } from "../utils/query";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as educacionTypes from "../types/education.types";
 import * as ProjectTypes from "../types/project.types";
+import * as CertificateTypes from "../types/certificate.types";
 
 export async function updateUserHardSkill(newPunctuation: number, username: string, skillName: string) {
   const updateQuery = `
@@ -156,4 +157,43 @@ export async function updatePersonalProject(username: string, projectId: number,
       await client.query("INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)", [projectId, linkId]);
     }
   });
+}
+
+export async function updateCertificate(
+  username: string,
+  certificateInfo: CertificateTypes.CertificateInfo,
+  coverImage: Express.Multer.File,
+  id: number) {
+  const { description, area, issueDate } = certificateInfo;
+
+  const setParts: string[] = [];
+  const values: unknown[] = [];
+  let placeholderIndex = 1;
+  if (description) {
+    setParts.push(`description = $${placeholderIndex++}`);
+    values.push(description);
+  }
+  if (area) {
+    setParts.push(`area = $${placeholderIndex++}`);
+    values.push(area);
+  }
+  if (coverImage) {
+    setParts.push(`file = $${placeholderIndex++}`);
+    values.push(coverImage);
+  }
+  if (issueDate) {
+    setParts.push(`issue_date = $${placeholderIndex++}`);
+    values.push(issueDate);
+  }
+  setParts.push(`username = $${placeholderIndex++}`);
+  values.push(username);
+  setParts.push(`visible = $${placeholderIndex++}`);
+  values.push(true);
+
+  values.push(id);
+  const whereQuery = `WHERE id = $${placeholderIndex}`;
+  const updateQuery = `UPDATE "certificate" 
+                       SET ${setParts.join(", ")}
+                       ${whereQuery}`;
+  await processReturnQuery(updateQuery, values);
 }

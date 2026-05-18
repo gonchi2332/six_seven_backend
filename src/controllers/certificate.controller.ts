@@ -1,8 +1,13 @@
 import { Request, Response } from "express";
+import { getCertificateAction } from "../helpers/certificate.helper";
 import * as TokenTypes from "../types/token.types";
 import * as CertificateService from "../services/certificate.service";
 
-export async function registerUserCertificate(req: Request, res: Response) {
+async function manageUserCertificate(
+  req: Request,
+  res: Response,
+  action: "register" | "modify",
+  id?: number) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
     const certificateInfo = req.body;
@@ -27,8 +32,15 @@ export async function registerUserCertificate(req: Request, res: Response) {
       });
     }
 
-    const { result, messageState } = await CertificateService.registerUserCertificate(username, 
-      certificateInfo, coverImage);
+    let ans;
+    if (action === "register") {
+      ans = await CertificateService.registerUserCertificate(username, certificateInfo, coverImage);
+    } else {
+      ans = await CertificateService.modifyUserCertificate(username, certificateInfo, coverImage, id!);
+    }
+
+    const { result, messageState } = ans;
+    const certificateAction = getCertificateAction(action);
     if (!result) {
       return res.status(400).json({
         success: false,
@@ -37,7 +49,7 @@ export async function registerUserCertificate(req: Request, res: Response) {
     }
     return res.status(201).json({
       success: true,
-      message: "Certificado registrado exitosamente."
+      message: `Certificado ${certificateAction.singleWord} exitosamente.`
     });
   } catch (err) {
     return res.status(500).json({
@@ -45,4 +57,21 @@ export async function registerUserCertificate(req: Request, res: Response) {
       message: `Error interno del servidor: ${(err as Error).message}`
     });
   }
+}
+
+export async function registerUserCertificate(req: Request, res: Response) {
+  return await manageUserCertificate(req, res, "register");
+}
+
+export async function modifyUserCertificate(req: Request, res: Response) {
+  const { id } = req.query;
+  const parsedId = id ? parseInt(id as string, 10) : undefined;
+
+  if (!id || isNaN(parsedId!)) {
+    return res.status(400).json({
+      success: false,
+      message: "Id de certificado invalido."
+    });
+  }
+  return await manageUserCertificate(req, res, "modify", parsedId);
 }
