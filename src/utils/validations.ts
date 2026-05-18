@@ -1,7 +1,5 @@
 import * as RegexConstants from "../utils/constants/regex.constants";
 
-//const trickyWords = ["calculo", "analisis", "python"];
-
 export function containsBadWord(text: string, badWords: string[], trickyWords: string[]) {
   const words = text
     .toLowerCase()  

@@ -3,6 +3,7 @@ import { formatAcademicInfo } from "./education.helper";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as ProjectTypes from "../types/project.types";
 import * as EducationTypes from "../types/education.types";
+import * as CertificateTypes from "../types/certificate.types";
 
 export async function userExists(username: string) {
   const checkQuery = `
@@ -55,4 +56,18 @@ export async function educationExists(educationInfo: EducationTypes.EducationInf
   const values = [formatedTitle, formatedInstitution, username];
   const foundEducations = await processReturnQuery(checkQuery, values);
   return !(foundEducations.length === 0);
+}
+
+export async function certificateExists(
+  certificateInfo: CertificateTypes.CertificateInfo,
+  username: string) {
+  const { title, area } = certificateInfo;
+
+  const checkQuery = `
+    SELECT id FROM "certificate"
+    WHERE title = $1 AND area = $2 AND username = $3
+  `;
+  const values = [title, area, username];
+  const foundCertificates = await processReturnQuery(checkQuery, values);
+  return !(foundCertificates.length === 0);
 }
