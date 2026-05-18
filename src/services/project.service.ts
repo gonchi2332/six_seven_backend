@@ -16,6 +16,15 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
         messageState: "El usuario no existe."
       };
     }
+
+    const projectExists = await Assertions.projectExists(projectInfo, username);
+    if (projectExists) {
+      return {
+        result: false,
+        messageState: "El proyecto que trata de ser registrado ya existe y esta asociado a este usuario."
+      };
+    }
+
     const validationResult = await registerProjectValidations(projectInfo);
     if (!validationResult.result) {
       return {
@@ -44,6 +53,15 @@ export async function modifyPersonalProject(username: string, projectId: number,
         messageState: "El usuario no existe."
       };
     }
+
+    const projectExists = await Assertions.projectExists(projectInfo, username);
+    if (projectExists) {
+      return {
+        result: false,
+        messageState: "El proyecto que trata de ser modificado ya existe y esta asociado a este usuario."
+      };
+    }
+
     const project = await Selects.getProjectByIdAndUser(username, projectId);
     if (!project || project.length === 0) {
       return {
