@@ -4,6 +4,7 @@ import * as Assertions from "../helpers/assertions.helper";
 import * as Inserts from "../helpers/inserts.helper";
 import * as Updates from "../helpers/updates.helper";
 import * as Selects from "../helpers/selects.helper";
+import * as Deletes from "../helpers/deletes.helper";
 
 async function manageUserCertificate(
   username: string, 
@@ -37,6 +38,16 @@ async function manageUserCertificate(
         result: false,
         messageState: "El certificado ya existe."
       };
+    }
+
+    if (action === "modify") {
+      const foundCertificate = await Selects.getUserCertificate(username, id!);
+      if (!foundCertificate || foundCertificate.length === 0) {
+        return {
+          result: false,
+          messageState: "El certificado consultado no existe."
+        };
+      }
     }
 
     if (!issueDate) {
@@ -107,7 +118,10 @@ export async function modifyUserCertificate(
   return await manageUserCertificate(username, certificateInfo, coverImage, "modify", id);
 }
 
-export async function viewUserCertificates(username: string) {
+async function handleUserCertificates(
+  username: string,
+  action: "view" | "delete",
+  id?: number) {
   try {
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
@@ -117,22 +131,53 @@ export async function viewUserCertificates(username: string) {
       };
     }
 
-    const userCertificates = await Selects.getAllUserCertificates(username);
-    if (!userCertificates || userCertificates.length === 0) {
+    const certificateAction = getCertificateAction(action);
+    if (action === "view") {
+      const userCertificates = await Selects.getAllUserCertificates(username);
+      if (!userCertificates || userCertificates.length === 0) {
+        return {
+          result: true,
+          messageState: "El usuario no tiene certificados registrados."
+        };
+      }
       return {
         result: true,
-        messageState: "El usuario no tiene certificados registrados."
+        messageState: `Certificados ${certificateAction.pluralWord} exitosamente.`,
+        certificates: userCertificates
+      };
+    } else {
+      const foundCertificate = await Selects.getUserCertificate(username, id!);
+      if (!foundCertificate || foundCertificate.length === 0) {
+        return {
+          result: false,
+          messageState: "El certificado consultado no existe."
+        };
+      }
+
+      const deletedCertificate = await Deletes.deleteUserCertificate(username, id!);
+      if (!deletedCertificate) {
+        return {
+          result: false,
+          messageState: "El certificado a eliminar no esta asociado a este usuario o no existe."
+        };
+      }
+      return {
+        result: true,
+        messageState: `Certificado ${certificateAction.singleWord} exitosamente.`
       };
     }
-    return {
-      result: true,
-      messageState: "Certificados obtenidos exitosamente.",
-      certificates: userCertificates
-    };
   } catch (err) {
     return {
       result: false,
       messageState: `Error interno del servidor: ${(err as Error).message}`
     };
   }
+}
+
+export async function viewUserCertificates(username: string) {
+  return await handleUserCertificates(username, "view");
+}
+
+export async function deleteUserCertificate(username: string, id: number) {
+  return await handleUserCertificates(username, "delete", id);
 }

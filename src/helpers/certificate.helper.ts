@@ -3,7 +3,7 @@ import { containsBadWord, isGarbageInput } from "../utils/validations";
 import * as RegexConstants from "../utils/constants/regex.constants";
 import * as CertificateTypes from "../types/certificate.types";
 
-export function getCertificateAction(type: "register" | "modify") {
+export function getCertificateAction(type: "register" | "modify" | "view" | "delete") {
   const types = {
     register: {
       singleWord: "registrado",
@@ -14,6 +14,16 @@ export function getCertificateAction(type: "register" | "modify") {
       singleWord: "modificado",
       pluralWord: "modificados",
       serviceValidations: modifyCertificateValidations,
+    },
+    view: {
+      singleWord: "obtenido",
+      pluralWord: "obtenidos",
+      serviceValidations: async () => ({ result: true, messageState: "" })
+    },
+    delete: {
+      singleWord: "eliminado",
+      pluralWord: "eliminados",
+      serviceValidations: async () => ({ result: true, messageState: "" })
     }
   };
   return types[type];

@@ -76,7 +76,11 @@ export async function modifyUserCertificate(req: Request, res: Response) {
   return await manageUserCertificate(req, res, "modify", parsedId);
 }
 
-export async function viewUserCertificates(req: Request, res: Response) {
+async function handleUserCertificates(
+  req: Request,
+  res: Response,
+  action: "view" | "delete",
+  id?: number) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload || req.query;
 
@@ -87,29 +91,61 @@ export async function viewUserCertificates(req: Request, res: Response) {
       });
     }
 
-    const {  result, messageState, certificates } = await CertificateService.
-      viewUserCertificates(username);
+    let ans;
+    if (action === "view") {
+      ans = await CertificateService.viewUserCertificates(username);
+    } else {
+      ans = await CertificateService.deleteUserCertificate(username, id!);
+    }
+
+    const {  result, messageState, certificates } = ans;
     if (!result) {
       return res.status(400).json({
         success: false,
         message: messageState
       });
     }
-    if (!certificates || certificates.length === 0) {
+
+    const certificateAction = getCertificateAction(action);
+    if (action === "view") {
+      if (!certificates || certificates.length === 0) {
+        return res.status(200).json({
+          success: true,
+          message: "El usuario no tiene certificados registrados."
+        });
+      }
       return res.status(200).json({
         success: true,
-        message: "El usuario no tiene certificados registrados."
+        message: `Certificados ${certificateAction.pluralWord} exitosamente.`,
+        certificates: certificates
+      });  
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: `Certificado ${certificateAction.singleWord} exitosamente.`
       });
     }
-    return res.status(200).json({
-      success: true,
-      message: "Certificados obtenidos exitosamente.",
-      certificates: certificates
-    });
   } catch (err) {
     return res.status(500).json({
       success: false,
       message: `Error interno del servidor: ${(err as Error).message}`
     });
   }
+}
+
+export async function viewUserCertificates(req: Request, res: Response) {
+  return await handleUserCertificates(req, res, "view");
+}
+
+export async function deleteUserCertificate(req: Request, res: Response) {
+  const { id } = req.query;
+  const parsedId = id ? parseInt(id as string, 10) : undefined;
+
+  if (!id || isNaN(parsedId!)) {
+    return res.status(400).json({
+      success: false,
+      message: "Id de certificado invalido."
+    });
+  }
+  return await handleUserCertificates(req, res, "delete", parsedId);
 }

@@ -26,4 +26,11 @@ router.get(
   CertificatesController.viewUserCertificates
 );
 
+router.delete(
+  "/users/certificates",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  CertificatesController.deleteUserCertificate
+);
+
 export default router;
