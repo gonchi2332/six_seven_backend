@@ -28,7 +28,7 @@ async function manageEducation(
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -37,7 +37,7 @@ async function manageEducation(
     if (educationExists) {
       return {
         result: false,
-        messageState: `La formacion academica que trata de ser ${educationAction.singleWord} ya existe y esta asociada a este usuario.`
+        messageState: `La formacion academica que trata de ser ${educationAction.singleWord} ya existe y esta asociada a este usuario`
       };
     }
 
@@ -54,26 +54,26 @@ async function manageEducation(
     if (!startDate) {
       return {
         result: false,
-        messageState: "Fecha de inicio o egreso invalida."
+        messageState: "Fecha de inicio o egreso invalida"
       };
     }
     if (startDate) {
       if (isNaN(startDate.getTime())) {
         return {
           result: false,
-          messageState: "Fecha de inicio o egreso invalida."
+          messageState: "Fecha de inicio o egreso invalida"
         };
       }
       if (startDate > new Date()) {
         return {
           result: false,
-          messageState: "Fecha de inicio o egreso no puede ser futura."
+          messageState: "Fecha de inicio o egreso no puede ser futura"
         };
       }
       if (startDate < new Date(new Date().setFullYear(new Date().getFullYear() - 100))) {
         return {
           result: false,
-          messageState: "Fecha de inicio o egreso tiene que estar dentro del rango de hoy y hace 100 años."
+          messageState: "Fecha de inicio o egreso tiene que estar dentro del rango de hoy y hace 100 años"
         };
       }
     }
@@ -123,7 +123,7 @@ async function handleEducation(
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -132,12 +132,12 @@ async function handleEducation(
       if (!education || education.length === 0) {
         return {
           result: true,
-          messageState: "El usuario no tiene registros de educacion."
+          messageState: "El usuario no tiene registros de educacion"
         };
       }
       return {
         result: true,
-        messageState: "Los registros de educacion del usuario se han obtenido correctamente.",
+        messageState: "Los registros de educacion del usuario se han obtenido correctamente",
         education: education
       };
     } else {
@@ -145,7 +145,7 @@ async function handleEducation(
       if (!educationExperience || educationExperience.length === 0) {
         return {
           result: false,
-          messageState: "La educacion consultada no existe."
+          messageState: "La educacion consultada no existe"
         };
       }
 
@@ -153,12 +153,12 @@ async function handleEducation(
       if (deletedEducation.length === 0) {
         return {
           result: false,
-          messageState: "El registro de educacion a eliminar no esta asociada a este usuario o no existe."
+          messageState: "El registro de educacion a eliminar no esta asociada a este usuario o no existe"
         };
       }
       return {
         result: true,
-        messageState: "El registro de educacion se ha eliminado correctamente."
+        messageState: "El registro de educacion se ha eliminado correctamente"
       };
     }
   } catch (err) {
@@ -183,12 +183,12 @@ export async function viewAcademicGrade() {
     if (!educationGrade || educationGrade.length === 0) {
       return {
         result: false,
-        messageState: "No se encontro los registros de grado academico."
+        messageState: "No se encontro los registros de grado academico"
       };
     }
     return {
       result: true,
-      messageState: "Los registros de educacion del usuario se han obtenido correctamente.",
+      messageState: "Los registros de educacion del usuario se han obtenido correctamente",
       educationGrade: educationGrade
     };
   } catch (err) {

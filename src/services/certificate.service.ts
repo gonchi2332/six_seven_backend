@@ -18,7 +18,7 @@ async function manageUserCertificate(
       if (isNaN(certificateInfo.issueDate.getTime())) {
         return {
           result: false,
-          messageState: "Fecha de certificacion invalida."
+          messageState: "Fecha de certificacion invalida"
         };
       }
     }
@@ -28,7 +28,7 @@ async function manageUserCertificate(
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -36,7 +36,7 @@ async function manageUserCertificate(
     if (certificateExists) {
       return {
         result: false,
-        messageState: "El certificado ya existe."
+        messageState: "El certificado ya existe"
       };
     }
 
@@ -45,7 +45,7 @@ async function manageUserCertificate(
       if (!foundCertificate || foundCertificate.length === 0) {
         return {
           result: false,
-          messageState: "El certificado consultado no existe."
+          messageState: "El certificado consultado no existe"
         };
       }
     }
@@ -53,26 +53,26 @@ async function manageUserCertificate(
     if (!issueDate) {
       return {
         result: false,
-        messageState: "Fecha de certificacion invalida."
+        messageState: "Fecha de certificacion invalida"
       };
     }
     if (issueDate) {
       if (isNaN(issueDate.getTime())) {
         return {
           result: false,
-          messageState: "Fecha de certificacion invalida."
+          messageState: "Fecha de certificacion invalida"
         };
       }
       if (issueDate > new Date()) {
         return {
           result: false,
-          messageState: "La fecha de certificacion no puede ser futura."
+          messageState: "La fecha de certificacion no puede ser futura"
         };
       }
       if (issueDate < new Date(new Date().setFullYear(new Date().getFullYear() - 100))) {
         return {
           result: false,
-          messageState: "La fecha de certificacion tiene que estar dentro del rango de hoy y hace 100 años."
+          messageState: "La fecha de certificacion tiene que estar dentro del rango de hoy y hace 100 años"
         };
       }
     }
@@ -93,7 +93,7 @@ async function manageUserCertificate(
     }
     return {
       result: true,
-      messageState: `Certificado ${certificateAction.singleWord} exitosamente.`
+      messageState: `Certificado ${certificateAction.singleWord} exitosamente`
     };
   } catch (err) {
     return {
@@ -127,7 +127,7 @@ async function handleUserCertificates(
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -137,12 +137,12 @@ async function handleUserCertificates(
       if (!userCertificates || userCertificates.length === 0) {
         return {
           result: true,
-          messageState: "El usuario no tiene certificados registrados."
+          messageState: "El usuario no tiene certificados registrados"
         };
       }
       return {
         result: true,
-        messageState: `Certificados ${certificateAction.pluralWord} exitosamente.`,
+        messageState: `Certificados ${certificateAction.pluralWord} exitosamente`,
         certificates: userCertificates
       };
     } else {
@@ -150,7 +150,7 @@ async function handleUserCertificates(
       if (!foundCertificate || foundCertificate.length === 0) {
         return {
           result: false,
-          messageState: "El certificado consultado no existe."
+          messageState: "El certificado consultado no existe"
         };
       }
 
@@ -158,12 +158,12 @@ async function handleUserCertificates(
       if (!deletedCertificate) {
         return {
           result: false,
-          messageState: "El certificado a eliminar no esta asociado a este usuario o no existe."
+          messageState: "El certificado a eliminar no esta asociado a este usuario o no existe"
         };
       }
       return {
         result: true,
-        messageState: `Certificado ${certificateAction.singleWord} exitosamente.`
+        messageState: `Certificado ${certificateAction.singleWord} exitosamente`
       };
     }
   } catch (err) {
