@@ -154,6 +154,31 @@ export async function getPublicProjects(req: Request, res: Response) {
   }
 }
 
+export async function getPrivateProjects(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+
+    const response = await ProjectService.getPrivatePersonalProjects(username);
+    
+    if (!response.result) {
+      return res.status(400).json({
+        success: false,
+        message: response.messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState,
+      projects: response.data
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
+
 export async function modifyProjectsVisibility(req: Request, res: Response) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;

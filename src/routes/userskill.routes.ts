@@ -5,10 +5,15 @@ import * as UserSkillController from "../controllers/userskill.controller";
 const router = Router();
 
 router.get(
+  "/users/:username/hard-skills",
+  UserSkillController.viewPublicHardSkills
+);
+
+router.get(
   "/users/hard-skills",
-  //Authorization.tokenAuthorization,
-  //Authorization.onlyVerifiedUsers,
-  UserSkillController.viewHardSkills
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  UserSkillController.viewPrivateHardSkills
 );
 
 router.post(
@@ -41,8 +46,15 @@ router.delete(
 
 // SOFT SKILLS
 router.get(
+  "/users/:username/soft-skills",
+  UserSkillController.viewPublicSoftSkills
+);
+
+router.get(
   "/users/soft-skills",
-  UserSkillController.viewSoftSkills
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  UserSkillController.viewPrivateSoftSkills
 );
 
 router.post(

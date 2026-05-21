@@ -141,6 +141,22 @@ export async function getPublicPersonalProjects(username: string) {
   }
 }
 
+export async function getPrivatePersonalProjects(username: string) {
+  try {
+    const projects = await Selects.getAllUserProjects(username); 
+    return {
+      result: true,
+      messageState: "Proyectos obtenidos exitosamente.",
+      data: projects
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno: ${(err as Error).message}`
+    };
+  }
+}
+
 export async function updateProjectsVisibility(username: string, visibilities: Record<string, boolean>) {
   try {
     const userExists = await Assertions.userExists(username);

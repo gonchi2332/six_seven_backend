@@ -158,7 +158,7 @@ export async function registerUserSoftSkill(username: string, skillName: string)
   return await registerUserSkill(username, skillName, "soft");
 }
 
-async function viewUserSkills(username: string, type: "hard" | "soft") {
+async function viewUserSkillsBase(username: string, type: "hard" | "soft", isPublic: boolean) {
   try {
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
@@ -167,13 +167,15 @@ async function viewUserSkills(username: string, type: "hard" | "soft") {
         messageState: "El usuario no existe."
       };
     }
-
     const skillTypeData = getSkillTypeData(type);
-    const userSkills = await Selects.getAllUserSkills(username, skillTypeData.enum);
+    const userSkills = isPublic 
+      ? await Selects.getAllPublicUserSkills(username, skillTypeData.enum)
+      : await Selects.getAllUserSkills(username, skillTypeData.enum);
     if (userSkills.length === 0) {
       return {
         result: true,
         messageState: `El usuario no tiene habilidades ${skillTypeData.pluralWord} registradas.`,
+        skills: []
       };
     }
     return {
@@ -189,12 +191,20 @@ async function viewUserSkills(username: string, type: "hard" | "soft") {
   }
 }
 
-export async function viewUserHardSkills(username: string) {
-  return await viewUserSkills(username, "hard");
+export async function viewPublicUserHardSkills(username: string) {
+  return await viewUserSkillsBase(username, "hard", true);
 }
 
-export async function viewUserSoftSkills(username: string) {
-  return await viewUserSkills(username, "soft");
+export async function viewPrivateUserHardSkills(username: string) {
+  return await viewUserSkillsBase(username, "hard", false);
+}
+
+export async function viewPublicUserSoftSkills(username: string) {
+  return await viewUserSkillsBase(username, "soft", true);
+}
+
+export async function viewPrivateUserSoftSkills(username: string) {
+  return await viewUserSkillsBase(username, "soft", false);
 }
 
 export async function modifyUserHardSkill(username: string, skillName: string, newPunctuation: number) {

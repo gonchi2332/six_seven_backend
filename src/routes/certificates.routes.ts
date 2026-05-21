@@ -22,8 +22,15 @@ router.patch(
 );
 
 router.get(
+  "/users/:username/certificates",
+  CertificatesController.viewPublicCertificates
+);
+
+router.get(
   "/users/certificates",
-  CertificatesController.viewUserCertificates
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  CertificatesController.viewPrivateCertificates
 );
 
 router.delete(

@@ -126,41 +126,24 @@ async function handleEducation(
         messageState: "El usuario no existe"
       };
     }
-
-    if (action === "view") {
-      const education = await Selects.getAllUserEducation(username);
-      if (!education || education.length === 0) {
-        return {
-          result: true,
-          messageState: "El usuario no tiene registros de educacion"
-        };
-      }
+    const educationExperience = await Selects.getEducation(id!);
+    if (!educationExperience || educationExperience.length === 0) {
       return {
-        result: true,
-        messageState: "Los registros de educacion del usuario se han obtenido correctamente",
-        education: education
-      };
-    } else {
-      const educationExperience = await Selects.getEducation(id!);
-      if (!educationExperience || educationExperience.length === 0) {
-        return {
-          result: false,
-          messageState: "La educacion consultada no existe"
-        };
-      }
-
-      const deletedEducation = await Deletes.deleteEducation(id!);
-      if (deletedEducation.length === 0) {
-        return {
-          result: false,
-          messageState: "El registro de educacion a eliminar no esta asociada a este usuario o no existe"
-        };
-      }
-      return {
-        result: true,
-        messageState: "El registro de educacion se ha eliminado correctamente"
+        result: false,
+        messageState: "La educacion consultada no existe"
       };
     }
+    const deletedEducation = await Deletes.deleteEducation(id!);
+    if (deletedEducation.length === 0) {
+      return {
+        result: false,
+        messageState: "El registro de educacion a eliminar no esta asociada a este usuario o no existe"
+      };
+    }
+    return {
+      result: true,
+      messageState: "El registro de educacion se ha eliminado correctamente"
+    };
   } catch (err) {
     return {
       result: false,
@@ -169,8 +152,43 @@ async function handleEducation(
   }
 }
 
-export async function viewEducation(username: string) {
-  return await handleEducation(username, "view");
+export async function viewPublicEducation(username: string) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    const education = await Selects.getAllPublicUserEducation(username);
+    return {
+      result: true,
+      messageState: "Educacion obtenida",
+      education: education
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function viewPrivateEducation(username: string) {
+  try {
+    const education = await Selects.getAllUserEducation(username);
+    return {
+      result: true,
+      messageState: "Educacion obtenida",
+      education: education
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno: ${(err as Error).message}`
+    };
+  }
 }
 
 export async function deleteEducation(username: string, id: number) {

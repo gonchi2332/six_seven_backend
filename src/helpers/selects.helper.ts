@@ -5,19 +5,40 @@ export async function getAllUserSkills(username: string, skillType: SkillTypes.S
   let skillQuery;
   if (skillType === "hard") {
     skillQuery = `
-      SELECT s.name, us.punctuation FROM "user_skill" us
+      SELECT s.id as skill_id, s.name, us.punctuation, us.visible 
+      FROM "user_skill" us
       JOIN "skill" s ON us.skill_id = s.id
       WHERE us.username = $1 AND s.type = $2
     `;
   } else {
     skillQuery = `
-      SELECT s.name FROM "user_skill" us
+      SELECT s.id as skill_id, s.name, us.visible 
+      FROM "user_skill" us
       JOIN "skill" s ON us.skill_id = s.id
       WHERE us.username = $1 AND s.type = $2
     `;
   }
-  const userSkills = await processReturnQuery(skillQuery, [username, skillType]);
-  return userSkills;
+  return await processReturnQuery(skillQuery, [username, skillType]);
+}
+
+export async function getAllPublicUserSkills(username: string, skillType: SkillTypes.SkillType) {
+  let skillQuery;
+  if (skillType === "hard") {
+    skillQuery = `
+      SELECT s.name, us.punctuation 
+      FROM "user_skill" us
+      JOIN "skill" s ON us.skill_id = s.id
+      WHERE us.username = $1 AND s.type = $2 AND us.visible = true
+    `;
+  } else {
+    skillQuery = `
+      SELECT s.name 
+      FROM "user_skill" us
+      JOIN "skill" s ON us.skill_id = s.id
+      WHERE us.username = $1 AND s.type = $2 AND us.visible = true
+    `;
+  }
+  return await processReturnQuery(skillQuery, [username, skillType]);
 }
 
 export async function getUserSkill(username: string, skillName: string, skillType: SkillTypes.SkillType) {
@@ -163,6 +184,38 @@ export async function getPublicProjects(username: string) {
   return formattedProjects;
 }
 
+export async function getAllUserProjects(username: string) {
+  const query = `
+    SELECT 
+      p.id, p.name, p.description, p.topic, p.status, p.role, p.image, p.visible,
+      COALESCE(json_agg(json_build_object('label', l.label, 'url', l.link)) FILTER (WHERE l.link IS NOT NULL), '[]') as links
+    FROM "project" p
+    LEFT JOIN "project_link" pl ON p.id = pl.project_id
+    LEFT JOIN "link" l ON pl.link_id = l.id
+    WHERE p.username = $1
+    GROUP BY p.id
+    ORDER BY p.id DESC
+  `;
+  const projectsFromDB = await processReturnQuery(query, [username]);
+  const formattedProjects = projectsFromDB.map(proj => {
+    let base64Image = null;
+    if (proj.image) {
+      base64Image = `data:image/jpeg;base64,${proj.image.toString("base64")}`;
+    }
+    return {
+      id: proj.id,
+      name: proj.name,
+      description: proj.description,
+      topic: proj.topic,
+      status: proj.status,
+      role: proj.role,
+      links: proj.links,
+      image: base64Image
+    };
+  });
+  return formattedProjects;
+}
+
 export async function getAllUserCertificates(username: string) {
   const selectQuery = `
     SELECT id, title, description, area, file, issue_date, visible FROM "certificate"
@@ -194,4 +247,29 @@ export async function getUserCertificate(username: string, id: number) {
   `;
   const foundCertificate = await processReturnQuery(selectQuery, [id, username]);
   return foundCertificate;
+}
+
+export async function getAllPublicUserCertificates(username: string) {
+  const selectQuery = `
+    SELECT id, title, description, area, file, issue_date, visible 
+    FROM "certificate"
+    WHERE username = $1 AND visible = true
+  `;
+  const userCertificates = await processReturnQuery(selectQuery, [username]);
+  const formatedCertificates = userCertificates.map(cert => {
+    let base64File = null;
+    if (cert.file) {
+      base64File = `data:image/jpeg;base64,${cert.file.toString("base64")}`;
+    }
+    return {
+      id: cert.id,
+      title: cert.title,
+      description: cert.description,
+      area: cert.area,
+      issue_date: cert.issue_date,
+      visible: cert.visible,
+      file: base64File
+    };
+  });
+  return formatedCertificates;
 }

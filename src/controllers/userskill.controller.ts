@@ -184,25 +184,26 @@ export async function registerSoftSkill(req: Request, res: Response) {
   return await registerSkill(req, res, "soft");
 }
 
-async function viewSkills(req: Request, res: Response, skillType: "hard" | "soft") {
+async function viewSkillsBase(req: Request, res: Response, skillType: "hard" | "soft", isPublic: boolean) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload || req.query;
-
+    const username = isPublic ? req.params.username : (req.user as TokenTypes.TokenPayload).username;
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario invalido."
+        message: "Nombre de usuario faltante o invalido."
       });
     }
-
     const skillTypeWord = (skillType === "hard") ? "tecnicas" : "blandas";
     let ans;
     if (skillType === "hard") {
-      ans = await UserSkillService.viewUserHardSkills(username);
+      ans = isPublic 
+        ? await UserSkillService.viewPublicUserHardSkills(username)
+        : await UserSkillService.viewPrivateUserHardSkills(username);
     } else {
-      ans = await UserSkillService.viewUserSoftSkills(username);
+      ans = isPublic
+        ? await UserSkillService.viewPublicUserSoftSkills(username)
+        : await UserSkillService.viewPrivateUserSoftSkills(username);
     }
-    
     const { result, messageState, skills } = ans;
     if (!result) {
       return res.status(400).json({
@@ -213,7 +214,8 @@ async function viewSkills(req: Request, res: Response, skillType: "hard" | "soft
     if (!skills || skills.length === 0) {
       return res.status(200).json({
         success: true,
-        message: `El usuario no tiene habilidades ${skillTypeWord} registradas.`
+        message: `El usuario no tiene habilidades ${skillTypeWord} ${isPublic ? "publicas " : ""}registradas.`,
+        skills: []
       });
     }
     return res.status(200).json({
@@ -229,12 +231,20 @@ async function viewSkills(req: Request, res: Response, skillType: "hard" | "soft
   }
 }
 
-export async function viewHardSkills(req: Request, res: Response) {
-  return await viewSkills(req, res, "hard");
+export async function viewPublicHardSkills(req: Request, res: Response) {
+  return await viewSkillsBase(req, res, "hard", true);
 }
 
-export async function viewSoftSkills(req: Request, res: Response) {
-  return await viewSkills(req, res, "soft");
+export async function viewPrivateHardSkills(req: Request, res: Response) {
+  return await viewSkillsBase(req, res, "hard", false);
+}
+
+export async function viewPublicSoftSkills(req: Request, res: Response) {
+  return await viewSkillsBase(req, res, "soft", true);
+}
+
+export async function viewPrivateSoftSkills(req: Request, res: Response) {
+  return await viewSkillsBase(req, res, "soft", false);
 }
 
 export async function modifyHardSkill(req: Request, res: Response) {
