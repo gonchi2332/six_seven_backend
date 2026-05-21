@@ -193,3 +193,57 @@ export async function updateCertificate(
                        ${whereQuery}`;
   await processReturnQuery(updateQuery, values);
 }
+
+// El bulk siginifica que es una actualización en lotes, por si las moscas jsjs
+export async function updateProjectsVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
+  const queries = Object.entries(visibilities).map(([id, isVisible]) => {
+    const query = `
+      UPDATE "project" 
+      SET visible = $1 
+      WHERE id = $2 AND username = $3
+    `;
+    const values = [isVisible, parseInt(id, 10), username];
+    return processReturnQuery(query, values);
+  });
+  await Promise.all(queries);
+}
+
+export async function updateEducationVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
+  const queries = Object.entries(visibilities).map(([id, isVisible]) => {
+    const query = `
+      UPDATE "academic_training" 
+      SET visible = $1 
+      WHERE id = $2 AND username = $3
+    `;
+    const values = [isVisible, parseInt(id, 10), username];
+    return processReturnQuery(query, values); 
+  });
+  await Promise.all(queries);
+}
+
+export async function updateCertificatesVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
+  const queries = Object.entries(visibilities).map(([id, isVisible]) => {
+    const query = `
+      UPDATE "certificate" 
+      SET visible = $1 
+      WHERE id = $2 AND username = $3
+    `;
+    const values = [isVisible, parseInt(id, 10), username];
+    
+    return processReturnQuery(query, values); 
+  });
+  await Promise.all(queries);
+}
+
+export async function updateSkillsVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
+  const queries = Object.entries(visibilities).map(([skillId, isVisible]) => {
+    const query = `
+      UPDATE "user_skill" 
+      SET visible = $1 
+      WHERE skill_id = $2 AND username = $3
+    `;
+    const values = [isVisible, parseInt(skillId, 10), username];
+    return processReturnQuery(query, values); 
+  });
+  await Promise.all(queries);
+}

@@ -198,3 +198,25 @@ export async function viewAcademicGrade() {
     };
   }
 }
+
+export async function updateEducationVisibility(username: string, visibilities: Record<string, boolean>) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    await Updates.updateEducationVisibilityBulk(username, visibilities);
+    return {
+      result: true,
+      messageState: "Visibilidad de educación actualizada exitosamente."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}

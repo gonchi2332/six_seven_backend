@@ -340,3 +340,32 @@ export async function deleteHardSkill(req: Request, res: Response) {
 export async function deleteSoftSkill(req: Request, res: Response) {
   return await deleteSkill(req, res, "soft");
 }
+
+export async function modifySkillsVisibility(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { visibilities } = req.body;
+    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato de visibilidad inválido. Se esperaba un objeto."
+      });
+    }
+    const response = await UserSkillService.updateSkillsVisibility(username, visibilities);
+    if (!response.result) {
+      return res.status(400).json({
+        success: false,
+        message: response.messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno del servidor: ${(err as Error).message}`
+    });
+  }
+}

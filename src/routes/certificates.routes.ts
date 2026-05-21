@@ -33,4 +33,11 @@ router.delete(
   CertificatesController.deleteUserCertificate
 );
 
+router.patch(
+  "/users/certificates/visibility",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  CertificatesController.modifyCertificatesVisibility
+);
+
 export default router;

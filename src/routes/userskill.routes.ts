@@ -66,4 +66,11 @@ router.delete(
   UserSkillController.deleteSoftSkill
 );
 
+router.patch(
+  "/users/skills/visibility",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  UserSkillController.modifySkillsVisibility
+);
+
 export default router;

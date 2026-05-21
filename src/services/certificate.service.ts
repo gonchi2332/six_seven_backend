@@ -181,3 +181,25 @@ export async function viewUserCertificates(username: string) {
 export async function deleteUserCertificate(username: string, id: number) {
   return await handleUserCertificates(username, "delete", id);
 }
+
+export async function updateCertificatesVisibility(username: string, visibilities: Record<string, boolean>) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    await Updates.updateCertificatesVisibilityBulk(username, visibilities);
+    return {
+      result: true,
+      messageState: "Visibilidad de certificados actualizada exitosamente."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}

@@ -271,3 +271,25 @@ export async function deleteUserHardSkill(username: string, skillName: string) {
 export async function deleteUserSoftSkill(username: string, skillName: string) {
   return await deleteUserSkill(username, skillName, "soft");
 }
+
+export async function updateSkillsVisibility(username: string, visibilities: Record<string, boolean>) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    await Updates.updateSkillsVisibilityBulk(username, visibilities);
+    return {
+      result: true,
+      messageState: "Visibilidad de habilidades actualizada exitosamente."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}

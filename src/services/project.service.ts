@@ -140,3 +140,25 @@ export async function getPublicPersonalProjects(username: string) {
     };
   }
 }
+
+export async function updateProjectsVisibility(username: string, visibilities: Record<string, boolean>) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    await Updates.updateProjectsVisibilityBulk(username, visibilities);
+    return {
+      result: true,
+      messageState: "Visibilidad de proyectos actualizada exitosamente."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}

@@ -149,3 +149,32 @@ export async function deleteUserCertificate(req: Request, res: Response) {
   }
   return await handleUserCertificates(req, res, "delete", parsedId);
 }
+
+export async function modifyCertificatesVisibility(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { visibilities } = req.body;
+    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato de visibilidad inválido. Se esperaba un objeto."
+      });
+    }
+    const response = await CertificateService.updateCertificatesVisibility(username, visibilities);
+    if (!response.result) {
+      return res.status(400).json({
+        success: false,
+        message: response.messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno del servidor: ${(err as Error).message}`
+    });
+  }
+}

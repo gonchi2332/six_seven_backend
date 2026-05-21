@@ -35,4 +35,12 @@ router.get(
   EducationController.viewEducationGrade
 );
 
+router.patch(
+  "/users/education/visibility",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  EducationController.modifyEducationVisibility
+);
+
+
 export default router;
