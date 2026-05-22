@@ -33,4 +33,18 @@ router.get(
   ProjectController.getPublicProjects
 );
 
+router.get(
+  "/users/projects",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  ProjectController.getPrivateProjects
+);
+
+router.patch(
+  "/users/projects/visibility",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  ProjectController.modifyProjectsVisibility
+);
+
 export default router;

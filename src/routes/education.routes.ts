@@ -26,13 +26,28 @@ router.delete(
 );
 
 router.get(
-  "/users/education",
-  EducationController.viewEducation
+  "/users/:username/education",
+  EducationController.viewPublicEducation
 );
 
 router.get(
   "/education_degree",
   EducationController.viewEducationGrade
 );
+
+router.get(
+  "/users/education",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  EducationController.viewPrivateEducation
+);
+
+router.patch(
+  "/users/education/visibility",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  EducationController.modifyEducationVisibility
+);
+
 
 export default router;

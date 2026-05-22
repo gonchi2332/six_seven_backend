@@ -158,27 +158,29 @@ export async function registerUserSoftSkill(username: string, skillName: string)
   return await registerUserSkill(username, skillName, "soft");
 }
 
-async function viewUserSkills(username: string, type: "hard" | "soft") {
+async function viewUserSkillsBase(username: string, type: "hard" | "soft", isPublic: boolean) {
   try {
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
-
     const skillTypeData = getSkillTypeData(type);
-    const userSkills = await Selects.getAllUserSkills(username, skillTypeData.enum);
+    const userSkills = isPublic 
+      ? await Selects.getAllPublicUserSkills(username, skillTypeData.enum)
+      : await Selects.getAllUserSkills(username, skillTypeData.enum);
     if (userSkills.length === 0) {
       return {
         result: true,
-        messageState: `El usuario no tiene habilidades ${skillTypeData.pluralWord} registradas.`,
+        messageState: `El usuario no tiene habilidades ${skillTypeData.pluralWord} registradas`,
+        skills: []
       };
     }
     return {
       result: true,
-      messageState: `Las habilidades ${skillTypeData.pluralWord} se han obtenido correctamente.`,
+      messageState: `Las habilidades ${skillTypeData.pluralWord} se han obtenido correctamente`,
       skills: userSkills
     };
   } catch (err) {
@@ -189,12 +191,20 @@ async function viewUserSkills(username: string, type: "hard" | "soft") {
   }
 }
 
-export async function viewUserHardSkills(username: string) {
-  return await viewUserSkills(username, "hard");
+export async function viewPublicUserHardSkills(username: string) {
+  return await viewUserSkillsBase(username, "hard", true);
 }
 
-export async function viewUserSoftSkills(username: string) {
-  return await viewUserSkills(username, "soft");
+export async function viewPrivateUserHardSkills(username: string) {
+  return await viewUserSkillsBase(username, "hard", false);
+}
+
+export async function viewPublicUserSoftSkills(username: string) {
+  return await viewUserSkillsBase(username, "soft", true);
+}
+
+export async function viewPrivateUserSoftSkills(username: string) {
+  return await viewUserSkillsBase(username, "soft", false);
 }
 
 export async function modifyUserHardSkill(username: string, skillName: string, newPunctuation: number) {
@@ -240,7 +250,7 @@ async function deleteUserSkill(username: string, skillName: string, type: "hard"
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -249,12 +259,12 @@ async function deleteUserSkill(username: string, skillName: string, type: "hard"
     if (deletedSkill.length === 0) {
       return {
         result: false,
-        messageState: `La habilidad ${skillTypeData.singleWord} a eliminar no esta asociada a este usuario.`
+        messageState: `La habilidad ${skillTypeData.singleWord} a eliminar no esta asociada a este usuario`
       };
     }
     return {
       result: true,
-      messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha eliminado correctamente.`
+      messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha eliminado correctamente`
     };
   } catch (err) {
     return {
@@ -270,4 +280,26 @@ export async function deleteUserHardSkill(username: string, skillName: string) {
 
 export async function deleteUserSoftSkill(username: string, skillName: string) {
   return await deleteUserSkill(username, skillName, "soft");
+}
+
+export async function updateSkillsVisibility(username: string, visibilities: Record<string, boolean>) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) {
+      return {
+        result: false,
+        messageState: "El usuario no existe."
+      };
+    }
+    await Updates.updateSkillsVisibilityBulk(username, visibilities);
+    return {
+      result: true,
+      messageState: "Visibilidad de habilidades actualizada exitosamente."
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
 }
