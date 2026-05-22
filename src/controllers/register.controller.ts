@@ -80,16 +80,38 @@ export async function updatePersonalInfo(req: Request, res: Response) {
   return handlePersonalInfoRequest(req, res, "update");
 }
 
-export async function viewPersonalInfo(req: Request, res: Response) {
+export async function viewPublicPersonalInfo(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload || req.query;
-
+    const { username } = req.params;
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario invalido."
+        message: "Nombre de usuario inválido"
       });
     }
+    const { result, messageState, currentPersonalInfo } = await RegisterService.viewPublicUserPersonalInfo(username);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: messageState,
+      userPersonalInfo: currentPersonalInfo
+    }); 
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
+
+export async function viewPrivatePersonalInfo(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
     const { result, messageState, currentPersonalInfo } = await RegisterService.viewUserPersonalInfo(username);
     if (!result) {
       return res.status(400).json({
@@ -99,13 +121,42 @@ export async function viewPersonalInfo(req: Request, res: Response) {
     }
     return res.status(200).json({
       success: true,
-      message: `Se ha accedido a la informacion personal de ${username} correctamente.`,
+      message: messageState,
       userPersonalInfo: currentPersonalInfo
     }); 
   } catch (err) {
     return res.status(500).json({
       success: false,
       message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
+
+export async function modifyPersonalInfoVisibility(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const visibilities = req.body; 
+    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato inválido. Se esperaba un objeto con opciones de visibilidad"
+      });
+    }
+    const { result, messageState } = await RegisterService.updatePersonalInfoVisibility(username, visibilities);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: messageState
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno: ${(err as Error).message}`
     });
   }
 }
