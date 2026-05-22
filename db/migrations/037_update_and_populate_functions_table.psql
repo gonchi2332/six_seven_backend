@@ -1,0 +1,34 @@
+-- This migration has the purpose of updating and populating the table "functions" 
+
+UPDATE "function" SET 
+name = 'Agregar informacion adicional' WHERE id = 1;
+
+UPDATE "function" SET 
+name = 'Modificar informacion personal' WHERE id = 2;
+
+UPDATE "function" SET 
+name = 'Ver informacion personal' WHERE id = 3;
+
+UPDATE "function" SET 
+name = 'Ver habilidades blandas' WHERE id = 4;
+
+UPDATE "function" SET 
+name = 'Ver habilidad blanda' WHERE id = 5;
+
+INSERT INTO "function" VALUES
+(6, 'Agregar habilidad blanda'),(7, 'Modificar habilidad blanda'),(8, 'Eliminar habilidad blanda'),
+(9, 'Ver habilidades tecnica'),(10, 'Ver habilidad tecnica'),
+(11, 'Agregar habilidad tecnica'),(12, 'Modificar habilidad tecnica'),(13, 'Eliminar habilidad tecnica'),
+(14, 'Ver experiencias laborales'),(15, 'Ver experiencia laboral'),
+(16, 'Agregar experiencia laboral'),(17, 'Modificar experiencia laboral'),(18, 'Eliminar experiencia laboral'),
+(19, 'Ver formaciones academicas'),(20, 'Ver formacion academica'),
+(21, 'Agregar formacion academica'),(22, 'Modificar formacion academica'),(23, 'Eliminar formacion academica'),
+(24, 'Ver proyectos personales'),(25, 'Ver proyecto personal'),
+(26, 'Agregar proyecto personal'),(27, 'Modificar proyecto personal'),(28, 'Eliminar proyecto personal'),
+(29, 'Ver certificados'),(30, 'Ver certificado'),
+(31, 'Agregar certificado'),(32, 'Modificar certificado'),(33, 'Eliminar certificado'),
+(34, 'Configurar visibilidad de elementos'),(35, 'Vincular con Github'),
+(36, 'Vincular con Linkedln'),(37, 'Generar enlace de perfil publico'),
+(38, 'Generar curriculum vitae'),
+(39, 'Ver estadisticas del perfil'),(40, 'Ver estadisticas globales'),
+(41, 'Cambiar de rol');
