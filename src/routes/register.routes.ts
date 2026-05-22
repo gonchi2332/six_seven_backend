@@ -14,6 +14,7 @@ router.post(
   SharpCheck.verifyProfilePictureDimensions,
   RegisterPersonalInfoController.registerPersonalInfo,
 );
+
 router.put(
   "/users/personal-info", 
   Authorization.tokenAuthorization,
@@ -22,11 +23,24 @@ router.put(
   SharpCheck.verifyProfilePictureDimensions,
   RegisterPersonalInfoController.updatePersonalInfo,
 );
+
+router.get(
+  "/users/:username/personal-info", 
+  RegisterPersonalInfoController.viewPublicPersonalInfo
+);
+
 router.get(
   "/users/personal-info", 
-  //Authorization.tokenAuthorization,
-  //Authorization.onlyVerifiedUsers,
-  RegisterPersonalInfoController.viewPersonalInfo
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  RegisterPersonalInfoController.viewPrivatePersonalInfo
+);
+
+router.patch(
+  "/users/personal-info/visibility",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  RegisterPersonalInfoController.modifyPersonalInfoVisibility
 );
 
 export default router;
