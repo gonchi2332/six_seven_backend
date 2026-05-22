@@ -131,7 +131,7 @@ export async function getPublicProjects(req: Request, res: Response) {
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario inválido."
+        message: "Nombre de usuario inválido"
       });
     }
     const response = await ProjectService.getPublicPersonalProjects(username);
@@ -150,6 +150,60 @@ export async function getPublicProjects(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
+
+export async function getPrivateProjects(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+
+    const response = await ProjectService.getPrivatePersonalProjects(username);
+    
+    if (!response.result) {
+      return res.status(400).json({
+        success: false,
+        message: response.messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState,
+      projects: response.data
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error en el servidor: ${(err as Error).message}`
+    });
+  }
+}
+
+export async function modifyProjectsVisibility(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { visibilities } = req.body; 
+    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato de visibilidad inválido. Se esperaba un objeto."
+      });
+    }
+    const response = await ProjectService.updateProjectsVisibility(username, visibilities);
+    if (!response.result) {
+      return res.status(400).json({
+        success: false,
+        message: response.messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno: ${(err as Error).message}`
     });
   }
 }

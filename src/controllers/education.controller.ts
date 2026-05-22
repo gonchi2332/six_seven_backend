@@ -82,41 +82,18 @@ async function handleEducation(
         message: "Nombre de usuario faltante o invalido."
       });
     }
-
-    if (action === "view") {
-      const { result, messageState, education } = await EducationService
-        .viewEducation(username);
-      if (!result) {
-        return res.status(400).json({
-          success: false,
-          message: messageState
-        });
-      }
-      if (!education || education.length === 0) {
-        return res.status(200).json({
-          success: true,
-          message: "El usuario no tiene registros de educacion registrados."
-        });
-      }
-      return res.status(200).json({
-        success: true,
-        message: "El registro de educacion del usuario se han obtenido correctamente.",
-        education: education
-      });
-    } else {
-      const { result, messageState } = await EducationService.
-        deleteEducation(username, id!);
-      if (!result) {
-        return res.status(400).json({
-          success: false,
-          message: messageState
-        });
-      }
-      return res.status(200).json({
-        success: true,
-        message: "El registro de educacion se ha eliminado correctamente.",
+    const { result, messageState } = await EducationService.
+      deleteEducation(username, id!);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
       });
     }
+    return res.status(200).json({
+      success: true,
+      message: "El registro de educacion se ha eliminado correctamente.",
+    });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -125,8 +102,70 @@ async function handleEducation(
   }
 }
 
-export async function viewEducation(req: Request, res: Response) {
-  return await handleEducation(req, res, "view");
+export async function viewPublicEducation(req: Request, res: Response) {
+  try {
+    const { username } = req.params;
+    if (!username || typeof username !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Nombre de usuario faltante o invalido"
+      });
+    }
+    const { result, messageState, education } = await EducationService.viewPublicEducation(username);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    if (!education || education.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "El usuario no tiene registros de educacion publicos",
+        education: []
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Los registros de educacion del usuario se han obtenido correctamente",
+      education: education
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno del servidor: ${(err as Error).message}`
+    });
+  }
+}
+
+export async function viewPrivateEducation(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { result, messageState, education } = await EducationService.viewPrivateEducation(username);
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: messageState
+      });
+    }
+    if (!education || education.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No tienes registros de educacion",
+        education: []
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Tus registros de educacion se han obtenido correctamente",
+      education: education
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno del servidor: ${(err as Error).message}`
+    });
+  }
 }
 
 export async function deleteEducation(req: Request, res: Response) {
@@ -136,7 +175,7 @@ export async function deleteEducation(req: Request, res: Response) {
   if (!id || isNaN(parsedId!)) {
     return res.status(400).json({
       success: false,
-      message: "Id de experiencia laboral invalido."
+      message: "Id de experiencia laboral invalido"
     });
   }
   return await handleEducation(req, res, "delete", parsedId);
@@ -165,6 +204,35 @@ export async function viewEducationGrade(
       success: true,
       message: "Los grados academicos se han obtenido correctamente.",
       educationGrade: educationGrade
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: `Error interno del servidor: ${(err as Error).message}`
+    });
+  }
+}
+
+export async function modifyEducationVisibility(req: Request, res: Response) {
+  try {
+    const { username } = req.user as TokenTypes.TokenPayload;
+    const { visibilities } = req.body;
+    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato de visibilidad inválido. Se esperaba un objeto."
+      });
+    }
+    const response = await EducationService.updateEducationVisibility(username, visibilities);
+    if (!response.result) {
+      return res.status(400).json({
+        success: false,
+        message: response.messageState
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState
     });
   } catch (err) {
     return res.status(500).json({
