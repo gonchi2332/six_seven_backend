@@ -164,7 +164,7 @@ async function viewUserSkillsBase(username: string, type: "hard" | "soft", isPub
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
     const skillTypeData = getSkillTypeData(type);
@@ -174,13 +174,13 @@ async function viewUserSkillsBase(username: string, type: "hard" | "soft", isPub
     if (userSkills.length === 0) {
       return {
         result: true,
-        messageState: `El usuario no tiene habilidades ${skillTypeData.pluralWord} registradas.`,
+        messageState: `El usuario no tiene habilidades ${skillTypeData.pluralWord} registradas`,
         skills: []
       };
     }
     return {
       result: true,
-      messageState: `Las habilidades ${skillTypeData.pluralWord} se han obtenido correctamente.`,
+      messageState: `Las habilidades ${skillTypeData.pluralWord} se han obtenido correctamente`,
       skills: userSkills
     };
   } catch (err) {
@@ -250,7 +250,7 @@ async function deleteUserSkill(username: string, skillName: string, type: "hard"
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -259,12 +259,12 @@ async function deleteUserSkill(username: string, skillName: string, type: "hard"
     if (deletedSkill.length === 0) {
       return {
         result: false,
-        messageState: `La habilidad ${skillTypeData.singleWord} a eliminar no esta asociada a este usuario.`
+        messageState: `La habilidad ${skillTypeData.singleWord} a eliminar no esta asociada a este usuario`
       };
     }
     return {
       result: true,
-      messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha eliminado correctamente.`
+      messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha eliminado correctamente`
     };
   } catch (err) {
     return {

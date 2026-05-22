@@ -190,7 +190,7 @@ async function viewSkillsBase(req: Request, res: Response, skillType: "hard" | "
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario faltante o invalido."
+        message: "Nombre de usuario faltante o invalido"
       });
     }
     const skillTypeWord = (skillType === "hard") ? "tecnicas" : "blandas";
@@ -214,13 +214,13 @@ async function viewSkillsBase(req: Request, res: Response, skillType: "hard" | "
     if (!skills || skills.length === 0) {
       return res.status(200).json({
         success: true,
-        message: `El usuario no tiene habilidades ${skillTypeWord} ${isPublic ? "publicas " : ""}registradas.`,
+        message: `El usuario no tiene habilidades ${skillTypeWord} ${isPublic ? "publicas " : ""}registradas`,
         skills: []
       });
     }
     return res.status(200).json({
       success: true,
-      message: `Las habilidades ${skillTypeWord} se han obtenido correctamente.`,
+      message: `Las habilidades ${skillTypeWord} se han obtenido correctamente`,
       skills: skills
     });
   } catch (err) {

@@ -82,7 +82,7 @@ export async function viewPublicCertificates(req: Request, res: Response) {
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario faltante o invalido."
+        message: "Nombre de usuario faltante o invalido"
       });
     }
     const { result, messageState, certificates } = await CertificateService.viewPublicCertificates(username);
@@ -95,13 +95,13 @@ export async function viewPublicCertificates(req: Request, res: Response) {
     if (!certificates || certificates.length === 0) {
       return res.status(200).json({
         success: true,
-        message: "El usuario no tiene certificados publicos.",
+        message: "El usuario no tiene certificados publicos",
         certificates: []
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Certificados obtenidos exitosamente.",
+      message: "Certificados obtenidos exitosamente",
       certificates: certificates
     });
   } catch (err) {
@@ -125,13 +125,13 @@ export async function viewPrivateCertificates(req: Request, res: Response) {
     if (!certificates || certificates.length === 0) {
       return res.status(200).json({
         success: true,
-        message: "No tienes certificados registrados.",
+        message: "No tienes certificados registrados",
         certificates: []
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Tus certificados se han obtenido exitosamente.",
+      message: "Tus certificados se han obtenido exitosamente",
       certificates: certificates
     });
   } catch (err) {
@@ -150,7 +150,7 @@ export async function deleteUserCertificate(req: Request, res: Response) {
     if (!id || isNaN(parsedId!)) {
       return res.status(400).json({
         success: false,
-        message: "Id de certificado invalido."
+        message: "Id de certificado invalido"
       });
     }
     const { result, messageState } = await CertificateService.deleteUserCertificate(username, parsedId!);
@@ -162,7 +162,7 @@ export async function deleteUserCertificate(req: Request, res: Response) {
     }
     return res.status(200).json({
       success: true,
-      message: "Certificado eliminado exitosamente."
+      message: "Certificado eliminado exitosamente"
     });
   } catch (err) {
     return res.status(500).json({

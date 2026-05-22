@@ -108,7 +108,7 @@ export async function viewPublicEducation(req: Request, res: Response) {
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario faltante o invalido."
+        message: "Nombre de usuario faltante o invalido"
       });
     }
     const { result, messageState, education } = await EducationService.viewPublicEducation(username);
@@ -121,13 +121,13 @@ export async function viewPublicEducation(req: Request, res: Response) {
     if (!education || education.length === 0) {
       return res.status(200).json({
         success: true,
-        message: "El usuario no tiene registros de educacion publicos.",
+        message: "El usuario no tiene registros de educacion publicos",
         education: []
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Los registros de educacion del usuario se han obtenido correctamente.",
+      message: "Los registros de educacion del usuario se han obtenido correctamente",
       education: education
     });
   } catch (err) {
@@ -151,13 +151,13 @@ export async function viewPrivateEducation(req: Request, res: Response) {
     if (!education || education.length === 0) {
       return res.status(200).json({
         success: true,
-        message: "No tienes registros de educacion.",
+        message: "No tienes registros de educacion",
         education: []
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Tus registros de educacion se han obtenido correctamente.",
+      message: "Tus registros de educacion se han obtenido correctamente",
       education: education
     });
   } catch (err) {
@@ -175,7 +175,7 @@ export async function deleteEducation(req: Request, res: Response) {
   if (!id || isNaN(parsedId!)) {
     return res.status(400).json({
       success: false,
-      message: "Id de experiencia laboral invalido."
+      message: "Id de experiencia laboral invalido"
     });
   }
   return await handleEducation(req, res, "delete", parsedId);

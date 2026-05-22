@@ -131,7 +131,7 @@ export async function getPublicProjects(req: Request, res: Response) {
     if (!username || typeof username !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario inválido."
+        message: "Nombre de usuario inválido"
       });
     }
     const response = await ProjectService.getPublicPersonalProjects(username);

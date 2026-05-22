@@ -158,7 +158,7 @@ export async function viewPublicEducation(username: string) {
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
     const education = await Selects.getAllPublicUserEducation(username);

@@ -95,20 +95,20 @@ export async function deletePersonalProject(username: string, projectId: number)
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
     const projectExists = await Selects.getProjectByIdAndUser(username, projectId);
     if (!projectExists || projectExists.length === 0) {
       return {
         result: false,
-        messageState: "El proyecto no existe o no tienes permiso para eliminarlo."
+        messageState: "El proyecto no existe o no tienes permiso para eliminarlo"
       };
     }
     await Deletes.deletePersonalProject(projectId);
     return {
       result: true,
-      messageState: "Proyecto personal eliminado exitosamente."
+      messageState: "Proyecto personal eliminado exitosamente"
     };
   } catch (err) {
     return {
@@ -124,13 +124,13 @@ export async function getPublicPersonalProjects(username: string) {
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
     const projects = await Selects.getPublicProjects(username);
     return {
       result: true,
-      messageState: "Proyectos obtenidos exitosamente.",
+      messageState: "Proyectos obtenidos exitosamente",
       data: projects
     };
   } catch (err) {
@@ -146,7 +146,7 @@ export async function getPrivatePersonalProjects(username: string) {
     const projects = await Selects.getAllUserProjects(username); 
     return {
       result: true,
-      messageState: "Proyectos obtenidos exitosamente.",
+      messageState: "Proyectos obtenidos exitosamente",
       data: projects
     };
   } catch (err) {
