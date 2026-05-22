@@ -274,6 +274,7 @@ export async function viewUserPersonalInfo(username: string) {
     const getQuery = `
       SELECT 
         u.username, u.is_new, u.state, u.names, u.first_surname, u.main_registration_email, 
+        u.show_name, u.show_contact_email, u.show_phone, u.show_residence,
         upn.phone_number, umn.second_surname, rci.name AS residence_city_name, 
         rc.name AS residence_country_name, uce.contact_email, 
         ure.registration_email, pp.profile_picture
@@ -311,6 +312,80 @@ export async function viewUserPersonalInfo(username: string) {
     return {
       result: false,
       messageState: `Error al acceder a la informacion personal: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function viewPublicUserPersonalInfo(username: string) {
+  try {
+    const response = await viewUserPersonalInfo(username);
+    if (!response.result) return response;
+    const data = response.currentPersonalInfo;
+    const publicProfile = {
+      username: data.username,
+      profile_picture: data.profile_picture,
+      names: data.show_name ? data.names : undefined,
+      first_surname: data.show_name ? data.first_surname : undefined,
+      second_surname: data.show_name ? data.second_surname : undefined,
+      phone_number: data.show_phone ? data.phone_number : undefined,
+      contact_email: data.show_contact_email ? data.contact_email : undefined,
+      residence_city_name: data.show_residence ? data.residence_city_name : undefined,
+      residence_country_name: data.show_residence ? data.residence_country_name : undefined,
+      main_registration_email: data.main_registration_email
+    };
+    const cleanedProfile = Object.fromEntries(Object.entries(publicProfile).filter(([, value]) => value !== undefined));
+    return { 
+      result: true, 
+      messageState: `Perfil público de ${username} obtenido correctamente.`, 
+      currentPersonalInfo: cleanedProfile 
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function updatePersonalInfoVisibility(username: string, visibilities: any) {
+  try {
+    const checkQuery = "SELECT username FROM \"user\" WHERE username = $1";
+    const userFounded = await processReturnQuery(checkQuery, [username]);
+    if (userFounded.length === 0) return {
+      result: false,
+      messageState: "Usuario no encontrado"
+    };
+    const allowedFields = ["show_name", "show_contact_email", "show_phone", "show_residence"];
+    const fieldsToUpdate: Record<string, boolean> = {};
+    for (const key of allowedFields) {
+      if (typeof visibilities[key] === "boolean") {
+        fieldsToUpdate[key] = visibilities[key];
+      }
+    }
+    if (Object.keys(fieldsToUpdate).length === 0) {
+      return {
+        result: true,
+        messageState: "No se enviaron campos válidos para actualizar"
+      };
+    }
+    const keys = Object.keys(fieldsToUpdate);
+    const values: (boolean | string)[] = Object.values(fieldsToUpdate);
+    const setClause = keys.map((key, index) => `"${key}" = $${index + 1}`).join(", ");
+    const query = `
+      UPDATE "user" 
+      SET ${setClause}
+      WHERE username = $${keys.length + 1}
+    `;
+    values.push(username);
+    await processReturnQuery(query, values);
+    return {
+      result: true,
+      messageState: "Visibilidad de información personal actualizada"
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error: ${(err as Error).message}`
     };
   }
 }
