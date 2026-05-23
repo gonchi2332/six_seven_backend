@@ -210,7 +210,8 @@ export async function getAllUserProjects(username: string) {
       status: proj.status,
       role: proj.role,
       links: proj.links,
-      image: base64Image
+      image: base64Image,
+      visible: proj.visible // no me mates Anahí porfavor
     };
   });
   return formattedProjects;
@@ -272,4 +273,14 @@ export async function getAllPublicUserCertificates(username: string) {
     };
   });
   return formatedCertificates;
+}
+
+export async function getAllPublicUserLaboralExperiences(username: string) {
+  const selectQuery = `
+    SELECT id, position, company_name, description, visible, start_date, end_date 
+    FROM "laboral_experience"
+    WHERE username = $1 AND visible = true
+  `;
+  const userLaboralExperiences = await processReturnQuery(selectQuery, [username]);
+  return userLaboralExperiences;
 }
