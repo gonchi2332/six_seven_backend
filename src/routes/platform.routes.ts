@@ -22,7 +22,7 @@ router.put(
 );
 
 router.put(
-  "/users/linkedin",
+  "/users/github",
   Authorization.tokenAuthorization,
   Authorization.onlyVerifiedUsers,
   PlatformController.saveGithubProfile
