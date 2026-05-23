@@ -139,53 +139,19 @@ export async function modifyUserLaboralExperience(
   return await manageUserLaboralExperience(username, laboralExperienceInfo, "modify", id);
 }
 
-async function handleUserLaboralExperience(
-  username: string,
-  action: "view" | "delete",
-  id?: number) {
+export async function viewPublicLaboralExperience(username: string) {
   try {
     const userExists = await Assertions.userExists(username);
-    if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
-    }
-
-    if (action === "view") {
-      const userLaboralExperiences = await Selects.getAllUserLaboralExperiences(username);
-      if (!userLaboralExperiences || userLaboralExperiences.length === 0) {
-        return {
-          result: true,
-          messageState: "El usuario no tiene experiencias laborales registradas."
-        };
-      }
-      return {
-        result: true,
-        messageState: "Las experiencias laborales del usuario se han obtenido correctamente.",
-        laboralExperiences: userLaboralExperiences
-      };
-    } else {
-      const foundLaboralExperience = await Selects.getLaboralExperience(username, id!);
-      if (!foundLaboralExperience || foundLaboralExperience.length === 0) {
-        return {
-          result: false,
-          messageState: "La experiencia laboral consultada no existe."
-        };
-      }
-
-      const deletedLaboralExperience = await Deletes.deleteLaboralExperience(username, id!);
-      if (deletedLaboralExperience.length === 0) {
-        return {
-          result: false,
-          messageState: "La experiencia laboral a eliminar no esta asociada a este usuario o no existe." 
-        };
-      }
-      return {
-        result: true,
-        messageState: "La experiencia laboral se ha eliminado correctamente."
-      };
-    }
+    if (!userExists) return {
+      result: false,
+      messageState: "El usuario no existe"
+    };
+    const userLaboralExperiences = await Selects.getAllPublicUserLaboralExperiences(username);
+    return {
+      result: true,
+      messageState: "Experiencias obtenidas",
+      laboralExperiences: userLaboralExperiences
+    };
   } catch (err) {
     return {
       result: false,
@@ -194,10 +160,75 @@ async function handleUserLaboralExperience(
   }
 }
 
-export async function viewUserLaboralExperience(username: string) {
-  return await handleUserLaboralExperience(username, "view");
+export async function viewPrivateLaboralExperience(username: string) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) return {
+      result: false,
+      messageState: "El usuario no existe"
+    };
+    const userLaboralExperiences = await Selects.getAllUserLaboralExperiences(username);
+    return {
+      result: true, messageState: "Experiencias obtenidas",
+      laboralExperiences: userLaboralExperiences
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function updateLaboralExperienceVisibility(username: string, visibilities: Record<string, boolean>) {
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) return {
+      result: false,
+      messageState: "El usuario no existe"
+    };
+    await Updates.updateLaboralExperiencesVisibilityBulk(username, visibilities);
+    return {
+      result: true,
+      messageState: "Visibilidad de experiencias laborales actualizada exitosamente"
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
 }
 
 export async function deleteUserLaboralExperience(username: string, id: number) {
-  return await handleUserLaboralExperience(username, "delete", id);
+  try {
+    const userExists = await Assertions.userExists(username);
+    if (!userExists) return {
+      result: false,
+      messageState: "El usuario no existe"
+    };
+    const foundLaboralExperience = await Selects.getLaboralExperience(username, id);
+    if (!foundLaboralExperience || foundLaboralExperience.length === 0) {
+      return {
+        result: false,
+        messageState: "La experiencia laboral consultada no existe"
+      };
+    }
+    const deletedLaboralExperience = await Deletes.deleteLaboralExperience(username, id);
+    if (deletedLaboralExperience.length === 0) {
+      return {
+        result: false,
+        messageState: "La experiencia laboral a eliminar no esta asociada a este usuario o no existe"
+      };
+    }
+    return {
+      result: true,
+      messageState: "La experiencia laboral se ha eliminado correctamente"
+    };
+  } catch (err) {
+    return {
+      result: false,
+      messageState: `Error interno del servidor: ${(err as Error).message}`
+    };
+  }
 }
