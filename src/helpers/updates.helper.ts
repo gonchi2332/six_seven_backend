@@ -247,3 +247,13 @@ export async function updateSkillsVisibilityBulk(username: string, visibilities:
   });
   await Promise.all(queries);
 }
+
+export async function updateLaboralExperiencesVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
+  const updates = Object.entries(visibilities).map(([id, visible]) => {
+    return processReturnQuery(
+      "UPDATE \"laboral_experience\" SET visible = $1 WHERE id = $2 AND username = $3",
+      [visible, parseInt(id, 10), username]
+    );
+  });
+  await Promise.all(updates);
+}
