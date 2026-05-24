@@ -56,14 +56,16 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const { user, profilePicture, token } = await AuthService.login(username, password);
+    const { user, profilePicture, token, roles, currentRoleId } = await AuthService.login(username, password);
 
     res.status(200).json({
       success: true,
       message: `Inicio de sesion exitoso del usuario ${username}`,
       user,
       profilePicture,
-      token
+      token,
+      roles,
+      currentRoleId
     });
 
   } catch (error) {

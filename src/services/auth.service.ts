@@ -44,13 +44,20 @@ export async function registerUserService(
 
   const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
     let userQuery = `
-      INSERT INTO "user" (username, password, state, role_id, names, first_surname, main_registration_email)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO "user" (username, password, state, names, first_surname, main_registration_email)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING username, state, names, first_surname, main_registration_email
     `;
-    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId, names, firstSurname, mainRegistrationEmail];
+    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, names, firstSurname, mainRegistrationEmail];
     const userRes = await client.query(userQuery, userValues);
     const newUser = userRes.rows[0];
+    
+    const userRoleQuery = `
+      INSERT INTO "user_role" (username, role_id, active)
+      VALUES ($1, $2, true)
+    `;
+    await client.query(userRoleQuery, [username, roleId]);
+    
     userQuery = `
       INSERT INTO "user_profile_picture" (username, profile_picture_id)
       VALUES ($1, 1);
@@ -70,16 +77,25 @@ export async function registerUserService(
     };
   });
 
+  const userRoles: TokenTypes.UserRole[] = [
+    { id: roleId, name: "Usuario", active: true }
+  ];
+  const currentRoleId = userRoles.length === 1 ? userRoles[0].id : null;
+
   const token = generateToken({
     username: registrationData.user.username,
-    state: registrationData.user.state
+    state: registrationData.user.state,
+    roles: userRoles,
+    current_role_id: currentRoleId
   });
 
   return {
     result: true,
     messageState: "Usuario registrado exitosamente",
-    user: registrationData.user,  
-    token
+    user: registrationData.user,
+    token,
+    roles: userRoles,
+    currentRoleId
   };
 }
 
@@ -104,15 +120,17 @@ export async function login(
   const findUserValues = [username];
   const users = await processReturnQuery(findUserQuery, findUserValues);
 
-  const foundUser = users[0];
-  const profilePicture = foundUser.profile_picture;
-  const proccessedProfilePicture = profilePicture.toString("base64");
-  foundUser.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
-
   if (users.length === 0) {
     const error = new Error("Usuario o contraseña incorrectos");
     error.name = "AuthError";
     throw error;
+  }
+
+  const foundUser = users[0];
+  const profilePicture = foundUser.profile_picture;
+  const processedProfilePicture = profilePicture ? profilePicture.toString("base64") : null;
+  if (processedProfilePicture) {
+    foundUser.profile_picture = `data:image/jpeg;base64,${processedProfilePicture}`;
   }
 
   const isMatch = await bcrypt.compare(password, foundUser.hashed_password);
@@ -123,15 +141,34 @@ export async function login(
     throw error;
   }
 
+  const userRolesQuery = `
+    SELECT r.id, r.name, ur.active
+    FROM "user_role" ur
+    JOIN "role" r ON ur.role_id = r.id
+    JOIN "user" u ON ur.user_id = u.id
+    WHERE u.username = $1 AND ur.active = true
+  `;
+  const userRolesResult = await processReturnQuery(userRolesQuery, [username]);
+  const userRoles: TokenTypes.UserRole[] = userRolesResult.map(role => ({
+    id: role.id,
+    name: role.name,
+    active: role.active
+  }));
+
+  const currentRoleId = userRoles.length === 1 ? userRoles[0].id : null;
   const token = generateToken({
     username: foundUser.username,
-    state: foundUser.state
+    state: foundUser.state,
+    roles: userRoles,
+    current_role_id: currentRoleId
   });
 
   return {
-    user: foundUser, 
-    profilePicture: `data:image/jpeg;base64,${proccessedProfilePicture}`,
-    token
+    user: foundUser,
+    profilePicture: processedProfilePicture ? `data:image/jpeg;base64,${processedProfilePicture}` : null,
+    token,
+    roles: userRoles,
+    currentRoleId
   };
 }
 

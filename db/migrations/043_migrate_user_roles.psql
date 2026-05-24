@@ -1,0 +1,7 @@
+-- Migrate existing user.role_id to user_role table
+-- Each user gets one row in user_role with their current role_id, marked as active
+-- Note: Only users with role_id set will be migrated
+
+INSERT INTO "user_role" (username, role_id, active)
+SELECT "username", "role_id", true FROM "user"
+WHERE "role_id" IS NOT NULL;

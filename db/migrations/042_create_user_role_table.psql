@@ -1,0 +1,12 @@
+-- Create user_role table for M:M relationship between user and role
+-- With active flag to allow deactivating roles while keeping history
+-- Uses username as FK (since user table uses username as PK)
+
+CREATE TABLE "user_role" (
+  "username" varchar(100) NOT NULL,
+  "role_id" int NOT NULL,
+  "active" bool NOT NULL DEFAULT true,
+  PRIMARY KEY ("username", "role_id"),
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE,
+  FOREIGN KEY ("role_id") REFERENCES "role" ("id") DEFERRABLE INITIALLY IMMEDIATE
+);

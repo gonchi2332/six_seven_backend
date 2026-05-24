@@ -1,7 +1,7 @@
 BEGIN;
 
 INSERT INTO role VALUES
-(1,'Administrador'),(2,'Usuario');
+(1,'Administrador'),(2,'Usuario'),(3,'Reclutador');
 
 INSERT INTO function VALUES
 (1,'Gestionar usuarios'),(2,'Ver perfil'),(3,'Editar perfil'),
@@ -14,7 +14,7 @@ INSERT INTO language VALUES
 (1,'Español'),(2,'Inglés');
 
 INSERT INTO language_level VALUES
-(1,'A1'),(2,'A2'),(3,'B1'),(4,'B2'),(5,'C1'),(6,'C2');
+(1,'Básico'),(2,'Intermedio'),(3,'Avanzado'),(4,'Nativo');
 
 INSERT INTO skill VALUES
 (1,'Trabajo en equipo','soft'),
@@ -43,15 +43,6 @@ INSERT INTO link VALUES
 INSERT INTO "user" (id,username,email,password,role_id,public_profile_link)
 VALUES (1,'admin','admin@mail.com','123',1,'perfil/admin');
 
-INSERT INTO "user" (id,username,email,password,role_id,public_profile_link)
-SELECT i,
-       'user'||i,
-       'user'||i||'@mail.com',
-       '123',
-       2,
-       'perfil/user'||i
-FROM generate_series(2,50) AS s(i);
-
 INSERT INTO user_detail (user_id, names, paternal_surname, residence_country_id)
 SELECT id,
        'Nombre'||id,
@@ -66,13 +57,6 @@ INSERT INTO role_function VALUES
 
 INSERT INTO function_interface VALUES
 (1,1),(2,1),(3,1),(4,2),(5,3);
-
-INSERT INTO project (id,user_id,topic,description)
-SELECT i,
-       ((i-1)/2)+2,
-       'Proyecto '||i,
-       'Descripcion del proyecto '||i
-FROM generate_series(1,98) s(i);
 
 INSERT INTO laboral_experience (id,user_id,position,company_name,start_date)
 SELECT id,

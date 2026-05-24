@@ -1,0 +1,5 @@
+-- Remove role_id column and its foreign key constraint from user table
+-- All role information now stored in user_role table
+
+ALTER TABLE "user" DROP CONSTRAINT "User_Has_Role";
+ALTER TABLE "user" DROP COLUMN "role_id";

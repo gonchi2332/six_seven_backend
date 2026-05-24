@@ -66,13 +66,13 @@ export async function onlyVerifiedUsers(req: Request, res: Response, next: NextF
         });
       } else {
         req.user = user as TokenTypes.TokenPayload;
+        if (req.user.state !== TokenTypes.VerificationState.VERIFIED) {
+          return res.status(403).json({
+            success: false,
+            message: "Acceso denegado al servicio, el usuario no esta verificado."
+          });
+        }
         next();
-      }
-      if (req.user.state !== TokenTypes.VerificationState.VERIFIED) {
-        return res.status(403).json({
-          success: false,
-          message: "Acceso denegado al servicio, el usuario no esta verificado."
-        });
       }
     });
   } catch (err) {

@@ -1,0 +1,2 @@
+UPDATE "user" SET state = 'unverified' WHERE state = 'active';
+UPDATE "user" SET state = 'verified' WHERE username = 'admin';
