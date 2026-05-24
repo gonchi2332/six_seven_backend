@@ -289,6 +289,7 @@ export async function getAllBasicUsers() {
   const selectQuery = `
     SELECT username, names, first_surname
     FROM "user"
+    WHERE state = 'verified'
     ORDER BY names ASC
   `;
   const users = await processReturnQuery(selectQuery, []);
