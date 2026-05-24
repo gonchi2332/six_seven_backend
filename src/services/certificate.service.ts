@@ -1,13 +1,15 @@
 import { getCertificateAction } from "../helpers/certificate.helper";
+import { certificateWords } from "../utils/constants/array.constants";
 import * as CertificateTypes from "../types/certificate.types";
 import * as Assertions from "../helpers/assertions.helper";
 import * as Inserts from "../helpers/inserts.helper";
 import * as Updates from "../helpers/updates.helper";
 import * as Selects from "../helpers/selects.helper";
 import * as Deletes from "../helpers/deletes.helper";
+import * as AIService from "../services/ai.service";
 
 async function manageUserCertificate(
-  username: string, 
+  username: string,
   certificateInfo: CertificateTypes.CertificateInfo,
   coverImage: Express.Multer.File,
   action: "register" | "modify",
@@ -77,6 +79,30 @@ async function manageUserCertificate(
       }
     }
 
+    const { valid, extractedText, reason } = await AIService.certificateImageValidation(coverImage.buffer);
+    if (!valid) {
+      if (reason) {
+        return {
+          result: false,
+          messageState: reason
+        };
+      }
+      return {
+        result: false,
+        messageState: "Imagen del certificado invalida, no tiene texto ni caracteristicas minimas de un certificado"
+      };
+    }
+    if (valid && extractedText) {
+      const formatedText = extractedText.toLowerCase();
+      const textoValido = certificateWords.some(w => formatedText.includes(w));
+      if (!textoValido) {
+        return {
+          result: false,
+          messageState: "Imagen de certificado invalida, no tiene las caracteristicas minimas de un certificado"
+        };
+      }
+    }
+
     const certificateAction = getCertificateAction(action);
     const validationsResult = await certificateAction.serviceValidations(certificateInfo);
     if (validationsResult && !validationsResult.result) {
@@ -88,7 +114,7 @@ async function manageUserCertificate(
 
     if (action === "register") {
       await Inserts.createCertificate(username, certificateInfo, coverImage);
-    }else {
+    } else {
       await Updates.updateCertificate(username, certificateInfo, coverImage, id!);
     }
     return {
