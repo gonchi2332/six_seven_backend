@@ -31,3 +31,25 @@ export async function getOrCreatePublicLink(req: Request, res: Response) {
     });
   }
 }
+
+export async function getUsersList(req: Request, res: Response) {
+  try {
+    const response = await ProfileService.getAllPublicUsersList();
+    if (!response.result) {
+      return res.status(400).json({ 
+        success: false, 
+        message: response.messageState 
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: response.messageState,
+      users: response.users
+    });
+  } catch (err) {
+    return res.status(500).json({ 
+      success: false, 
+      message: `Error en el servidor: ${(err as Error).message}` 
+    });
+  }
+}
