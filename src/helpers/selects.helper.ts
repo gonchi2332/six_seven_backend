@@ -284,3 +284,13 @@ export async function getAllPublicUserLaboralExperiences(username: string) {
   const userLaboralExperiences = await processReturnQuery(selectQuery, [username]);
   return userLaboralExperiences;
 }
+
+export async function getAllBasicUsers() {
+  const selectQuery = `
+    SELECT username, names, first_surname
+    FROM "user"
+    ORDER BY names ASC
+  `;
+  const users = await processReturnQuery(selectQuery, []);
+  return users;
+}

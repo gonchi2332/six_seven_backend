@@ -1,6 +1,7 @@
 import "../config/env.config";
 import crypto from "crypto";
 import { processReturnQuery } from "../utils/query";
+import * as Selects from "../helpers/selects.helper";
 
 export async function getOrCreatePublicLink(username: string) {
   try {
@@ -48,6 +49,22 @@ export async function getOrCreatePublicLink(username: string) {
     return {
       result: false,
       messageState: `Error al acceder a link del enlace publico: ${(err as Error).message}`
+    };
+  }
+}
+
+export async function getAllPublicUsersList() {
+  try {
+    const users = await Selects.getAllBasicUsers();
+    return { 
+      result: true, 
+      messageState: "Lista de usuarios obtenida exitosamente", 
+      users: users 
+    };
+  } catch (err) {
+    return { 
+      result: false, 
+      messageState: `Error interno: ${(err as Error).message}` 
     };
   }
 }
