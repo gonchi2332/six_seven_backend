@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/gonchi2332/six_seven_backend#readme",
   "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-node": "^4.22.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/leo-profanity": "^1.5.5",
     "bcrypt": "^6.0.0",
@@ -39,6 +41,8 @@
     "leo-profanity": "^1.9.0",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
+    "nsfwjs": "^4.3.0",
+    "openai": "^6.39.0",
     "pg": "^8.20.0",
     "sharp": "^0.34.5"
   },

@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
+import { analizeNSFW } from "../utils/nsfw";
 import * as TokenTypes from "../types/token.types";
 import * as RegisterService from "../services/register.service";
 
 async function handlePersonalInfoRequest(
-  req: Request, 
-  res: Response, 
+  req: Request,
+  res: Response,
   action: "register" | "update") {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
@@ -12,15 +13,15 @@ async function handlePersonalInfoRequest(
     const profilePicture = req.file as Express.Multer.File;
 
     if (!username || typeof username !== "string") {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Nombre de usuario faltante o invalido." 
+      return res.status(400).json({
+        success: false,
+        message: "Nombre de usuario faltante o invalido."
       });
     }
     if (!userPersonalInfo || Object.keys(userPersonalInfo).length === 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: "Parametros de informacion personal del usuario insuficientes." 
+        message: "Parametros de informacion personal del usuario insuficientes."
       });
     }
     if (profilePicture && !profilePicture.mimetype.startsWith("image/")) {
@@ -29,8 +30,15 @@ async function handlePersonalInfoRequest(
         message: "Foto de perfil invalida."
       });
     }
+    const nsfwResult = await analizeNSFW(profilePicture.buffer);
+    if (nsfwResult) {
+      return res.status(400).json({
+        success: false,
+        message: "La foto de perfil contiene contenido obseno"
+      });
+    }
 
-    const serviceResponse = action === "register" 
+    const serviceResponse = action === "register"
       ? await RegisterService.registerUserPersonalInfo(username, userPersonalInfo, profilePicture)
       : await RegisterService.updateUserPersonalInfo(username, userPersonalInfo, profilePicture);
 
@@ -38,7 +46,7 @@ async function handlePersonalInfoRequest(
 
     if (!result) {
       let errorMessage = "No es posible procesar la informacion personal del usuario.";
-      
+
       if (messageState === "Usuario no encontrado.") {
         errorMessage = `No es posible ${action === "register" ? "registrar" : "actualizar"}
          la informacion personal del usuario, usuario no esta registrado.`;
@@ -53,9 +61,9 @@ async function handlePersonalInfoRequest(
         errorMessage = messageState;
       }
 
-      return res.status(400).json({ 
-        success: false, 
-        message: errorMessage 
+      return res.status(400).json({
+        success: false,
+        message: errorMessage
       });
     }
 
@@ -100,7 +108,7 @@ export async function viewPublicPersonalInfo(req: Request, res: Response) {
       success: true,
       message: messageState,
       userPersonalInfo: currentPersonalInfo
-    }); 
+    });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -123,7 +131,7 @@ export async function viewPrivatePersonalInfo(req: Request, res: Response) {
       success: true,
       message: messageState,
       userPersonalInfo: currentPersonalInfo
-    }); 
+    });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -135,7 +143,7 @@ export async function viewPrivatePersonalInfo(req: Request, res: Response) {
 export async function modifyPersonalInfoVisibility(req: Request, res: Response) {
   try {
     const { username } = req.user as TokenTypes.TokenPayload;
-    const visibilities = req.body; 
+    const visibilities = req.body;
     if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
       return res.status(400).json({
         success: false,

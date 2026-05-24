@@ -22,5 +22,7 @@ export const env = {
   SEND_EMAIL_USER: verifyEnvVariables("SEND_EMAIL_USER", "no-reply"),
   SEND_EMAIL_PASSWORD: verifyEnvVariables("SEND_EMAIL_PASSWORD", undefined),
   GROQ_API_KEY: verifyEnvVariables("GROQ_API_KEY", undefined),
-  AI_MODEL: verifyEnvVariables("AI_MODEL", "llama-3.1-8b-instant")
+  GROQ_AI_MODEL: verifyEnvVariables("GROQ_AI_MODEL", "llama-3.1-8b-instant"),
+  OPENROUTER_API_KEY: verifyEnvVariables("OPENROUTER_API_KEY", undefined),
+  OPENROUTER_AI_MODEL: verifyEnvVariables("OPENROUTER_AI_MODEL", "meta-llama/llama-3.2-11b-vision-instruct"),
 };

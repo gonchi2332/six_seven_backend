@@ -8,3 +8,10 @@ const formatedTechs = sugestTechnologies
   .filter(t => t.length > 0);
 const uniqueTechs = [...new Set(formatedTechs)];
 export const techs = uniqueTechs.join(", ");
+
+export const certificateWords = [
+  "certificado", "certificate", "diploma", "título", "constancia",
+  "certifica", "certifies", "awarded", "completed", "aprobado",
+  "otorgado", "reconoce", "acredita", "graduado", "egresado",
+  "verificado", "verified", "award"
+];
