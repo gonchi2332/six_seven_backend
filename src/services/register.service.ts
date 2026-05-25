@@ -2,6 +2,7 @@ import "../config/env.config";
 import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/query";
 import * as UserTypes from "../types/user.types";
+import * as AIService from "../services/ai.service";
 
 async function processUserPersonalInfoAction(
   username: string,
@@ -78,6 +79,21 @@ async function processUserPersonalInfoAction(
         result: false,
         messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido.`
       };
+    }
+    if (profilePicture) {
+      const { valid, reason } = await AIService.NSFWImageValidation(profilePicture.buffer);
+      if (!valid) {
+        if (reason) {
+          return {
+            result: false,
+            messageState: reason
+          };
+        }
+        return {
+          result: false,
+          messageState: "La foto de perfil contiene contenido obseno"
+        };
+      }
     }
 
     await processTransaction<unknown>(async function (client: PoolClient) {
@@ -334,10 +350,10 @@ export async function viewPublicUserPersonalInfo(username: string) {
       main_registration_email: data.main_registration_email
     };
     const cleanedProfile = Object.fromEntries(Object.entries(publicProfile).filter(([, value]) => value !== undefined));
-    return { 
-      result: true, 
-      messageState: `Perfil público de ${username} obtenido correctamente.`, 
-      currentPersonalInfo: cleanedProfile 
+    return {
+      result: true,
+      messageState: `Perfil público de ${username} obtenido correctamente.`,
+      currentPersonalInfo: cleanedProfile
     };
   } catch (err) {
     return {

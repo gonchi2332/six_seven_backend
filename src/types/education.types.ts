@@ -20,9 +20,3 @@ export interface TitleModerationResponse {
   valid: boolean;
   reason: string;
 }
-
-export interface CertificateModerationResponse {
-  valid: boolean;
-  extractedText?: string;
-  reason?: string;
-}
