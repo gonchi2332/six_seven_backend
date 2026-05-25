@@ -37,7 +37,7 @@ async function manageEducation(
     if (educationExists) {
       return {
         result: false,
-        messageState: `La formacion academica que trata de ser ${educationAction.singleWord} ya existe y esta asociada a este usuario`
+        messageState: "La formación académica ya existe y está asociada a este usuario"
       };
     }
 
@@ -73,7 +73,7 @@ async function manageEducation(
       if (startDate < new Date(new Date().setFullYear(new Date().getFullYear() - 100))) {
         return {
           result: false,
-          messageState: "Fecha de inicio o egreso tiene que estar dentro del rango de hoy y hace 100 años"
+          messageState: "El año de inicio o egreso tiene que estar dentro del rango de hoy y hace 100 años"
         };
       }
     }
