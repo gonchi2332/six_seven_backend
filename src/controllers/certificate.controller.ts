@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getCertificateAction } from "../helpers/certificate.helper";
+import { analizeNSFW } from "../utils/nsfw";
 import * as TokenTypes from "../types/token.types";
 import * as CertificateService from "../services/certificate.service";
 
@@ -29,6 +30,13 @@ async function manageUserCertificate(
       return res.status(400).json({
         success: false,
         message: "Imagen de portada invalida."
+      });
+    }
+    const nsfwResult = await analizeNSFW(coverImage.buffer);
+    if (nsfwResult) {
+      return res.status(400).json({
+        success: false,
+        message: "La imagen del certificado contiene contenido obseno"
       });
     }
 
