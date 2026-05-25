@@ -1,5 +1,7 @@
 import { env } from "../config/env.config";
 import { groq } from "../config/ai.config";
+import { openrouter } from "../config/ai.config";
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { getSkillTypeData } from "../helpers/skill.helper";
 import { techs } from "../utils/constants/array.constants";
 import * as SkillTypes from "../types/skill.types";
@@ -45,7 +47,7 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
     ` : `
       Aún no hay habilidades registradas en el sistema. Retorna "canonName": null y "name": null.
     `;
-      
+
     const prompt = `Tipo de skill: ${skillType === "hard" ? "HARD SKILL" : "SOFT SKILL"}
       Nombre a validar: "${skillName}"`;
 
@@ -104,9 +106,9 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
       {"valid": true, "reason": "Habilidad técnica está dentro del campo de la informática, ciencias de la computación y desarrollo de software.", "canonName": "canon_name_exacto_de_la_bd", "name": "name_exacto_de_la_bd"}
 
       Responde SOLO con el JSON. Nada más.`;
-    
+
     const response = await groq.chat.completions.create({
-      model: env.AI_MODEL,
+      model: env.GROQ_AI_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
@@ -115,8 +117,8 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
     });
 
     const raw = response.choices[0].message.content?.trim() ?? "";
-    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/,"").trim();
-    
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+
     const parsedResponse = JSON.parse(cleaned) as SkillTypes.SkillModerationResponse;
     return parsedResponse;
   } catch (err) {
@@ -158,7 +160,7 @@ export async function positionValidation(position: string) {
       Responde SOLO con el JSON. Nada más.`;
 
     const response = await groq.chat.completions.create({
-      model: env.AI_MODEL,
+      model: env.GROQ_AI_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
@@ -167,7 +169,7 @@ export async function positionValidation(position: string) {
     });
 
     const raw = response.choices[0].message.content?.trim() ?? "";
-    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/,"").trim();
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
 
     const parsedResponse = JSON.parse(cleaned) as LaboralExpTypes.PositionModerationResponse;
     return parsedResponse;
@@ -205,7 +207,7 @@ export async function academicTitleValidation(title: string) {
       {"valid": false, "reason": "El título introducido no está relacionado con el ámbito de las ciencias de la computación, desarrollo de software o informática."}`;
 
     const response = await groq.chat.completions.create({
-      model: env.AI_MODEL,
+      model: env.GROQ_AI_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
@@ -222,6 +224,68 @@ export async function academicTitleValidation(title: string) {
     return {
       valid: false,
       reason: `Error de validación: ${(err as Error).message ?? String(err)}`
+    };
+  }
+}
+
+export async function certificateImageValidation(image: Buffer) {
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), 10000);
+
+  try {
+    const formatedImage = `data:image/jpeg;base64,${image.toString("base64")}`;
+
+    const prompt = `You must respond ONLY with a JSON object, no other text.
+      Analyze this image and extract all visible text.
+      Response format: {"valid": true, "extractedText": "all text found in the image"}
+      If you cannot process the image: {"valid": false, "extractedText": ""}
+      ONLY JSON. No explanations. No apologies.`;
+
+    const response = await openrouter.chat.completions.create(
+      {
+        model: env.OPENROUTER_AI_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: {
+                  url: formatedImage
+                }
+              },
+              {
+                type: "text",
+                text: prompt
+              }
+            ]
+          }
+        ] as ChatCompletionMessageParam[],
+        temperature: 0
+      },
+      {
+        signal: abortController.signal
+      }
+    );
+    clearTimeout(timeout);
+
+    const raw = response.choices[0].message.content?.trim() ?? "";
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+
+    const parsedResponse = JSON.parse(cleaned) as EducacionTypes.CertificateModerationResponse;
+    return parsedResponse;
+  } catch (err) {
+    clearTimeout(timeout);
+    const errorMessage = `Error de validación: ${(err as Error).message ?? String(err)}`;
+    if (errorMessage.includes("abort") || errorMessage.includes("aborted")) {
+      return {
+        valid: false,
+        extractedText: ""
+      };
+    }
+    return {
+      valid: false,
+      reason: errorMessage
     };
   }
 }

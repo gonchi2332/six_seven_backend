@@ -11,4 +11,9 @@ router.get(
   ProfileController.getOrCreatePublicLink,
 );
 
+router.get(
+  "/users",
+  ProfileController.getUsersList
+);
+
 export default router;
