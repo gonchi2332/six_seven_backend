@@ -229,7 +229,7 @@ export async function updateEducationVisibility(username: string, visibilities: 
     await Updates.updateEducationVisibilityBulk(username, visibilities);
     return {
       result: true,
-      messageState: "Visibilidad de educación actualizada exitosamente."
+      messageState: "Cambios guardados exitosamente"
     };
   } catch (err) {
     return {
