@@ -190,7 +190,7 @@ export async function updateLaboralExperienceVisibility(username: string, visibi
     await Updates.updateLaboralExperiencesVisibilityBulk(username, visibilities);
     return {
       result: true,
-      messageState: "Visibilidad de experiencias laborales actualizada exitosamente"
+      messageState: "Cambios guardados exitosamente"
     };
   } catch (err) {
     return {

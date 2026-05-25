@@ -239,7 +239,7 @@ export async function updateCertificatesVisibility(username: string, visibilitie
     await Updates.updateCertificatesVisibilityBulk(username, visibilities);
     return {
       result: true,
-      messageState: "Visibilidad de certificados actualizada exitosamente."
+      messageState: "Cambios guardados exitosamente"
     };
   } catch (err) {
     return {
