@@ -22,7 +22,7 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
     if (projectExists) {
       return {
         result: false,
-        messageState: "El proyecto que trata de ser registrado ya existe y esta asociado a este usuario."
+        messageState: "El proyecto ya existe y está asociado a este usuario"
       };
     }
 
