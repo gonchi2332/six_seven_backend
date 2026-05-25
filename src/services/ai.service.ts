@@ -1,12 +1,15 @@
 import { env } from "../config/env.config";
 import { groq } from "../config/ai.config";
 import { openrouter } from "../config/ai.config";
+import { hf } from "../config/huggingface.config";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { getSkillTypeData } from "../helpers/skill.helper";
 import { techs } from "../utils/constants/array.constants";
 import * as SkillTypes from "../types/skill.types";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as EducacionTypes from "../types/education.types";
+import * as CertificateTypes from "../types/certificate.types";
+import * as NSFWTypes from "../types/nsfw.types";
 import * as Selects from "../helpers/selects.helper";
 
 export async function skillValidation(skillName: string, skillType: "hard" | "soft") {
@@ -272,7 +275,7 @@ export async function certificateImageValidation(image: Buffer) {
     const raw = response.choices[0].message.content?.trim() ?? "";
     const cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
 
-    const parsedResponse = JSON.parse(cleaned) as EducacionTypes.CertificateModerationResponse;
+    const parsedResponse = JSON.parse(cleaned) as CertificateTypes.CertificateModerationResponse;
     return parsedResponse;
   } catch (err) {
     clearTimeout(timeout);
@@ -286,6 +289,30 @@ export async function certificateImageValidation(image: Buffer) {
     return {
       valid: false,
       reason: errorMessage
+    };
+  }
+}
+
+export async function NSFWImageValidation(image: Buffer) {
+  try {
+    const formatedImage = new Blob([image.buffer as ArrayBuffer], { type: "image/jpeg" });
+    
+    //console.log("Iniciando análisis NSFW...");
+    const response = await hf.imageClassification({
+      data: formatedImage,
+      model: env.HUGGING_FACE_AI_MODEL
+    }) as NSFWTypes.NSFWModerationResponse[];
+
+    //console.log("Respuesta HF:", response);
+    const prediction = response.find(p => p.label === "nsfw")?.score || 0;
+    return {
+      valid: prediction <= 0.7,
+    };
+  } catch (err) {
+    //console.error("Error NSFW:", (err as Error).message);
+    return {
+      valid: false,
+      reason: `Error NSFW: ${(err as Error).message}`
     };
   }
 }
