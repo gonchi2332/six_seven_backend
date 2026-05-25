@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { analizeNSFW } from "../utils/nsfw";
 import * as TokenTypes from "../types/token.types";
 import * as ProjectService from "../services/project.service";
 import * as ProjectTypes from "../types/project.types";
@@ -30,14 +29,6 @@ export async function registerProject(req: Request, res: Response) {
       });
     }
     projectInfo.imageBuffer = req.file.buffer;
-
-    const nsfwResult = await analizeNSFW(projectInfo.imageBuffer);
-    if (nsfwResult) {
-      return res.status(400).json({
-        success: false,
-        message: "La foto de portada del proyecto contiene contenido obseno"
-      });
-    }
 
     const ans = await ProjectService.registerPersonalProject(username, projectInfo);
     if (!ans.result) {

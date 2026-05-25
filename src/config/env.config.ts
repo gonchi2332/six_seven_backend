@@ -25,4 +25,6 @@ export const env = {
   GROQ_AI_MODEL: verifyEnvVariables("GROQ_AI_MODEL", "llama-3.1-8b-instant"),
   OPENROUTER_API_KEY: verifyEnvVariables("OPENROUTER_API_KEY", undefined),
   OPENROUTER_AI_MODEL: verifyEnvVariables("OPENROUTER_AI_MODEL", "meta-llama/llama-3.2-11b-vision-instruct"),
+  HUGGING_FACE_API_KEY: verifyEnvVariables("HUGGING_FACE_API_KEY", undefined),
+  HUGGING_FACE_AI_MODEL: verifyEnvVariables("HUGGING_FACE_AI_MODEL", "Falconsai/nsfw_image_detection"),
 };

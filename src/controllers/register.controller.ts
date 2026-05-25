@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { analizeNSFW } from "../utils/nsfw";
 import * as TokenTypes from "../types/token.types";
 import * as RegisterService from "../services/register.service";
 
@@ -28,13 +27,6 @@ async function handlePersonalInfoRequest(
       return res.status(400).json({
         success: false,
         message: "Foto de perfil invalida."
-      });
-    }
-    const nsfwResult = await analizeNSFW(profilePicture.buffer);
-    if (nsfwResult) {
-      return res.status(400).json({
-        success: false,
-        message: "La foto de perfil contiene contenido obseno"
       });
     }
 
