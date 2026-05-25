@@ -396,7 +396,7 @@ export async function updatePersonalInfoVisibility(username: string, visibilitie
     await processReturnQuery(query, values);
     return {
       result: true,
-      messageState: "Visibilidad de información personal actualizada"
+      messageState: "Cambios guardados exitosamente"
     };
   } catch (err) {
     return {
