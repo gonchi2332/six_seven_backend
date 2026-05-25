@@ -33,7 +33,7 @@ async function manageEducation(
     }
 
     const educationAction = getEducationAction(action);
-    const educationExists = await Assertions.educationExists(educationInfo, username);
+    const educationExists = await Assertions.educationExists(educationInfo, username, action);
     if (educationExists) {
       return {
         result: false,

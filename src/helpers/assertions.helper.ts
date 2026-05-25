@@ -1,4 +1,5 @@
 import { processReturnQuery } from "../utils/query";
+import { formatAcademicInfo } from "./education.helper";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as ProjectTypes from "../types/project.types";
 import * as EducationTypes from "../types/education.types";
@@ -43,14 +44,20 @@ export async function projectExists(projectInfo: ProjectTypes.ProjectInfo, usern
   return !(foundProjects.length === 0);
 }
 
-export async function educationExists(educationInfo: EducationTypes.EducationInfo, username: string) {
+export async function educationExists(
+  educationInfo: EducationTypes.EducationInfo,
+  username: string,
+  action: "register" | "modify") {
   const { title, institution } = educationInfo;
-  
+
+  const formatedTitle = (action === "register") ? await formatAcademicInfo(title) : title;
+  const formatedInstitution = (action === "register") ? await formatAcademicInfo(institution) : institution;
+
   const checkQuery = `
     SELECT id FROM "academic_training"
     WHERE canon_title = $1 AND canon_institution = $2 AND username = $3
   `;
-  const values = [title, institution, username];
+  const values = [formatedTitle, formatedInstitution, username];
   const foundEducations = await processReturnQuery(checkQuery, values);
   return !(foundEducations.length === 0);
 }
