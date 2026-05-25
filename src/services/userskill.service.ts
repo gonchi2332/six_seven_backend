@@ -294,7 +294,7 @@ export async function updateSkillsVisibility(username: string, visibilities: Rec
     await Updates.updateSkillsVisibilityBulk(username, visibilities);
     return {
       result: true,
-      messageState: "Visibilidad de habilidades actualizada exitosamente."
+      messageState: "Cambios guardados exitosamente"
     };
   } catch (err) {
     return {
