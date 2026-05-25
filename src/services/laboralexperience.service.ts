@@ -46,7 +46,7 @@ async function manageUserLaboralExperience(
     if (laboralExperienceExits) {
       return {
         result: false,
-        messageState: `La experiencia laboral ya existe y está asociada a este usuario`
+        messageState: "La experiencia laboral ya existe y está asociada a este usuario"
       };
     }
 
