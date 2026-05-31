@@ -79,6 +79,19 @@ async function manageUserCertificate(
       }
     }
 
+    const nsfwResult = await AIService.NSFWImageValidation(coverImage.buffer);
+    if (!nsfwResult.valid) {
+      if (nsfwResult.reason) {
+        return {
+          result: false,
+          messageState: nsfwResult.reason
+        };
+      }
+      return {
+        result: false,
+        messageState: "La imagen del certificado contiene contenido obseno"
+      };
+    }
     const { valid, extractedText, reason } = await AIService.certificateImageValidation(coverImage.buffer);
     if (!valid) {
       if (reason) {
@@ -226,7 +239,7 @@ export async function updateCertificatesVisibility(username: string, visibilitie
     await Updates.updateCertificatesVisibilityBulk(username, visibilities);
     return {
       result: true,
-      messageState: "Visibilidad de certificados actualizada exitosamente."
+      messageState: "Cambios guardados exitosamente"
     };
   } catch (err) {
     return {

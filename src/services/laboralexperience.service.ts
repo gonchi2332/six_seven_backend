@@ -46,7 +46,7 @@ async function manageUserLaboralExperience(
     if (laboralExperienceExits) {
       return {
         result: false,
-        messageState: `La experiencia laboral que trata de ser ${laboralExperienceAction.singleWord} ya existe y esta asociada a este usuario.`
+        messageState: "La experiencia laboral ya existe y está asociada a este usuario"
       };
     }
 
@@ -190,7 +190,7 @@ export async function updateLaboralExperienceVisibility(username: string, visibi
     await Updates.updateLaboralExperiencesVisibilityBulk(username, visibilities);
     return {
       result: true,
-      messageState: "Visibilidad de experiencias laborales actualizada exitosamente"
+      messageState: "Cambios guardados exitosamente"
     };
   } catch (err) {
     return {

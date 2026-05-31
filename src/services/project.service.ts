@@ -1,11 +1,12 @@
+import { registerProjectValidations } from "../helpers/project.helper";
+import { modifyProjectValidations } from "../helpers/project.helper";
 import * as ProjectTypes from "../types/project.types";
 import * as Assertions from "../helpers/assertions.helper";
 import * as Inserts from "../helpers/inserts.helper";
 import * as Selects from "../helpers/selects.helper";
 import * as Updates from "../helpers/updates.helper";
 import * as Deletes from "../helpers/deletes.helper";
-import { registerProjectValidations } from "../helpers/project.helper";
-import { modifyProjectValidations } from "../helpers/project.helper";
+import * as AIService from "../services/ai.service";
 
 export async function registerPersonalProject(username: string, projectInfo: ProjectTypes.ProjectInfo) {
   try {
@@ -21,7 +22,7 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
     if (projectExists) {
       return {
         result: false,
-        messageState: "El proyecto que trata de ser registrado ya existe y esta asociado a este usuario."
+        messageState: "El proyecto ya existe y está asociado a este usuario"
       };
     }
 
@@ -32,6 +33,20 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
         messageState: validationResult.messageState
       };
     }
+    const { valid, reason } = await AIService.NSFWImageValidation(projectInfo.imageBuffer!);
+    if (!valid) {
+      if (reason) {
+        return {
+          result: false,
+          messageState: reason
+        };
+      }
+      return {
+        result: false,
+        messageState: "La foto de portada del proyecto contiene contenido obseno"
+      };
+    }
+
     await Inserts.createPersonalProject(username, projectInfo);
     return {
       result: true,
@@ -76,6 +91,22 @@ export async function modifyPersonalProject(username: string, projectId: number,
         messageState: validation.messageState
       };
     }
+    if (projectInfo.imageBuffer) {
+      const { valid, reason } = await AIService.NSFWImageValidation(projectInfo.imageBuffer);
+      if (!valid) {
+        if (reason) {
+          return {
+            result: false,
+            messageState: reason
+          };
+        }
+        return {
+          result: false,
+          messageState: "La foto de portada del proyecto contiene contenido obseno"
+        };
+      }
+    }
+
     await Updates.updatePersonalProject(username, projectId, projectInfo);
     return {
       result: true,
@@ -143,7 +174,7 @@ export async function getPublicPersonalProjects(username: string) {
 
 export async function getPrivatePersonalProjects(username: string) {
   try {
-    const projects = await Selects.getAllUserProjects(username); 
+    const projects = await Selects.getAllUserProjects(username);
     return {
       result: true,
       messageState: "Proyectos obtenidos exitosamente",
