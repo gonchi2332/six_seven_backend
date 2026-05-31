@@ -1,34 +1,50 @@
 -- This migration has the purpose of updating and populating the table "functions" 
 
-UPDATE "function" SET 
-name = 'Agregar informacion adicional' WHERE id = 1;
+ALTER TABLE "function" 
+ADD COLUMN IF NOT EXISTS "code" VARCHAR(50) UNIQUE;
 
-UPDATE "function" SET 
-name = 'Modificar informacion personal' WHERE id = 2;
+UPDATE "function" SET name = 'Agregar informacion adicional', code = 'FN_PROFILE_ADD_INFO' WHERE id = 1;
+UPDATE "function" SET name = 'Modificar informacion personal', code = 'FN_PROFILE_EDIT' WHERE id = 2;
+UPDATE "function" SET name = 'Ver informacion personal', code = 'FN_PROFILE_VIEW' WHERE id = 3;
+UPDATE "function" SET name = 'Ver habilidades blandas', code = 'FN_SOFT_SKILL_INDEX' WHERE id = 4;
+UPDATE "function" SET name = 'Ver habilidad blanda', code = 'FN_SOFT_SKILL_SHOW' WHERE id = 5;
 
-UPDATE "function" SET 
-name = 'Ver informacion personal' WHERE id = 3;
-
-UPDATE "function" SET 
-name = 'Ver habilidades blandas' WHERE id = 4;
-
-UPDATE "function" SET 
-name = 'Ver habilidad blanda' WHERE id = 5;
-
-INSERT INTO "function" VALUES
-(6, 'Agregar habilidad blanda'),(7, 'Modificar habilidad blanda'),(8, 'Eliminar habilidad blanda'),
-(9, 'Ver habilidades tecnica'),(10, 'Ver habilidad tecnica'),
-(11, 'Agregar habilidad tecnica'),(12, 'Modificar habilidad tecnica'),(13, 'Eliminar habilidad tecnica'),
-(14, 'Ver experiencias laborales'),(15, 'Ver experiencia laboral'),
-(16, 'Agregar experiencia laboral'),(17, 'Modificar experiencia laboral'),(18, 'Eliminar experiencia laboral'),
-(19, 'Ver formaciones academicas'),(20, 'Ver formacion academica'),
-(21, 'Agregar formacion academica'),(22, 'Modificar formacion academica'),(23, 'Eliminar formacion academica'),
-(24, 'Ver proyectos personales'),(25, 'Ver proyecto personal'),
-(26, 'Agregar proyecto personal'),(27, 'Modificar proyecto personal'),(28, 'Eliminar proyecto personal'),
-(29, 'Ver certificados'),(30, 'Ver certificado'),
-(31, 'Agregar certificado'),(32, 'Modificar certificado'),(33, 'Eliminar certificado'),
-(34, 'Configurar visibilidad de elementos'),(35, 'Vincular con Github'),
-(36, 'Vincular con Linkedln'),(37, 'Generar enlace de perfil publico'),
-(38, 'Generar curriculum vitae'),
-(39, 'Ver estadisticas del perfil'),(40, 'Ver estadisticas globales'),
-(41, 'Cambiar de rol');
+INSERT INTO "function" (id, name, code) VALUES
+(6, 'Agregar habilidad blanda', 'FN_SOFT_SKILL_CREATE'),
+(7, 'Modificar habilidad blanda', 'FN_SOFT_SKILL_UPDATE'),
+(8, 'Eliminar habilidad blanda', 'FN_SOFT_SKILL_DELETE'),
+(9, 'Ver habilidades tecnica', 'FN_TECH_SKILL_INDEX'),
+(10, 'Ver habilidad tecnica', 'FN_TECH_SKILL_SHOW'),
+(11, 'Agregar habilidad tecnica', 'FN_TECH_SKILL_CREATE'),
+(12, 'Modificar habilidad tecnica', 'FN_TECH_SKILL_UPDATE'),
+(13, 'Eliminar habilidad tecnica', 'FN_TECH_SKILL_DELETE'),
+(14, 'Ver experiencias laborales', 'FN_WORK_EXP_INDEX'),
+(15, 'Ver experiencia laboral', 'FN_WORK_EXP_SHOW'),
+(16, 'Agregar experiencia laboral', 'FN_WORK_EXP_CREATE'),
+(17, 'Modificar experiencia laboral', 'FN_WORK_EXP_UPDATE'),
+(18, 'Eliminar experiencia laboral', 'FN_WORK_EXP_DELETE'),
+(19, 'Ver formaciones academicas', 'FN_EDUCATION_INDEX'),
+(20, 'Ver formacion academica', 'FN_EDUCATION_SHOW'),
+(21, 'Agregar formacion academica', 'FN_EDUCATION_CREATE'),
+(22, 'Modificar formacion academica', 'FN_EDUCATION_UPDATE'),
+(23, 'Eliminar formacion academica', 'FN_EDUCATION_DELETE'),
+(24, 'Ver proyectos personales', 'FN_PROJECT_INDEX'),
+(25, 'Ver proyecto personal', 'FN_PROJECT_SHOW'),
+(26, 'Agregar proyecto personal', 'FN_PROJECT_CREATE'),
+(27, 'Modificar proyecto personal', 'FN_PROJECT_UPDATE'),
+(28, 'Eliminar proyecto personal', 'FN_PROJECT_DELETE'),
+(29, 'Ver certificados', 'FN_CERTIFICATE_INDEX'),
+(30, 'Ver certificado', 'FN_CERTIFICATE_SHOW'),
+(31, 'Agregar certificado', 'FN_CERTIFICATE_CREATE'),
+(32, 'Modificar certificado', 'FN_CERTIFICATE_UPDATE'),
+(33, 'Eliminar certificado', 'FN_CERTIFICATE_DELETE'),
+(34, 'Configurar visibilidad de elementos', 'FN_PROFILE_PRIVACY'),
+(35, 'Vincular con Github', 'FN_LINK_GITHUB'),
+(36, 'Vincular con Linkedln', 'FN_LINK_LINKEDIN'),
+(37, 'Generar enlace de perfil publico', 'FN_GENERATE_PUBLIC_LINK'),
+(38, 'Generar curriculum vitae', 'FN_GENERATE_PDF_CV'),
+(39, 'Ver estadisticas del perfil', 'FN_STATS_PROFILE'),
+(40, 'Ver estadisticas globales', 'FN_STATS_GLOBAL'),
+(41, 'Cambiar de rol', 'FN_ROLE_SWITCH')
+ON CONFLICT (id) DO UPDATE 
+SET name = EXCLUDED.name, code = EXCLUDED.code;

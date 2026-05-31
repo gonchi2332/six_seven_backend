@@ -49,9 +49,9 @@ export async function getRoleResources(currentRoleId: number) {
   const query = `
     SELECT 
       f.id AS function_id,
-      f.name AS function_name,
+      f.code AS function_code,
       i.id AS interface_id,
-      i.name AS interface_name
+      i.code AS interface_code
     FROM "role_function" rf
     JOIN "function" f ON rf.function_id = f.id
     LEFT JOIN "function_interface" fi ON f.id = fi.function_id AND fi.active = true
@@ -64,35 +64,35 @@ export async function getRoleResources(currentRoleId: number) {
 
   const functions: Array<{
     id: number;
-    name: string;
-    interfaces: Array<{ id: number; name: string }>;
+    code: string;
+    interfaces: Array<{ id: number; code: string }>;
   }> = [];
   const interfaceMap = new Map<number, string>();
 
   for (const row of rows as Array<Record<string, unknown>>) {
     const functionId = row.function_id as number;
-    const functionName = row.function_name as string;
+    const functionCode = row.function_name as string;
     const interfaceId = row.interface_id as number | null;
-    const interfaceName = row.interface_name as string | null;
+    const interfaceCode = row.interface_name as string | null;
 
     let functionEntry = functions.find(fn => fn.id === functionId);
     if (!functionEntry) {
       functionEntry = {
         id: functionId,
-        name: functionName,
+        code: functionCode,
         interfaces: []
       };
       functions.push(functionEntry);
     }
 
-    if (interfaceId && interfaceName) {
-      functionEntry.interfaces.push({ id: interfaceId, name: interfaceName });
-      interfaceMap.set(interfaceId, interfaceName);
+    if (interfaceId && interfaceCode) {
+      functionEntry.interfaces.push({ id: interfaceId, code: interfaceCode });
+      interfaceMap.set(interfaceId, interfaceCode);
     }
   }
 
   return {
     functions,
-    interfaces: Array.from(interfaceMap.entries()).map(([id, name]) => ({ id, name }))
+    interfaces: Array.from(interfaceMap.entries()).map(([id, code]) => ({ id, code }))
   };
 }

@@ -145,7 +145,7 @@ export async function login(
     SELECT r.id, r.name, ur.active
     FROM "user_role" ur
     JOIN "role" r ON ur.role_id = r.id
-    JOIN "user" u ON ur.user_id = u.id
+    JOIN "user" u ON ur.username = u.username
     WHERE u.username = $1 AND ur.active = true
   `;
   const userRolesResult = await processReturnQuery(userRolesQuery, [username]);

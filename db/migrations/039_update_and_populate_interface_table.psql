@@ -1,15 +1,20 @@
 -- This migration has the purpose of update and populating the table "interface" 
 
-UPDATE "interface" SET 
-name = 'Perfil' WHERE id = 1;
+ALTER TABLE "interface" 
+ADD COLUMN IF NOT EXISTS "code" VARCHAR(50) UNIQUE;
 
-UPDATE "interface" SET 
-name = 'Habilidad blanda' WHERE id = 2;
+UPDATE "interface" SET name = 'Perfil', code = 'INT_PROFILE' WHERE id = 1;
+UPDATE "interface" SET name = 'Habilidad blanda', code = 'INT_SOFT_SKILL' WHERE id = 2;
+UPDATE "interface" SET name = 'Habilidad tecnica', code = 'INT_TECH_SKILL' WHERE id = 3;
 
-UPDATE "interface" SET 
-name = 'Habilidad tecnica' WHERE id = 3;
-
-
-INSERT INTO "interface" VALUES
-(4, 'Experiencia laboral'),(5, 'Formacion academica'),(6, 'Proyecto personal'),
-(7, 'Certificado'),(8, 'Curriculum vitae'),(9,'Reportes');
+-- Insertar nuevos registros o actualizar si ya existen (Upsert)
+INSERT INTO "interface" (id, name, code) VALUES
+(4, 'Experiencia laboral', 'INT_WORK_EXPERIENCE'),
+(5, 'Formacion academica', 'INT_EDUCATION'),
+(6, 'Proyecto personal', 'INT_PERSONAL_PROJECT'),
+(7, 'Certificado', 'INT_CERTIFICATE'),
+(8, 'Curriculum vitae', 'INT_CV'),
+(9, 'Reportes', 'INT_REPORTS'),
+(10, 'Funciones', 'INT_FUNCIONS')
+ON CONFLICT (id) DO UPDATE 
+SET name = EXCLUDED.name, code = EXCLUDED.code;
