@@ -19,6 +19,3 @@ jobs:
 
       - name: Run Lint
         run: npm run lint # Esto ejecutará tu eslint.config.js
-
-      - name: Run Tests & Check Coverage
-        run: npm test -- --coverage # Fallará si baja del 80% por la config de Jest

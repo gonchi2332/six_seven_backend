@@ -45,6 +45,7 @@ INSERT INTO "function" (id, name, code) VALUES
 (38, 'Generar curriculum vitae', 'FN_GENERATE_PDF_CV'),
 (39, 'Ver estadisticas del perfil', 'FN_STATS_PROFILE'),
 (40, 'Ver estadisticas globales', 'FN_STATS_GLOBAL'),
-(41, 'Cambiar de rol', 'FN_ROLE_SWITCH')
+(41, 'Cambiar de rol', 'FN_ROLE_SWITCH'),
+(42, 'Modificar Funciones', 'FN_ROLE_SWITCH')
 ON CONFLICT (id) DO UPDATE 
 SET name = EXCLUDED.name, code = EXCLUDED.code;

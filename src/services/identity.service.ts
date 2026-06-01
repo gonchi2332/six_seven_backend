@@ -71,9 +71,9 @@ export async function getRoleResources(currentRoleId: number) {
 
   for (const row of rows as Array<Record<string, unknown>>) {
     const functionId = row.function_id as number;
-    const functionCode = row.function_name as string;
+    const functionCode = row.function_code as string;
     const interfaceId = row.interface_id as number | null;
-    const interfaceCode = row.interface_name as string | null;
+    const interfaceCode = row.interface_code as string | null;
 
     let functionEntry = functions.find(fn => fn.id === functionId);
     if (!functionEntry) {

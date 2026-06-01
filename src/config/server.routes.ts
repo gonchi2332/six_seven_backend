@@ -24,7 +24,7 @@ router.get("/health", (req: Request, res: Response) => {
 router.use("/api/v2/auth", AuthRoutes);
 router.use("/api/v2/register", RegisterRoutes);
 router.use("/api/v2/verification", VerificationRoutes);
-router.use("/api/v2/identity", IdentityRoutes);
+router.use("/api/v1/identity", IdentityRoutes);
 router.use("/api/v1/profile", ProfileRoutes);
 router.use("/api/v1/skills", UserSkillRoutes);
 router.use("/api/v1/skills", SkillRoutes);

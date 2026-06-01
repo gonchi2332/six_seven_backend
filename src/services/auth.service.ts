@@ -5,6 +5,7 @@ import { generateToken } from "../utils/jwt";
 import { sendResetCodeEmail } from "../helpers/mailer.helper";
 import { generateCode } from "../utils/generate";
 import * as TokenTypes from "../types/token.types";
+import { userRole } from "../utils/constants/role.constants";
 
 export async function registerUserService(
   username: string,
@@ -36,7 +37,7 @@ export async function registerUserService(
     SELECT id FROM "role"
     WHERE name = $1
   `;
-  const roles = await processReturnQuery(roleQuery, ["Usuario"]);
+  const roles = await processReturnQuery(roleQuery, [userRole]);
   const roleId = roles.length > 0 ? roles[0].id : 1;
 
   const salt = await bcrypt.genSalt(10);
@@ -78,7 +79,7 @@ export async function registerUserService(
   });
 
   const userRoles: TokenTypes.UserRole[] = [
-    { id: roleId, name: "Usuario", active: true }
+    { id: roleId, name: userRole, active: true }
   ];
   const currentRoleId = userRoles.length === 1 ? userRoles[0].id : null;
 

@@ -6,12 +6,12 @@ export async function selectRole(req: Request, res: Response): Promise<void> {
     const { roleId } = req.body;
 
     if (!roleId || typeof roleId !== "number") {
-      res.status(400).json({ success: false, message: "El id del rol es obligatorio y debe ser numérico." });
+      res.status(400).json({ success: false, message: "El id del rol es obligatorio y debe ser numérico" });
       return;
     }
 
     if (!req.user) {
-      res.status(401).json({ success: false, message: "Token de autenticación inválido." });
+      res.status(401).json({ success: false, message: "Token de autenticación inválido" });
       return;
     }
 
@@ -19,7 +19,7 @@ export async function selectRole(req: Request, res: Response): Promise<void> {
 
     res.status(200).json({
       success: true,
-      message: "Rol seleccionado correctamente.",
+      message: "Rol seleccionado correctamente",
       token,
       roles,
       currentRoleId
@@ -40,7 +40,7 @@ export async function selectRole(req: Request, res: Response): Promise<void> {
 export async function getCurrentRoleResources(req: Request, res: Response): Promise<void> {
   try {
     if (!req.user) {
-      res.status(401).json({ success: false, message: "Token de autenticación inválido." });
+      res.status(401).json({ success: false, message: "Token de autenticación inválido" });
       return;
     }
 
@@ -48,7 +48,7 @@ export async function getCurrentRoleResources(req: Request, res: Response): Prom
     if (currentRoleId == null) {
       res.status(400).json({
         success: false,
-        message: "El token no contiene un rol actual. Seleccione un rol antes de consultar los recursos."
+        message: "El token no contiene un rol actual. Seleccione un rol antes de consultar los recursos"
       });
       return;
     }
