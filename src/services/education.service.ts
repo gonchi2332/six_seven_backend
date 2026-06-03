@@ -154,6 +154,7 @@ async function handleEducation(
 
 export async function viewPublicEducation(username: string) {
   try {
+    const interfaceId = 5;
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
       return {
@@ -162,6 +163,7 @@ export async function viewPublicEducation(username: string) {
       };
     }
     const education = await Selects.getAllPublicUserEducation(username);
+    await Inserts.insertInterfaceView(username, interfaceId);
     return {
       result: true,
       messageState: "Educacion obtenida",

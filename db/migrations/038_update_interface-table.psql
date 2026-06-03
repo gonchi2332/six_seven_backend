@@ -1,0 +1,14 @@
+UPDATE "interface" SET name = 'Perfil' WHERE id = 1;
+UPDATE "interface" SET name = 'Habilidad blanda' WHERE id = 2;
+UPDATE "interface" SET name = 'Habilidad tecnica' WHERE id = 3;
+
+-- Insertar nuevos registros o actualizar si ya existen (Upsert)
+INSERT INTO "interface" (id, name) VALUES
+(4, 'Experiencia laboral'),
+(5, 'Formacion academica'),
+(6, 'Proyecto personal'),
+(7, 'Certificado'),
+(8, 'Curriculum vitae'),
+(9, 'Reportes')
+ON CONFLICT (id) DO UPDATE 
+SET name = EXCLUDED.name, code = EXCLUDED.code;

@@ -24,7 +24,7 @@ export async function registerUserService(
   const checkQuery = `
     SELECT username FROM "user" 
     WHERE username = $1`;
-  const existingUsers = await processReturnQuery(checkQuery,[username]);
+  const existingUsers = await processReturnQuery(checkQuery, [username]);
 
   if (existingUsers.length > 0) {
     const error = new Error("El nombre de usuario ya está en uso");
@@ -48,7 +48,15 @@ export async function registerUserService(
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING username, state, names, first_surname, main_registration_email
     `;
-    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId, names, firstSurname, mainRegistrationEmail];
+    const userValues = [
+      username,
+      hashedPassword,
+      TokenTypes.VerificationState.UNVERIFIED,
+      roleId,
+      names,
+      firstSurname,
+      mainRegistrationEmail
+    ];
     const userRes = await client.query(userQuery, userValues);
     const newUser = userRes.rows[0];
     userQuery = `
@@ -78,7 +86,7 @@ export async function registerUserService(
   return {
     result: true,
     messageState: "Usuario registrado exitosamente",
-    user: registrationData.user,  
+    user: registrationData.user,
     token
   };
 }
@@ -129,7 +137,7 @@ export async function login(
   });
 
   return {
-    user: foundUser, 
+    user: foundUser,
     profilePicture: `data:image/jpeg;base64,${proccessedProfilePicture}`,
     token
   };
@@ -176,7 +184,7 @@ export async function resetPassword(
     await client.query(`DELETE FROM "password_reset_code"
        WHERE username = $1`, [username]);
 
-    return ;
+    return;
   });
 }
 

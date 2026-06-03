@@ -141,12 +141,15 @@ export async function modifyUserLaboralExperience(
 
 export async function viewPublicLaboralExperience(username: string) {
   try {
+    const interfaceId = 4;
     const userExists = await Assertions.userExists(username);
     if (!userExists) return {
       result: false,
       messageState: "El usuario no existe"
     };
     const userLaboralExperiences = await Selects.getAllPublicUserLaboralExperiences(username);
+    await Inserts.insertInterfaceView(username, interfaceId);
+    
     return {
       result: true,
       messageState: "Experiencias obtenidas",
