@@ -1,14 +1,14 @@
 import * as Selects from "../helpers/selects.helper";
 
 const DIAS_ES: Record<string, string> = {
-  'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 'Thursday': 'Jueves',
-  'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
+  "Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves",
+  "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"
 };
 
 const MESES_ES: Record<string, string> = {
-  'January': 'Enero', 'February': 'Febrero', 'March': 'Marzo', 'April': 'Abril',
-  'May': 'Mayo', 'June': 'Junio', 'July': 'Julio', 'August': 'Agosto',
-  'September': 'Septiembre', 'October': 'Octubre', 'November': 'Noviembre', 'December': 'Diciembre'
+  "January": "Enero", "February": "Febrero", "March": "Marzo", "April": "Abril",
+  "May": "Mayo", "June": "Junio", "July": "Julio", "August": "Agosto",
+  "September": "Septiembre", "October": "Octubre", "November": "Noviembre", "December": "Diciembre"
 };
 
 export async function getReports(
@@ -34,7 +34,7 @@ export async function getReports(
       interfaceId: row.interface_id,
       interfaceName: row.interface_name,
       timeAxis: timeAxisFormatted || "Sin datos",
-      totalViews: parseInt(row.total_views || '0', 10)
+      totalViews: parseInt(row.total_views || "0", 10)
     };
   });
 
