@@ -159,12 +159,14 @@ export async function modifyUserCertificate(
 
 export async function viewPublicCertificates(username: string) {
   try {
+    const interfaceId = 7;
     const userExists = await Assertions.userExists(username);
     if (!userExists) return {
       result: false,
       messageState: "El usuario no existe."
     };
     const certificates = await Selects.getAllPublicUserCertificates(username);
+    await Inserts.insertInterfaceView(username, interfaceId);
     return {
       result: true,
       messageState: "Certificados obtenidos",

@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "dev": "tsx watch src/app.ts",

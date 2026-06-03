@@ -18,7 +18,7 @@ export async function registerUserService(
   if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
     return {
       result: false,
-      messageState: "Datos de entrada invalidos o incompleros."
+      messageState: "Datos de entrada invalidos o incompletos."
     };
   }
 
@@ -49,7 +49,15 @@ export async function registerUserService(
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING username, state, names, first_surname, main_registration_email
     `;
-    const userValues = [username, hashedPassword, TokenTypes.VerificationState.UNVERIFIED, roleId, names, firstSurname, mainRegistrationEmail];
+    const userValues = [
+      username,
+      hashedPassword,
+      TokenTypes.VerificationState.UNVERIFIED,
+      roleId,
+      names,
+      firstSurname,
+      mainRegistrationEmail
+    ];
     const userRes = await client.query(userQuery, userValues);
     const newUser = userRes.rows[0];
     userQuery = `

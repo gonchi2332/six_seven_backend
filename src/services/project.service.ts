@@ -151,6 +151,7 @@ export async function deletePersonalProject(username: string, projectId: number)
 
 export async function getPublicPersonalProjects(username: string) {
   try {
+    const interfaceId = 6;
     const userExists = await Assertions.userExists(username);
     if (!userExists) {
       return {
@@ -159,6 +160,7 @@ export async function getPublicPersonalProjects(username: string) {
       };
     }
     const projects = await Selects.getPublicProjects(username);
+    await Inserts.insertInterfaceView(username, interfaceId);
     return {
       result: true,
       messageState: "Proyectos obtenidos exitosamente",
