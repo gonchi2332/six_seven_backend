@@ -11,4 +11,4 @@ INSERT INTO "interface" (id, name) VALUES
 (8, 'Curriculum vitae'),
 (9, 'Reportes')
 ON CONFLICT (id) DO UPDATE 
-SET name = EXCLUDED.name, code = EXCLUDED.code;
+SET name = EXCLUDED.name;

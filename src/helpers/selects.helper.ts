@@ -329,7 +329,7 @@ export async function getInterfaceReports(username: string, period: "day" | "mon
 
   switch (period) {
     case "day":
-      timeFormat = "Day"; 
+      timeFormat = "Day";
       orderBy = "EXTRACT(DOW FROM viewed_at)";
       break;
     case "month":
@@ -345,17 +345,17 @@ export async function getInterfaceReports(username: string, period: "day" | "mon
   }
   const query = `
       SELECT 
-          i.id AS interface_id,
-          i.name AS interface_name,
-          TRIM(TO_CHAR(v.viewed_at, '${timeFormat}')) AS eje_tiempo,
-          COUNT(v.id) AS total_vistas
+        i.id AS interface_id,
+        i.name AS interface_name,
+        COALESCE(TRIM(TO_CHAR(v.viewed_at, '${timeFormat}')), 'Sin datos') AS time_axis,
+        COUNT(v.id) AS total_views
       FROM "interface" i
       LEFT JOIN "interface_view" v 
           ON i.id = v.interface_id AND v.username = $1
-      GROUP BY i.id, i.name, eje_tiempo, ${orderBy}
+      GROUP BY i.id, i.name, time_axis, ${orderBy}
       ORDER BY i.id, ${orderBy};
     `;
-    
+
   const result = await processReturnQuery(query, [username]);
-  return result[0];
+  return result;
 }

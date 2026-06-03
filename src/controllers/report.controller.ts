@@ -20,16 +20,17 @@ export async function getReports(req: Request, res: Response) {
       });
     }
 
-    const ans = await ReportService.getReports(username, period);
-    if (!ans.result) {
+    const reports = await ReportService.getReports(username, period);
+    if (!reports.result) {
       return res.status(400).json({
         success: false,
-        message: ans.messageState
+        message: reports.messageState
       });
     }
     return res.status(200).json({
       success: true,
-      message: ans.messageState
+      message: reports.messageState,
+      reports: reports.reports
     });
   } catch (err) {
     if ((err as Error).message === "INVALID_PERIOD") {

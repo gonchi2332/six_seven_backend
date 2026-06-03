@@ -113,7 +113,7 @@ export async function createCertificate(
 
 export async function insertInterfaceView(username: string, interfaceId: number) {
   const query = `
-    INSERT INTO "interface_view" (profile_username, interface_id)
+    INSERT INTO "interface_view" (username, interface_id)
     VALUES ($1, $2);
   `;
   const result = await processReturnQuery(query, [username, interfaceId]);
