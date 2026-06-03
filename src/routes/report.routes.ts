@@ -5,9 +5,9 @@ import * as ReportController from "../controllers/report.controller";
 const router = Router();
 
 router.get(
-  "/user", 
+  "/user",
   Authorization.tokenAuthorization, 
-  //Authorization.onlyVerifiedUsers,
+  Authorization.onlyVerifiedUsers,
   ReportController.getReports,
 );
 
