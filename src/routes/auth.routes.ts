@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as AuthController from "../controllers/auth.controller";
+import * as Authorization from "../middlewares/authorization.middleware";
 
 const router = Router();
 
@@ -9,5 +10,8 @@ router.patch("/users/reset-password", AuthController.resetPassword);
 
 router.post("/users/forgot-password", AuthController.forgotPassword);
 router.post("/users/verify-code", AuthController.verifyResetCode);
+
+router.post("/refresh", AuthController.refreshToken);
+router.delete("/logout", AuthController.logout);
 
 export default router;
