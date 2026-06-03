@@ -185,10 +185,10 @@ export async function refreshToken(req: Request, res: Response) {
   try {
     const { refreshToken } = req.body;
 
-    if (!refreshToken || typeof refreshToken !== 'string') {
+    if (!refreshToken || typeof refreshToken !== "string") {
       return res.status(400).json({
         success: false,
-        message: 'El campo refreshToken faltante o invalido'
+        message: "El campo refreshToken faltante o invalido"
       });
     }
 
@@ -199,10 +199,10 @@ export async function refreshToken(req: Request, res: Response) {
     });
 
   } catch (err) {
-    if (err instanceof jwt.TokenExpiredError || (err as Error).message === 'INVALID_REFRESH_TOKEN') {
+    if (err instanceof jwt.TokenExpiredError || (err as Error).message === "INVALID_REFRESH_TOKEN") {
       return res.status(403).json({
         success: false,
-        message: 'Refresh token inválido o expirado. Debe iniciar sesión de nuevo'
+        message: "Refresh token inválido o expirado. Debe iniciar sesión de nuevo"
       });
     }
 
@@ -218,18 +218,18 @@ export async function logout(req: Request, res: Response) {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res.status(400).json({ success: false, message: 'Refresh token requerido.' });
+      return res.status(400).json({ success: false, message: "Refresh token requerido." });
     }
 
     await AuthService.logoutSession(refreshToken);
     return res.status(200).json({
       success: true,
-      message: 'Sesión cerrada exitosamente en el servidor.'
+      message: "Sesión cerrada exitosamente en el servidor."
     });
 
   } catch (err) {
-    if ((err as Error).message === 'TOKEN_NOT_FOUND') {
-      return res.status(404).json({ success: false, message: 'El token no existe o ya fue eliminado' });
+    if ((err as Error).message === "TOKEN_NOT_FOUND") {
+      return res.status(404).json({ success: false, message: "El token no existe o ya fue eliminado" });
     }
     return res.status(500).json({
       success: false,

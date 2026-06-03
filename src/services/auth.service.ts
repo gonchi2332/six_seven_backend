@@ -43,7 +43,7 @@ export async function registerUserService(
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
+  await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
     let userQuery = `
       INSERT INTO "user" (username, password, state, role_id, names, first_surname, main_registration_email)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -126,7 +126,7 @@ export async function login(
       INSERT INTO refresh_token (username, token, expires_at)
       VALUES ($1, $2, $3);
     `;
-  const result = await processReturnQuery(insertRefreshTokenQuery, [foundUser.username, refreshToken, expiresAt]);
+  await processReturnQuery(insertRefreshTokenQuery, [foundUser.username, refreshToken, expiresAt]);
 
   const accessToken = generateAccessToken({
     username: foundUser.username,
@@ -270,7 +270,7 @@ export async function refreshSession(refreshToken: string) {
   const tokenRecord = record[0];
   
   if (!tokenRecord || tokenRecord.username !== decoded.username) {
-    throw new Error('INVALID_REFRESH_TOKEN');
+    throw new Error("INVALID_REFRESH_TOKEN");
   }
   const findUserQuery = `
     SELECT state
@@ -296,7 +296,7 @@ export async function logoutSession(refreshToken: string) {
     `;
   const deleted = await processReturnQuery(deleteTokenQuery, [refreshToken]);
   if (!deleted) {
-    throw new Error('TOKEN_NOT_FOUND');
+    throw new Error("TOKEN_NOT_FOUND");
   }
   return { success: true };
 }
