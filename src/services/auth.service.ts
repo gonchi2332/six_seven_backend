@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
 import { PoolClient } from "pg";
+import jwt from "jsonwebtoken";
 import { processTransaction, processReturnQuery } from "../utils/query";
-import { generateToken } from "../utils/jwt";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
 import { sendResetCodeEmail } from "../helpers/mailer.helper";
 import { generateCode } from "../utils/generate";
 import * as TokenTypes from "../types/token.types";
@@ -17,7 +18,7 @@ export async function registerUserService(
   if (typeof username !== "string" || typeof password !== "string" || typeof names !== "string") {
     return {
       result: false,
-      messageState: "Datos de entrada invalidos o incompleros."
+      messageState: "Datos de entrada invalidos o incompletos."
     };
   }
 
@@ -42,7 +43,7 @@ export async function registerUserService(
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
+  await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
     let userQuery = `
       INSERT INTO "user" (username, password, state, role_id, names, first_surname, main_registration_email)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -78,16 +79,9 @@ export async function registerUserService(
     };
   });
 
-  const token = generateToken({
-    username: registrationData.user.username,
-    state: registrationData.user.state
-  });
-
   return {
     result: true,
-    messageState: "Usuario registrado exitosamente",
-    user: registrationData.user,
-    token
+    messageState: "Usuario registrado exitosamente"
   };
 }
 
@@ -131,7 +125,18 @@ export async function login(
     throw error;
   }
 
-  const token = generateToken({
+  const { token: refreshToken, expiresAt } = generateRefreshToken({
+    username: foundUser.username,
+    state: foundUser.state
+  });
+
+  const insertRefreshTokenQuery = `
+      INSERT INTO refresh_token (username, token, expires_at)
+      VALUES ($1, $2, $3);
+    `;
+  await processReturnQuery(insertRefreshTokenQuery, [foundUser.username, refreshToken, expiresAt]);
+
+  const accessToken = generateAccessToken({
     username: foundUser.username,
     state: foundUser.state
   });
@@ -139,7 +144,8 @@ export async function login(
   return {
     user: foundUser,
     profilePicture: `data:image/jpeg;base64,${proccessedProfilePicture}`,
-    token
+    accessToken: accessToken,
+    refreshToken: refreshToken
   };
 }
 
@@ -258,4 +264,47 @@ export async function verifyCodeService(username: string, code: string): Promise
   const result = await processReturnQuery(codeQuery, [username, code]);
 
   return result.length > 0;
+}
+
+export async function refreshSession(refreshToken: string) {
+  const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as TokenTypes.TokenPayload;
+  const findTokenQuery = `
+      SELECT username 
+      FROM refresh_token 
+      WHERE token = $1 AND expires_at > NOW();
+    `;
+    
+  const record = await processReturnQuery(findTokenQuery, [refreshToken]);
+  const tokenRecord = record[0];
+  
+  if (!tokenRecord || tokenRecord.username !== decoded.username) {
+    throw new Error("INVALID_REFRESH_TOKEN");
+  }
+  const findUserQuery = `
+    SELECT state
+    FROM "user"
+    WHERE username = $1   
+  `;
+  const findUserValues = [tokenRecord.username];
+  const users = await processReturnQuery(findUserQuery, findUserValues);
+
+  const foundUser = users[0];
+
+  const newAccessToken = generateAccessToken({
+    username: tokenRecord.username,
+    state: foundUser.state
+  });
+  return { accessToken: newAccessToken };
+}
+
+export async function logoutSession(refreshToken: string) {
+  const deleteTokenQuery = `
+      DELETE FROM refresh_token
+      WHERE token = $1;
+    `;
+  const deleted = await processReturnQuery(deleteTokenQuery, [refreshToken]);
+  if (!deleted) {
+    throw new Error("TOKEN_NOT_FOUND");
+  }
+  return { success: true };
 }
