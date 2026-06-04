@@ -43,7 +43,7 @@ export async function registerUserService(
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
+  const registrationData = await processTransaction<TokenTypes.RegistrationResult>(async function (client: PoolClient) {
     let userQuery = `
       INSERT INTO "user" (username, password, state, role_id, names, first_surname, main_registration_email)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -78,10 +78,17 @@ export async function registerUserService(
       user: newUser
     };
   });
+  
+  const token = generateAccessToken({
+    username: registrationData.user.username,
+    state: registrationData.user.state
+  });
 
   return {
     result: true,
-    messageState: "Usuario registrado exitosamente"
+    messageState: "Usuario registrado exitosamente",
+    user: registrationData.user,  
+    token
   };
 }
 
