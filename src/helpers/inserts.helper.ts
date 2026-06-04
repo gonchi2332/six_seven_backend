@@ -110,3 +110,12 @@ export async function createCertificate(
   const values = [title, description, area, issueDate, coverImageBuffer.buffer, username, true];
   await processReturnQuery(insertQuery, values);
 }
+
+export async function insertInterfaceView(username: string, interfaceId: number) {
+  const query = `
+    INSERT INTO "interface_view" (username, interface_id)
+    VALUES ($1, $2);
+  `;
+  const result = await processReturnQuery(query, [username, interfaceId]);
+  return result[0];
+}

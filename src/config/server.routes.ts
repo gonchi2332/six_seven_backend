@@ -10,6 +10,7 @@ import LaboralExpRoutes from "../routes/laboralexperience.routes";
 import ProjectRoutes from "../routes/project.routes";
 import EducationRoutes from "../routes/education.routes";
 import CertificateRoutes from "../routes/certificates.routes";
+import reportRoutes from "../routes/report.routes";
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use("/api/v1/portfolio", LaboralExpRoutes);
 router.use("/api/v1/portfolio", ProjectRoutes);
 router.use("/api/v1/portfolio", EducationRoutes);
 router.use("/api/v1/portfolio", CertificateRoutes);
+router.use("/api/v1/reports", reportRoutes);
 
 router.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Ruta no encontrada..." });

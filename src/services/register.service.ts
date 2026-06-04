@@ -3,6 +3,7 @@ import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/query";
 import * as UserTypes from "../types/user.types";
 import * as AIService from "../services/ai.service";
+import * as Inserts from "../helpers/inserts.helper";
 
 async function processUserPersonalInfoAction(
   username: string,
@@ -334,6 +335,7 @@ export async function viewUserPersonalInfo(username: string) {
 
 export async function viewPublicUserPersonalInfo(username: string) {
   try {
+    const interfaceId = 1;
     const response = await viewUserPersonalInfo(username);
     if (!response.result) return response;
     const data = response.currentPersonalInfo;
@@ -350,6 +352,7 @@ export async function viewPublicUserPersonalInfo(username: string) {
       main_registration_email: data.main_registration_email
     };
     const cleanedProfile = Object.fromEntries(Object.entries(publicProfile).filter(([, value]) => value !== undefined));
+    await Inserts.insertInterfaceView(username, interfaceId);
     return {
       result: true,
       messageState: `Perfil público de ${username} obtenido correctamente.`,
