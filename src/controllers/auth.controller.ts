@@ -28,7 +28,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
-     const { user, token } =await AuthService.registerUserService(username, password, names, firstSurname, secondSurname, mainRegistrationEmail);
+    const { user, token } = await AuthService.registerUserService(username, password, names, firstSurname, secondSurname, mainRegistrationEmail);
 
     res.status(201).json({
       message: "Usuario registrado correctamente",
