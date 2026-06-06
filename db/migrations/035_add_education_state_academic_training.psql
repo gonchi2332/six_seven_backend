@@ -1,0 +1,9 @@
+-- This migration has the purpose of adding a new column called "education_state" to the "academic_training" 
+-- table. This column will be used to store the current state of an academic training, such as 
+-- "in progress" or "completed". The addition of this column will allow for better tracking and management 
+-- of academic trainings within the application. The migration will also include any necessary updates to 
+-- related queries or code that references the "academic_training" table to accommodate the new 
+-- "education_state" column.
+
+ALTER TABLE "academic_training"
+ADD COLUMN IF NOT EXISTS "education_state" VARCHAR(255) NOT NULL DEFAULT 'Egresado';

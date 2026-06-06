@@ -2,9 +2,15 @@ import { Router, Request, Response } from "express";
 import RegisterRoutes from "../routes/register.routes";
 import AuthRoutes from "../routes/auth.routes";
 import VerificationRoutes from "../routes/verification.routes";
+import UserSkillRoutes from "../routes/userskill.routes";
 import SkillRoutes from "../routes/skill.routes";
 import PlatformRoutes from "../routes/platform.routes";
 import ProfileRoutes from "../routes/profile.routes";
+import LaboralExpRoutes from "../routes/laboralexperience.routes";
+import ProjectRoutes from "../routes/project.routes";
+import EducationRoutes from "../routes/education.routes";
+import CertificateRoutes from "../routes/certificates.routes";
+import reportRoutes from "../routes/report.routes";
 
 const router = Router();
 
@@ -19,8 +25,14 @@ router.use("/api/v2/auth", AuthRoutes);
 router.use("/api/v2/register", RegisterRoutes);
 router.use("/api/v2/verification", VerificationRoutes);
 router.use("/api/v1/profile", ProfileRoutes);
+router.use("/api/v1/skills", UserSkillRoutes);
 router.use("/api/v1/skills", SkillRoutes);
 router.use("/api/v1/platforms", PlatformRoutes);
+router.use("/api/v1/portfolio", LaboralExpRoutes);
+router.use("/api/v1/portfolio", ProjectRoutes);
+router.use("/api/v1/portfolio", EducationRoutes);
+router.use("/api/v1/portfolio", CertificateRoutes);
+router.use("/api/v1/reports", reportRoutes);
 
 router.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Ruta no encontrada..." });

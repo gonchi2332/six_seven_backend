@@ -1,0 +1,6 @@
+-- This migration adds a unique constraint to the laboral_experience table to ensure that there are no
+-- duplicate entries for the same person, company, position, and start date.
+
+ALTER TABLE "laboral_experience"
+ADD CONSTRAINT "unique_laboral_experience"
+UNIQUE ("position", "company_name", "start_date", "username");

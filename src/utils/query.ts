@@ -11,7 +11,6 @@ export async function processReturnQuery(queryString: string, values: unknown[])
   }
 }
 
-// 2. Para procesos complejos y atómicos (Con transacciones)
 export async function processTransaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await getClient();
   try {

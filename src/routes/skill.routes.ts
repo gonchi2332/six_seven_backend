@@ -1,63 +1,16 @@
 import { Router } from "express";
-import * as Authorization from "../middlewares/authorization.middleware";
 import * as SkillController from "../controllers/skill.controller";
 
 const router = Router();
 
 router.get(
-  "/users/hard-skills",
-  //Authorization.tokenAuthorization,
-  //Authorization.onlyVerifiedUsers,
-  SkillController.viewHardSkills
+  "/system/all-hard-skills",
+  SkillController.getAllHardSkills
 );
-
-router.post(
-  "/users/hard-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
-  SkillController.registerHardSkill
-);
-
-router.patch(
-  "/users/hard-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
-  SkillController.modifyHardSkill
-);
-
-router.delete(
-  "/users/hard-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
-  SkillController.deleteHardSkill
-);
-
-// SOFT SKILLS
 
 router.get(
-  "/users/:username/soft-skills",
-  SkillController.viewSoftSkills
-);
-
-router.post(
-  "/users/soft-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
-  SkillController.registerSoftSkill
-);
-
-router.patch(
-  "/users/soft-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
-  SkillController.modifySoftSkill
-);
-
-router.delete(
-  "/users/soft-skills",
-  Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
-  SkillController.deleteSoftSkill
+  "/system/all-soft-skills",
+  SkillController.getAllSoftSkills
 );
 
 export default router;

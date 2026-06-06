@@ -9,11 +9,24 @@ router.get(
   PlatformController.getLinkedinProfile
 );
 
+router.get(
+  "/users/:username/github",
+  PlatformController.getGithubProfile
+);
+
 router.put(
   "/users/linkedin",
   Authorization.tokenAuthorization,
   Authorization.onlyVerifiedUsers,
   PlatformController.saveLinkedinProfile
 );
+
+router.put(
+  "/users/github",
+  Authorization.tokenAuthorization,
+  Authorization.onlyVerifiedUsers,
+  PlatformController.saveGithubProfile
+);
+
 
 export default router;

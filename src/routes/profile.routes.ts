@@ -11,4 +11,14 @@ router.get(
   ProfileController.getOrCreatePublicLink,
 );
 
+router.get(
+  "/users",
+  ProfileController.getUsersList
+);
+
+router.get(
+  "/users/:username/sections-visibility",
+  ProfileController.viewSectionsVisibility
+);
+
 export default router;

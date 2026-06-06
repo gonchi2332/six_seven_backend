@@ -1,0 +1,10 @@
+CREATE TABLE "interface_view" (
+  "id" SERIAL PRIMARY KEY,
+  "username" varchar(100) NOT NULL,
+  "interface_id" int NOT NULL,
+  "viewed_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY ("username") REFERENCES "user" ("username") ON DELETE CASCADE,
+  FOREIGN KEY ("interface_id") REFERENCES "interface" ("id") ON DELETE CASCADE
+);
+
+CREATE INDEX "idx_views_analytics" ON "interface_view" ("username", "interface_id", "viewed_at");

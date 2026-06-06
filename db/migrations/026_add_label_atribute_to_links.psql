@@ -1,0 +1,1 @@
+ALTER TABLE "link" ADD COLUMN IF NOT EXISTS label character varying NOT NULL DEFAULT 'undefined';

@@ -1,3 +1,5 @@
+import * as fs from "fs";
+import * as path from "path";
 import { transporter } from "../config/nodemailer.config";
 import { env } from "../config/env.config";
 
@@ -51,4 +53,14 @@ export async function sendResetCodeEmail(to: string, username: string, code: str
   };
 
   await transporter.sendMail(mailOptions);
+}
+
+export function generateHTMLMail(username: string, targetMail: string, code: string) {
+  let htmlMail : string = fs.readFileSync(path.join(__dirname, "./mail.html"), "utf-8"); 
+
+  htmlMail = htmlMail.replace("__USERNAME__", username);
+  htmlMail = htmlMail.replace(/__TARGETMAIL__/g, targetMail);
+  htmlMail = htmlMail.replace("__CODE__", code);
+
+  return htmlMail;
 }

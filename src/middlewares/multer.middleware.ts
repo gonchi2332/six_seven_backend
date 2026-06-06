@@ -26,3 +26,21 @@ export function checkMulterErrors (req: Request, res: Response, next: NextFuncti
     next();
   });
 }
+
+export function checkProjectImageErrors (req: Request, res: Response, next: NextFunction) {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      return verifyMulter(err, req, res, next);
+    }
+    next();
+  });
+}
+
+export function checkCertificateCoverImageErrors (req: Request, res: Response, next: NextFunction) {
+  upload.single("coverImage")(req, res, (err) => {
+    if (err) {
+      return verifyMulter(err, req, res, next);
+    }
+    next();
+  });
+}
