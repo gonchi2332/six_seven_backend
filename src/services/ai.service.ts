@@ -10,7 +10,7 @@ import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as EducacionTypes from "../types/education.types";
 import * as CertificateTypes from "../types/certificate.types";
 import * as NSFWTypes from "../types/nsfw.types";
-import * as Selects from "../helpers/selects.helper";
+import * as Selects from "../repositories/selects.helper";
 
 export async function skillValidation(skillName: string, skillType: "hard" | "soft") {
   try {

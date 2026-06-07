@@ -1,5 +1,5 @@
 import { getSkillTypeData } from "../helpers/skill.helper";
-import * as Selects from "../helpers/selects.helper";
+import * as Selects from "../repositories/selects.helper";
 
 export async function getAllSkills(type: "hard" | "soft") {
   try {

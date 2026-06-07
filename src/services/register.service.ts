@@ -3,7 +3,7 @@ import { PoolClient } from "pg";
 import { processTransaction, processReturnQuery } from "../utils/query";
 import * as UserTypes from "../types/user.types";
 import * as AIService from "../services/ai.service";
-import * as Inserts from "../helpers/inserts.helper";
+import * as Inserts from "../repositories/inserts.helper";
 
 async function processUserPersonalInfoAction(
   username: string,

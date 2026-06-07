@@ -1,4 +1,4 @@
-import * as Selects from "../helpers/selects.helper";
+import * as Selects from "../repositories/selects.helper";
 
 const DIAS_ES: Record<string, string> = {
   "Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves",

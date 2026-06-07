@@ -1,10 +1,10 @@
 import { getLaboralExpAction } from "../helpers/laboralexperience.helper";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as Assertions from "../helpers/assertions.helper";
-import * as Selects from "../helpers/selects.helper";
+import * as Selects from "../repositories/selects.helper";
 import * as Inserts from "../helpers/inserts.helper";
-import * as Updates from "../helpers/updates.helper";
-import * as Deletes from "../helpers/deletes.helper";
+import * as Updates from "../repositories/updates.helper";
+import * as Deletes from "../repositories/deletes.helper";
 
 async function manageUserLaboralExperience(
   username: string, 

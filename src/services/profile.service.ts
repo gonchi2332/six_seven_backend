@@ -1,7 +1,7 @@
 import "../config/env.config";
 import crypto from "crypto";
 import { processReturnQuery } from "../utils/query";
-import * as Selects from "../helpers/selects.helper";
+import * as Selects from "../repositories/selects.helper";
 import * as Assertions from "../helpers/assertions.helper";
 
 export async function getOrCreatePublicLink(username: string) {
