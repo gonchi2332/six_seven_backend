@@ -1,5 +1,0 @@
--- This migration has the purpose of adding the "visible" column to the "certificate" table, which
--- will allow us to hide certificates without deleting them from the database.
-
-ALTER TABLE "certificate"
-ADD COLUMN "visible" BOOLEAN NOT NULL DEFAULT TRUE;

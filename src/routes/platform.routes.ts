@@ -17,16 +17,13 @@ router.get(
 router.put(
   "/users/linkedin",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   PlatformController.saveLinkedinProfile
 );
 
 router.put(
   "/users/github",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   PlatformController.saveGithubProfile
 );
-
 
 export default router;

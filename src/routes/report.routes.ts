@@ -7,7 +7,6 @@ const router = Router();
 router.get(
   "/user",
   Authorization.tokenAuthorization, 
-  Authorization.onlyVerifiedUsers,
   ReportController.getReports,
 );
 

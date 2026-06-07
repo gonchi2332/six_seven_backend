@@ -1,7 +1,0 @@
--- This migration has the purpose of changing the certificate file type from text to bytea, allowing 
--- us to store the file data directly in the database instead of just a path to the file. 
--- This change is necessary to improve the security and reliability of our certificate storage, 
--- as it eliminates the risks associated with file system access and management.
-
-ALTER TABLE "certificate"
-ALTER COLUMN "file" TYPE bytea USING "file"::bytea;

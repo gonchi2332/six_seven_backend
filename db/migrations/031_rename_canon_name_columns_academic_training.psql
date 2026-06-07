@@ -1,8 +1,0 @@
--- This migration has the purpose of renaming the canon_name columns in the academic_training table
--- to institution_canon_name and training_canon_name to make it more clear what they represent.
-
-ALTER TABLE "academic_training"
-RENAME COLUMN "canon_name" TO "canon_title";
-
-ALTER TABLE "academic_training"
-RENAME COLUMN "institution_canon_name" TO "canon_institution";

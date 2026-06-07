@@ -9,7 +9,6 @@ const router = Router();
 router.post(
   "/users/personal-info", 
   Authorization.tokenAuthorization, 
-  Authorization.onlyVerifiedUsers,
   MulterCheck.checkMulterErrors,
   SharpCheck.verifyProfilePictureDimensions,
   RegisterPersonalInfoController.registerPersonalInfo,
@@ -18,7 +17,6 @@ router.post(
 router.put(
   "/users/personal-info", 
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   MulterCheck.checkMulterErrors,
   SharpCheck.verifyProfilePictureDimensions,
   RegisterPersonalInfoController.updatePersonalInfo,
@@ -32,14 +30,12 @@ router.get(
 router.get(
   "/users/personal-info", 
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   RegisterPersonalInfoController.viewPrivatePersonalInfo
 );
 
 router.patch(
   "/users/personal-info/visibility",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   RegisterPersonalInfoController.modifyPersonalInfoVisibility
 );
 

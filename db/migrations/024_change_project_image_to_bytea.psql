@@ -1,2 +1,0 @@
-ALTER TABLE "project" DROP COLUMN image;
-ALTER TABLE "project" ADD COLUMN image bytea;

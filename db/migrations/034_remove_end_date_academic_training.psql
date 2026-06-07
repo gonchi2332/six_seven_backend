@@ -1,8 +1,0 @@
--- This migration has the purpose of removing the "end_date" column from the "academic_training" table, as 
--- it is no longer needed in the application. The end_date column was previously used to store the end 
--- date of an academic training, but this information is now being stored in a different way. 
--- This migration will drop the end_date column from the "academic_training" table and update any related
--- queries or code that references this column.
-
-ALTER TABLE "academic_training"
-DROP COLUMN IF EXISTS "end_date";

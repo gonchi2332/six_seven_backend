@@ -1,2 +1,0 @@
--- This migration has the purpose of adding a new column called "visible" to the "user_skill" 
-ALTER TABLE public.user_skill ADD COLUMN visible boolean NOT NULL DEFAULT true;

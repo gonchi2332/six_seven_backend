@@ -8,7 +8,6 @@ const router = Router();
 router.post(
   "/users/certificates",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   MulterCheck.checkCertificateCoverImageErrors,
   CertificatesController.registerUserCertificate
 );
@@ -16,7 +15,6 @@ router.post(
 router.patch(
   "/users/certificates",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   MulterCheck.checkCertificateCoverImageErrors,
   CertificatesController.modifyUserCertificate
 );
@@ -29,21 +27,18 @@ router.get(
 router.get(
   "/users/certificates",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   CertificatesController.viewPrivateCertificates
 );
 
 router.delete(
   "/users/certificates",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   CertificatesController.deleteUserCertificate
 );
 
 router.patch(
   "/users/certificates/visibility",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   CertificatesController.modifyCertificatesVisibility
 );
 

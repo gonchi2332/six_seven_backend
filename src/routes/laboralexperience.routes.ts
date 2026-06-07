@@ -7,14 +7,12 @@ const router = Router();
 router.post(
   "/users/laboral-experience",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   LaboralExperienceController.registerUserLaboralExperience
 );
 
 router.patch(
   "/users/laboral-experience",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   LaboralExperienceController.modifyUserLaboralExperience
 );
 
@@ -26,21 +24,18 @@ router.get(
 router.get(
   "/users/laboral-experience",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   LaboralExperienceController.viewPrivateLaboralExperience
 );
 
 router.patch(
   "/users/laboral-experience/visibility",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   LaboralExperienceController.modifyLaboralExperienceVisibility
 );
 
 router.delete(
   "/users/laboral-experience",
   Authorization.tokenAuthorization,
-  Authorization.onlyVerifiedUsers,
   LaboralExperienceController.deleteUserLaboralExperience
 );
 

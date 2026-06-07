@@ -1,122 +1,109 @@
 BEGIN;
 
-INSERT INTO role VALUES
-(1,'Administrador'),(2,'Usuario');
+-- ROLES
+INSERT INTO "role" (id, name) VALUES
+(1, 'Administrador'),
+(2, 'Usuario');
 
-INSERT INTO function VALUES
-(1,'Gestionar usuarios'),(2,'Ver perfil'),(3,'Editar perfil'),
-(4,'Publicar proyectos'),(5,'Ver reportes');
+-- INTERFACES
+INSERT INTO "interface" (id, name) VALUES
+(1, 'Perfil'),
+(2, 'Habilidad blanda'),
+(3, 'Habilidad tecnica'),
+(4, 'Experiencia laboral'),
+(5, 'Formacion academica'),
+(6, 'Proyecto personal'),
+(7, 'Certificado');
 
-INSERT INTO interface VALUES
-(1,'Web'),(2,'Movil'),(3,'API');
+-- EXTERNAL PLATFORMS
+INSERT INTO "external_platform" (id, name) VALUES
+(1, 'GitHub'),
+(2, 'LinkedIn');
 
-INSERT INTO language VALUES
-(1,'Español'),(2,'Inglés');
+-- ACADEMIC DEGREES
+INSERT INTO "academic_degree" (id, name) VALUES
+(1, 'Bachillerato'),
+(2, 'Tecnico Medio'),
+(3, 'Tecnico Superior'),
+(4, 'Licenciatura'),
+(6, 'Maestria'),
+(7, 'Doctorado'),
+(8, 'Postdoctorado');
 
-INSERT INTO language_level VALUES
-(1,'A1'),(2,'A2'),(3,'B1'),(4,'B2'),(5,'C1'),(6,'C2');
+-- RESIDENCE COUNTRIES
+INSERT INTO "residence_country" (id, name) VALUES
+(1,  'Bolivia'),
+(2,  'Argentina'),
+(3,  'Perú'),
+(4,  'China'),
+(5,  'Camerún'),
+(6,  'Anguilla'),
+(7,  'Armenia'),
+(8,  'Antártida'),
+(9,  'Bosnia y Herzegovina'),
+(10, 'Myanmar'),
+(11, 'Argelia');
 
-INSERT INTO skill VALUES
-(1,'Trabajo en equipo','soft'),
-(2,'Comunicación','soft'),
-(3,'C++','hard'),
-(4,'Python','hard'),
-(5,'Node.js','hard'),
-(6,'SQL','hard'),
-(7,'Git','hard');
+-- RESIDENCE CITIES
+INSERT INTO "residence_city" (id, name) VALUES
+(1,  'cbba'),
+(2,  'Cochabamba'),
+(3,  'Santo'),
+(4,  'Blanco Galindo'),
+(5,  'Pakistan'),
+(6,  'Cercado')
 
-INSERT INTO residence_country VALUES
-(1,'Bolivia'),(2,'Argentina'),(3,'Perú');
+-- SKILLS
+INSERT INTO "skill" (id, name, type, canon_name) VALUES
+(1,   'Trabajo en equipo',    'soft', 'trabajo en equipo'),
+(2,   'Comunicación',         'soft', 'comunicación'),
+(3,   'C++',                  'hard', 'c++'),
+(4,   'Python',               'hard', 'python'),
+(5,   'Node.js',              'hard', 'node.js'),
+(6,   'SQL',                  'hard', 'sql'),
+(7,   'Git',                  'hard', 'git'),
+(27,  'HTML',                 'hard', 'html'),
+(28,  'React',                'hard', 'react'),
+(62,  'Javascript',           'hard', 'javascript'),
+(79,  'Liderazgo',            'soft', 'liderazgo'),
+(90,  'Java',                 'hard', 'java'),
+(91,  'Flutter',              'hard', 'flutter'),
+(93,  'Angular',              'hard', 'angular'),
+(94,  'Redis',                'hard', 'redis'),
+(95,  'Express',              'hard', 'express'),
+(96,  'Figma',                'hard', 'figma'),
+(97,  'Photoshop',            'hard', 'photoshop'),
+(100, 'Mongodb',              'hard', 'mongodb'),
+(103, 'Laravel',              'hard', 'laravel'),
+(105, 'Kubernetes',           'hard', 'kubernetes'),
+(107, 'Typescript',           'hard', 'typescript'),
+(108, 'Tailwind',             'hard', 'tailwind'),
+(115, 'Calculo',              'hard', 'calculo'),
+(116, 'Fortran',              'hard', 'fortran'),
+(117, 'Rust',                 'hard', 'rust'),
+(118, 'Postgress',            'hard', 'postgress'),
+(119, 'Analisis de problemas','soft', 'analisis de problemas'),
+(121, 'Rubi',                 'hard', 'rubi'),
+(122, 'Empatia',              'soft', 'empatia'),
+(123, 'C#',                   'hard', 'c#'),
+(124, 'Puntualidad',          'soft', 'puntualidad'),
+(125, 'Matlab',               'hard', 'matlab'),
+(126, 'Creatividad',          'soft', 'creatividad'),
+(127, 'Jakarta',              'hard', 'jakarta'),
+(128, 'Kotlin',               'hard', 'kotlin'),
+(129, 'Jupyter',              'hard', 'jupyter'),
+(130, 'Delphi',               'hard', 'delphi'),
+(131, 'Linux',                'hard', 'linux'),
+(132, 'Resiliencia',          'soft', 'resiliencia'),
+(133, 'Eclipse',              'hard', 'eclipse');
 
-INSERT INTO external_platform VALUES
-(1,'GitHub'),(2,'LinkedIn');
-
-INSERT INTO academic_degree VALUES
-(1,'Licenciatura');
-
-INSERT INTO session_report VALUES
-(1,'Inicio de sesión');
-
-INSERT INTO link VALUES
-(1,'https://github.com/demo');
-
-INSERT INTO "user" (id,username,email,password,role_id,public_profile_link)
-VALUES (1,'admin','admin@mail.com','123',1,'perfil/admin');
-
-INSERT INTO "user" (id,username,email,password,role_id,public_profile_link)
-SELECT i,
-       'user'||i,
-       'user'||i||'@mail.com',
-       '123',
-       2,
-       'perfil/user'||i
-FROM generate_series(2,50) AS s(i);
-
-INSERT INTO user_detail (user_id, names, paternal_surname, residence_country_id)
-SELECT id,
-       'Nombre'||id,
-       'Apellido'||id,
-       (id % 3) + 1
-FROM "user";
-
-INSERT INTO role_function VALUES
-(1,1),(1,2),(1,3),(1,4),(1,5),
-(2,2),(2,3),(2,4);
-
-INSERT INTO function_interface VALUES
-(1,1),(2,1),(3,1),(4,2),(5,3);
-
-INSERT INTO project (id,user_id,topic,description)
-SELECT i,
-       ((i-1)/2)+2,
-       'Proyecto '||i,
-       'Descripcion del proyecto '||i
-FROM generate_series(1,98) s(i);
-
-INSERT INTO laboral_experience (id,user_id,position,company_name,start_date)
-SELECT id,
-       id,
-       'Desarrollador',
-       'Empresa '||id,
-       '2022-01-01'
-FROM "user"
-WHERE id > 1;
-
-INSERT INTO academic_training (id,user_id,name,academic_degree_id,institution,start_date)
-SELECT id,
-       id,
-       'Carrera '||id,
-       1,
-       'Universidad '||id,
-       '2018-01-01'
-FROM "user"
-WHERE id > 1;
-
-INSERT INTO user_skill (skill_id,user_id,punctuation)
-SELECT (id % 7)+1,
-       id,
-       (id % 5)+1
-FROM "user";
-
-INSERT INTO user_language_level
-SELECT 1,id,4 FROM "user";
-
-INSERT INTO user_language_level
-SELECT 2,id,(id % 3)+1 FROM "user";
-
-INSERT INTO user_platform
-SELECT id,1,'github.com/user'||id FROM "user";
-
-INSERT INTO user_platform
-SELECT id,2,'linkedin.com/user'||id FROM "user";
-
-INSERT INTO project_skill
-SELECT (id % 7)+1,id FROM project;
-
-INSERT INTO project_link
-SELECT id,1 FROM project;
-
-INSERT INTO laboral_experience_skill
-SELECT (id % 7)+1,id FROM laboral_experience;
+-- Sync sequences after explicit id inserts
+SELECT setval(pg_get_serial_sequence('"role"',             'id'), (SELECT MAX(id) FROM "role"));
+SELECT setval(pg_get_serial_sequence('"interface"',        'id'), (SELECT MAX(id) FROM "interface"));
+SELECT setval(pg_get_serial_sequence('"external_platform"','id'), (SELECT MAX(id) FROM "external_platform"));
+SELECT setval(pg_get_serial_sequence('"academic_degree"',  'id'), (SELECT MAX(id) FROM "academic_degree"));
+SELECT setval(pg_get_serial_sequence('"residence_country"','id'), (SELECT MAX(id) FROM "residence_country"));
+SELECT setval(pg_get_serial_sequence('"residence_city"',   'id'), (SELECT MAX(id) FROM "residence_city"));
+SELECT setval(pg_get_serial_sequence('"skill"',            'id'), (SELECT MAX(id) FROM "skill"));
 
 COMMIT;

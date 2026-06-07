@@ -1,3 +1,0 @@
-ALTER TABLE "project"
-ADD COLUMN name character varying(50) NOT NULL DEFAULT 'undefined',
-ADD COLUMN role character varying(50) NOT NULL DEFAULT 'undefined';

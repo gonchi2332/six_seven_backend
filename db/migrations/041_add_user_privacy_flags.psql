@@ -1,6 +1,0 @@
--- This migration has the purpose of adding columns for user privacy
-ALTER TABLE public."user"
-ADD COLUMN show_name BOOLEAN NOT NULL DEFAULT true,
-ADD COLUMN show_contact_email BOOLEAN NOT NULL DEFAULT true,
-ADD COLUMN show_phone BOOLEAN NOT NULL DEFAULT true,
-ADD COLUMN show_residence BOOLEAN NOT NULL DEFAULT true;
