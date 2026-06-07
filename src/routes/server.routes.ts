@@ -1,16 +1,16 @@
 import { Router, Request, Response } from "express";
-import RegisterRoutes from "../routes/register.routes";
-import AuthRoutes from "../routes/auth.routes";
-import VerificationRoutes from "../routes/verification.routes";
-import UserSkillRoutes from "../routes/userskill.routes";
-import SkillRoutes from "../routes/skill.routes";
-import PlatformRoutes from "../routes/platform.routes";
-import ProfileRoutes from "../routes/profile.routes";
-import LaboralExpRoutes from "../routes/laboralexperience.routes";
-import ProjectRoutes from "../routes/project.routes";
-import EducationRoutes from "../routes/education.routes";
-import CertificateRoutes from "../routes/certificates.routes";
-import reportRoutes from "../routes/report.routes";
+import RegisterRoutes from "./register.routes";
+import AuthRoutes from "./auth.routes";
+import VerificationRoutes from "./verification.routes";
+import UserSkillRoutes from "./userskill.routes";
+import SkillRoutes from "./skill.routes";
+import PlatformRoutes from "./platform.routes";
+import ProfileRoutes from "./profile.routes";
+import LaboralExpRoutes from "./laboralexperience.routes";
+import ProjectRoutes from "./project.routes";
+import EducationRoutes from "./education.routes";
+import CertificateRoutes from "./certificates.routes";
+import reportRoutes from "./report.routes";
 
 const router = Router();
 
