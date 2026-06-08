@@ -15,12 +15,12 @@ INSERT INTO "interface" (id, name) VALUES
 (6, 'Proyecto personal'),
 (7, 'Certificado');
 
--- EXTERNAL PLATFORMS
+-- PLATFORMAS EXTERNAS
 INSERT INTO "external_platform" (id, name) VALUES
 (1, 'GitHub'),
 (2, 'LinkedIn');
 
--- ACADEMIC DEGREES
+-- TITULOS ACADEMICOS
 INSERT INTO "academic_degree" (id, name) VALUES
 (1, 'Bachillerato'),
 (2, 'Tecnico Medio'),
@@ -30,7 +30,7 @@ INSERT INTO "academic_degree" (id, name) VALUES
 (7, 'Doctorado'),
 (8, 'Postdoctorado');
 
--- RESIDENCE COUNTRIES
+-- PAISES DE RESIDENCIA
 INSERT INTO "residence_country" (id, name) VALUES
 (1,  'Bolivia'),
 (2,  'Argentina'),
@@ -44,7 +44,7 @@ INSERT INTO "residence_country" (id, name) VALUES
 (10, 'Myanmar'),
 (11, 'Argelia');
 
--- RESIDENCE CITIES
+-- CIUDADES DE RESIDENCIA
 INSERT INTO "residence_city" (id, name) VALUES
 (1,  'cbba'),
 (2,  'Cochabamba'),
@@ -53,7 +53,7 @@ INSERT INTO "residence_city" (id, name) VALUES
 (5,  'Pakistan'),
 (6,  'Cercado')
 
--- SKILLS
+-- HABILIDADES
 INSERT INTO "skill" (id, name, type, canon_name) VALUES
 (1,   'Trabajo en equipo',    'soft', 'trabajo en equipo'),
 (2,   'Comunicación',         'soft', 'comunicación'),
@@ -97,7 +97,7 @@ INSERT INTO "skill" (id, name, type, canon_name) VALUES
 (132, 'Resiliencia',          'soft', 'resiliencia'),
 (133, 'Eclipse',              'hard', 'eclipse');
 
--- Sync sequences after explicit id inserts
+-- Sincronizacion de secuencias despues de inserciones explicitas de id
 SELECT setval(pg_get_serial_sequence('"role"',             'id'), (SELECT MAX(id) FROM "role"));
 SELECT setval(pg_get_serial_sequence('"interface"',        'id'), (SELECT MAX(id) FROM "interface"));
 SELECT setval(pg_get_serial_sequence('"external_platform"','id'), (SELECT MAX(id) FROM "external_platform"));

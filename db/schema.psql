@@ -1,4 +1,4 @@
--- CATALOG TABLES
+-- TABLAS DE CATALOGO
 CREATE TABLE "role" (
   "id"   SERIAL UNIQUE PRIMARY KEY NOT NULL,
   "name" varchar(50) UNIQUE NOT NULL
@@ -42,7 +42,7 @@ CREATE TABLE "link" (
   "label" varchar NOT NULL DEFAULT 'Enlace'
 );
 
--- CORE TABLE
+-- TABLAS NUCLEO/CENTRALES
 CREATE TABLE "user" (
   "username"                varchar(100) PRIMARY KEY NOT NULL,
   "password"                varchar(100) NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE "user" (
   FOREIGN KEY ("role_id") REFERENCES "role"("id") DEFERRABLE INITIALLY IMMEDIATE
 );
 
--- OPTIONAL USER DATA TABLES
+-- TABLAS OPCIONALES DE DATOS DEL USUARIO
 CREATE TABLE "user_phone_number" (
   "username"     varchar(100) PRIMARY KEY NOT NULL,
   "phone_number" varchar(20)  NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE "user_residence_city" (
   FOREIGN KEY ("residence_city_id") REFERENCES "residence_city"("id")     ON DELETE CASCADE
 );
 
--- AUTH TABLES
+-- TABLAS DE AUTENTICACION
 CREATE TABLE "password_reset_code" (
   "username"   varchar(100) PRIMARY KEY NOT NULL,
   "code"       varchar(8)  NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE "refresh_token" (
   FOREIGN KEY ("username") REFERENCES "user"("username") ON DELETE CASCADE
 );
 
--- CONTENT TABLES
+-- TABLAS DE CONTENIDO
 CREATE TABLE "project" (
   "id"          SERIAL UNIQUE PRIMARY KEY NOT NULL,
   "username"    varchar(100) NOT NULL,
@@ -203,7 +203,7 @@ CREATE TABLE "certificate" (
   FOREIGN KEY ("username") REFERENCES "user"("username") ON DELETE CASCADE
 );
 
--- RELATIONSHIP TABLES
+-- TABLAS DE RELACION
 CREATE TABLE "user_skill" (
   "skill_id"    int          NOT NULL,
   "username"    varchar(100) NOT NULL,
@@ -224,7 +224,7 @@ CREATE TABLE "user_platform" (
   FOREIGN KEY ("external_platform_id") REFERENCES "external_platform"("id")
 );
 
--- ANALYTICS TABLES
+-- TABLAS DE ANALITICAS
 CREATE TABLE "interface_view" (
   "id"           SERIAL UNIQUE PRIMARY KEY NOT NULL,
   "username"     varchar(100) NOT NULL,
