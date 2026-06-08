@@ -2,8 +2,16 @@ import { DIAS_ES, MESES_ES } from "../utils/constants/array.constants";
 import * as TokenTypes from "../types/token.types";
 import * as ReportRepository from "../repositories/report.repository";
 
+/**
+ * La función `getReports` recupera datos analíticos de las vistas de interfaz para un usuario específico en un periodo determinado.
+ * Traduce los nombres de los días y meses al español y formatea los resultados para su visualización en gráficos o reportes.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {any} getReportsInfo - Objeto que contiene el `period` ("day", "month" o "year").
+ * @returns Objeto con `result`, `messageState` y `reports` (lista de datos analíticos formateados).
+ * @throws Error "INVALID_PERIOD" si el periodo proporcionado no es válido.
+ */
 export async function getReports(
-  tokenInfo: TokenTypes.TokenPayload, 
+  tokenInfo: TokenTypes.TokenPayload,
   getReportsInfo: any) {
   const { username } = tokenInfo;
   const { period } = getReportsInfo;

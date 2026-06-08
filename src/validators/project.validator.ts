@@ -4,6 +4,12 @@ import * as ArrayValidations from "./shared/array.validator";
 import * as StringValidations from "./shared/string.validator";
 import * as RegexValidations from "./shared/regex.validator";
 
+/**
+ * Valida la lista de enlaces de un proyecto.
+ * Verifica que cada enlace tenga etiqueta y cumpla con el formato de URL/dominio.
+ * @param {any} links - Array de objetos de enlace (label, url).
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 function validateLinks(links: any) {
   for (const item of links) {
     if (!item.label || typeof item.label !== "string" || item.label.trim() === "") {
@@ -19,6 +25,12 @@ function validateLinks(links: any) {
   return { result: true, messageState: "Validación exitosa" };
 }
 
+/**
+ * Realiza validaciones comunes para la creación y modificación de proyectos.
+ * Verifica descripción, área, rol, estado y enlaces.
+ * @param {any} parameters - Objeto con los datos del proyecto.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 function commonProjectValidations(parameters: any) {
   let message = "";
   const firstValidation = StringValidations.validateTrimedString(parameters.description);
@@ -51,6 +63,13 @@ function commonProjectValidations(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para registrar un nuevo proyecto personal.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con los datos del proyecto.
+ * @param {any} imageParameter - Archivo de imagen del proyecto.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function registerProjectValidation(tokenParameter: any, parameters: any, imageParameter: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -73,6 +92,12 @@ export function registerProjectValidation(tokenParameter: any, parameters: any, 
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar un proyecto existente.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con los datos actualizados.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyProjectValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -88,6 +113,12 @@ export function modifyProjectValidation(tokenParameter: any, parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para eliminar un proyecto.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con el ID del proyecto.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function deleteProjectValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -100,6 +131,11 @@ export function deleteProjectValidation(tokenParameter: any, parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para obtener proyectos públicos de un usuario.
+ * @param {any} parameters - Objeto con el nombre de usuario.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function getPublicProjectsValidation(parameters: any) {
   const arrayParameter = [parameters.username];
   const finalValidation = TypeValidations.validateArrayParameterType(arrayParameter, "string");
@@ -107,12 +143,23 @@ export function getPublicProjectsValidation(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para obtener proyectos privados.
+ * @param {any} parameters - Payload del token decodificado.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function getPrivateProjectsValidation(parameters: any) {
   const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario inválido" : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar la visibilidad de proyectos de forma masiva.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Mapa de visibilidades.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyProjectsVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);

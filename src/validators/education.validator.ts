@@ -6,6 +6,13 @@ import * as RegexValidations from "./shared/regex.validator";
 import * as StringValidations from "./shared/string.validator";
 import * as EducationTypes from "../types/education.types";
 
+/**
+ * Valida la solicitud para agregar un nuevo registro de formación académica.
+ * Verifica el token, campos obligatorios, formatos de texto, longitudes y validez de fechas.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con los datos de educación.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function manageEducationValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -63,6 +70,12 @@ export function manageEducationValidation(tokenParameter: any, parameters: any) 
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar un registro de formación académica existente.
+ * Verifica el ID y los tipos de datos de los campos opcionales a actualizar.
+ * @param {any} parameters - Objeto con los datos actualizados.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyEducationValidation(parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateId(parameters);
@@ -81,7 +94,7 @@ export function modifyEducationValidation(parameters: any) {
   const fifthValidation = TypeValidations.validateOptionalParameterType(parameters.educationState, "string");
   message = (!fifthValidation) ? "El estado de la educacion es invalido" : message;
 
-  const sixthValidation = (parameters.educationState) && 
+  const sixthValidation = (parameters.educationState) &&
     TypeValidations.validateEnum(parameters.educationState, EducationTypes.EducationState);
   message = (!sixthValidation) ? "El estado de la educacion es invalido" : message;
 
@@ -90,30 +103,56 @@ export function modifyEducationValidation(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida que el token de usuario sea válido para operaciones de educación.
+ * @param {any} parameters - Payload del token decodificado.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function handleEducationValidation(parameters: any) {
   const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido." : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para ver educación pública.
+ * @param {any} parameters - Payload del token decodificado.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function viewPublicEducationValidation(parameters: any) {
   const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para ver educación privada.
+ * @param {any} parameters - Payload del token decodificado.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function viewPrivateEducationValidation(parameters: any) {
   const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para eliminar un registro de educación.
+ * @param {any} parameters - Objeto con el ID del registro.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function deleteEducationValidation(parameters: any) {
   const finalValidation = TypeValidations.validateId(parameters);
   const message = (!finalValidation) ? "Id de experiencia laboral invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar la visibilidad de registros de educación de forma masiva.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Mapa de visibilidades.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyEducationVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);

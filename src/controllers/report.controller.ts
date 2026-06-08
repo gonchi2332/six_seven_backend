@@ -3,6 +3,16 @@ import * as TokenTypes from "../types/token.types";
 import * as ReportValidations from "../validators/report.validator";
 import * as ReportService from "../services/report.service";
 
+/**
+ * La función `getReports` obtiene reportes filtrados según el usuario autenticado y los parámetros
+ * de consulta proporcionados, como el período de tiempo (day, month, year).
+ * @param {Request} req - Objeto de solicitud HTTP. Contiene el usuario autenticado en `req.user`
+ * y los parámetros de filtro (como el período) en `req.query`.
+ * @param {Response} res - Objeto de respuesta HTTP usado para enviar el resultado al cliente.
+ * @returns Respuesta JSON con código 400 si las validaciones fallan o si el período es inválido,
+ * código 200 con la lista de reportes si la operación es exitosa,
+ * o código 500 si ocurre un error interno del servidor.
+ */
 export async function getReports(req: Request, res: Response) {
   try {
     const validations = ReportValidations.getReportsValidation(

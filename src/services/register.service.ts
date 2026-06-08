@@ -6,6 +6,15 @@ import * as RegisterRepository from "../repositories/register.repository";
 import * as CommonRepository from "../repositories/shared/common.repository";
 import * as AIService from "../services/ai.service";
 
+/**
+ * Función interna `processUserPersonalInfoAction` que maneja el registro o actualización de la información personal del usuario.
+ * Realiza validación NSFW de la foto de perfil si se proporciona y actualiza el estado `is_new` del usuario si es necesario.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {UserTypes.UserPersonalInfo} userPersonalInfo - Datos personales del usuario (teléfono, ciudad, etc.).
+ * @param {Express.Multer.File | null} profilePicture - Archivo de imagen de perfil (opcional).
+ * @param {"registra" | "actualiza"} actionLabel - Etiqueta para el mensaje de respuesta.
+ * @returns Objeto con `result` (booleano) y `messageState`.
+ */
 async function processUserPersonalInfoAction(
   tokenInfo: TokenTypes.TokenPayload,
   userPersonalInfo: UserTypes.UserPersonalInfo,
@@ -47,6 +56,14 @@ async function processUserPersonalInfoAction(
   }
 }
 
+/**
+ * La función `registerUserPersonalInfo` registra la información personal de un nuevo usuario.
+ * Delega en `processUserPersonalInfoAction` con la etiqueta "registra".
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {UserTypes.UserPersonalInfo} userPersonalInfo - Datos personales del usuario.
+ * @param {Express.Multer.File | null} profilePicture - Archivo de imagen de perfil.
+ * @returns Resultado de `processUserPersonalInfoAction`.
+ */
 export async function registerUserPersonalInfo(
   tokenInfo: TokenTypes.TokenPayload,
   userPersonalInfo: UserTypes.UserPersonalInfo,
@@ -54,6 +71,14 @@ export async function registerUserPersonalInfo(
   return processUserPersonalInfoAction(tokenInfo, userPersonalInfo, profilePicture, "registra");
 }
 
+/**
+ * La función `updateUserPersonalInfo` actualiza la información personal de un usuario existente.
+ * Delega en `processUserPersonalInfoAction` con la etiqueta "actualiza".
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {UserTypes.UserPersonalInfo} userPersonalInfo - Datos personales actualizados.
+ * @param {Express.Multer.File | null} profilePicture - Nueva imagen de perfil (opcional).
+ * @returns Resultado de `processUserPersonalInfoAction`.
+ */
 export async function updateUserPersonalInfo(
   tokenInfo: TokenTypes.TokenPayload,
   userPersonalInfo: UserTypes.UserPersonalInfo,
@@ -61,6 +86,12 @@ export async function updateUserPersonalInfo(
   return processUserPersonalInfoAction(tokenInfo, userPersonalInfo, profilePicture, "actualiza");
 }
 
+/**
+ * La función `viewUserPersonalInfo` recupera la información personal del usuario autenticado.
+ * Procesa la foto de perfil a formato base64 y filtra los campos nulos.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @returns Objeto con `result`, `messageState` y `currentPersonalInfo`.
+ */
 export async function viewUserPersonalInfo(tokenInfo: TokenTypes.TokenPayload) {
   try {
     const { username } = tokenInfo;
@@ -88,13 +119,19 @@ export async function viewUserPersonalInfo(tokenInfo: TokenTypes.TokenPayload) {
   }
 }
 
+/**
+ * La función `viewPublicUserPersonalInfo` recupera la información personal pública de un usuario.
+ * Filtra los campos según la configuración de visibilidad del usuario y registra una vista analítica.
+ * @param {any} viewPersonalInfo - Objeto que contiene el `username` del usuario a consultar.
+ * @returns Objeto con `result`, `messageState` y `currentPersonalInfo` (datos filtrados por visibilidad).
+ */
 export async function viewPublicUserPersonalInfo(viewPersonalInfo: any) {
   try {
     const { username } = viewPersonalInfo;
     const interfaceId = 1;
-    
+
     const response = await viewUserPersonalInfo({ username } as TokenTypes.TokenPayload);
-    if (!response.result) 
+    if (!response.result)
       return response;
     const data = response.currentPersonalInfo;
     const publicProfile = {
@@ -122,6 +159,13 @@ export async function viewPublicUserPersonalInfo(viewPersonalInfo: any) {
   }
 }
 
+/**
+ * La función `updatePersonalInfoVisibility` actualiza la configuración de visibilidad de los campos de información personal.
+ * Solo permite actualizar campos específicos: `show_name`, `show_contact_email`, `show_phone`, `show_residence`.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {RegisterTypes.UpdatePersonalInfoVisibility} updatePersonalInfoVisibilityInfo - Objeto con los nuevos estados de visibilidad.
+ * @returns Objeto con `result` (booleano) y `messageState`.
+ */
 export async function updatePersonalInfoVisibility(
   tokenInfo: TokenTypes.TokenPayload,
   updatePersonalInfoVisibilityInfo: RegisterTypes.UpdatePersonalInfoVisibility) {
@@ -130,7 +174,7 @@ export async function updatePersonalInfoVisibility(
     const { visibilities } = updatePersonalInfoVisibilityInfo;
 
     const userFounded = await CommonRepository.findByUsername(username);
-    if (userFounded.length === 0) 
+    if (userFounded.length === 0)
       return { result: false, messageState: "Usuario no encontrado" };
 
     const allowedFields = ["show_name", "show_contact_email", "show_phone", "show_residence"];
@@ -143,7 +187,7 @@ export async function updatePersonalInfoVisibility(
     if (Object.keys(fieldsToUpdate).length === 0) {
       return { result: true, messageState: "No se enviaron campos válidos para actualizar" };
     }
-    
+
     await RegisterRepository.updatePersonalInfoVisibility(username, fieldsToUpdate);
     return { result: true, messageState: "Cambios guardados exitosamente" };
   } catch (err) {

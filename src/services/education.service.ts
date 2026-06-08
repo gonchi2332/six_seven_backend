@@ -5,6 +5,15 @@ import * as CommonRepository from "../repositories/shared/common.repository";
 import * as EducationReporitory from "../repositories/education.repository";
 import * as AIService from "../services/ai.service";
 
+/**
+ * Función interna que centraliza el registro o modificación de un registro de educación.
+ * Verifica existencia del usuario, duplicados, valida el título con IA y crea/actualiza el registro.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
+ * @param {EducationTypes.EducationInfo} educationInfo - Datos de la formación académica.
+ * @param {"register" | "modify"} action - Acción: "register" o "modify".
+ * @param {number} [id] - ID del registro (solo para "modify").
+ * @returns Objeto con `result` y `messageState`.
+ */
 async function manageEducation(
   tokenInfo: TokenTypes.TokenPayload,
   educationInfo: EducationTypes.EducationInfo,
@@ -45,12 +54,25 @@ async function manageEducation(
   }
 }
 
+/**
+ * Registra un nuevo registro de formación académica. Delega en `manageEducation` con acción "register".
+ * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
+ * @param {EducationTypes.EducationInfo} educationInfo - Datos de la formación a registrar.
+ * @returns Resultado de `manageEducation`.
+ */
 export async function registerEducation(
   tokenInfo: TokenTypes.TokenPayload,
   educationInfo: EducationTypes.EducationInfo) {
   return await manageEducation(tokenInfo, educationInfo, "register");
 }
 
+/**
+ * Modifica un registro de formación académica existente. Delega en `manageEducation` con acción "modify".
+ * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
+ * @param {EducationTypes.EducationInfo} educationInfo - Datos actualizados.
+ * @param {any} idInfo - Objeto con el `id` del registro.
+ * @returns Resultado de `manageEducation`.
+ */
 export async function modifyEducation(
   tokenInfo: TokenTypes.TokenPayload,
   educationInfo: EducationTypes.EducationInfo,
@@ -59,6 +81,12 @@ export async function modifyEducation(
   return await manageEducation(tokenInfo, educationInfo, "modify", parsedId);
 }
 
+/**
+ * Función interna que elimina un registro de educación. Verifica existencia del usuario y registro.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
+ * @param {number} [id] - ID del registro a eliminar.
+ * @returns Objeto con `result` y `messageState`.
+ */
 async function handleEducation(
   tokenInfo: TokenTypes.TokenPayload,
   id?: number) {
@@ -67,10 +95,7 @@ async function handleEducation(
 
     const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe"
-      };
+      return { result: false, messageState: "El usuario no existe" };
     }
     const educationExperience = await EducationReporitory.getEducation(id!);
     if (!educationExperience || educationExperience.length === 0) {
@@ -92,6 +117,11 @@ async function handleEducation(
   }
 }
 
+/**
+ * Obtiene los registros de educación públicos de un usuario y registra una vista analítica.
+ * @param {any} tokenInfo - Objeto con el `username` del usuario.
+ * @returns Objeto con `result`, `messageState` y `education`.
+ */
 export async function viewPublicEducation(tokenInfo: any) {
   try {
     const { username } = tokenInfo;
@@ -110,6 +140,11 @@ export async function viewPublicEducation(tokenInfo: any) {
   }
 }
 
+/**
+ * Obtiene todos los registros de educación (públicos y privados) del usuario autenticado.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
+ * @returns Objeto con `result`, `messageState` y `education`.
+ */
 export async function viewPrivateEducation(tokenInfo: TokenTypes.TokenPayload) {
   try {
     const { username } = tokenInfo;
@@ -121,11 +156,22 @@ export async function viewPrivateEducation(tokenInfo: TokenTypes.TokenPayload) {
   }
 }
 
+/**
+ * Elimina un registro de formación académica. Parsea el ID y delega en `handleEducation`.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
+ * @param {any} idInfo - Objeto con el `id` del registro.
+ * @returns Resultado de `handleEducation`.
+ */
 export async function deleteEducation(tokenInfo: TokenTypes.TokenPayload, idInfo: any) {
   const parsedId = idInfo.id ? parseInt(idInfo.id as string, 10) : undefined;
   return await handleEducation(tokenInfo, parsedId);
 }
 
+/**
+ * Obtiene los grados académicos disponibles en el sistema (Licenciatura, Maestría, etc.)
+ * para usarlos como opciones en formularios.
+ * @returns Objeto con `result`, `messageState` y `educationGrade`.
+ */
 export async function viewAcademicGrade() {
   try {
     const educationGrade = await EducationReporitory.getAcademicDegrees();
@@ -142,6 +188,13 @@ export async function viewAcademicGrade() {
   }
 }
 
+/**
+ * Actualiza la visibilidad (público/privado) de múltiples registros de educación de forma masiva.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
+ * @param {EducationTypes.UpdateEducationVisibilityInfo} updateEducationVisibilityInfo - Mapa de
+ * IDs y sus nuevos estados de visibilidad.
+ * @returns Objeto con `result` y `messageState`.
+ */
 export async function updateEducationVisibility(
   tokenInfo: TokenTypes.TokenPayload,
   updateEducationVisibilityInfo: EducationTypes.UpdateEducationVisibilityInfo) {

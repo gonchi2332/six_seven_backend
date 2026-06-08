@@ -3,6 +3,15 @@ import * as TokenTypes from "../types/token.types";
 import * as VerificationValidations from "../validators/verification.validator";
 import * as VerificationService from "../services/verification.service";
 
+/**
+ * La función `getUserMail` obtiene el correo electrónico del usuario autenticado.
+ * @param {Request} req - Objeto de solicitud HTTP. Utiliza el token del usuario en `req.user`
+ * para identificar al solicitante.
+ * @param {Response} res - Objeto de respuesta HTTP usado para enviar el resultado al cliente.
+ * @returns Respuesta JSON con código 400 si las validaciones fallan o el servicio no puede
+ * obtener el correo, código 200 con el email del usuario si la operación es exitosa,
+ * o código 500 si ocurre un error interno del servidor.
+ */
 export async function getUserMail(req: Request, res: Response) {
   try {
     const validations = VerificationValidations.getUserMailValidation(req.user as TokenTypes.TokenPayload);
@@ -23,6 +32,15 @@ export async function getUserMail(req: Request, res: Response) {
   }
 }
 
+/**
+ * La función `sendMailVerification` envía un código de verificación al correo del usuario autenticado.
+ * @param {Request} req - Objeto de solicitud HTTP. Utiliza el token del usuario en `req.user`
+ * para identificar a quién se le enviará el código.
+ * @param {Response} res - Objeto de respuesta HTTP usado para enviar el resultado al cliente.
+ * @returns Respuesta JSON con código 400 si las validaciones fallan o el servicio no puede
+ * enviar el correo, código 200 con confirmación del envío si la operación es exitosa,
+ * o código 500 si ocurre un error interno del servidor.
+ */
 export async function sendMailVerification(req: Request, res: Response) {
   try {
     const validations = VerificationValidations.sendMailVerificationValidation(
@@ -48,6 +66,16 @@ export async function sendMailVerification(req: Request, res: Response) {
   }
 }
 
+/**
+ * La función `compareMailCode` verifica que el código ingresado por el usuario coincida
+ * con el código de verificación enviado a su correo.
+ * @param {Request} req - Objeto de solicitud HTTP. Contiene el usuario autenticado en `req.user`
+ * y el código de verificación a comparar en `req.query`.
+ * @param {Response} res - Objeto de respuesta HTTP usado para enviar el resultado al cliente.
+ * @returns Respuesta JSON con código 400 si las validaciones fallan o los códigos no coinciden,
+ * código 200 si la verificación es exitosa,
+ * o código 500 si ocurre un error interno del servidor.
+ */
 export async function compareMailCode(req: Request, res: Response) {
   try {
     const validations = VerificationValidations.compareMailCodeValidation(

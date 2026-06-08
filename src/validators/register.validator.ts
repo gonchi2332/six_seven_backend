@@ -4,6 +4,14 @@ import * as ImageValidations from "./shared/image.validator";
 import * as ArrayValidations from "./shared/array.validator";
 import * as RegexValidations from "./shared/regex.validator";
 
+/**
+ * Valida la solicitud para registrar o modificar información personal.
+ * Verifica el token, la estructura del objeto, formatos de teléfono y correo, y la imagen de perfil.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con los datos personales.
+ * @param {any} imageParameter - Archivo de imagen de perfil opcional.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function handlePersonalInfoRequestValidation(
   tokenParameter: any,
   parameters: any,
@@ -43,6 +51,11 @@ export function handlePersonalInfoRequestValidation(
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para ver información personal pública de un usuario.
+ * @param {any} parameters - Objeto con el nombre de usuario.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function viewPublicPersonalInfoValidation(parameters: any) {
   const arrayParameter = [parameters.username];
   const finalValidation = TypeValidations.validateArrayParameterType(arrayParameter, "string");
@@ -50,12 +63,23 @@ export function viewPublicPersonalInfoValidation(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para ver información personal privada (perfil propio).
+ * @param {any} parameters - Payload del token decodificado.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function viewPrivatePersonalInfoValidation(parameters: any) {
   const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario inválido" : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar la visibilidad de los campos de información personal.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Mapa de visibilidades.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyPersonalInfoVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);

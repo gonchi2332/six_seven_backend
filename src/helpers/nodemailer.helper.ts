@@ -3,6 +3,14 @@ import { transporter } from "../config/nodemailer.config";
 import * as fs from "fs";
 import * as path from "path";
 
+/**
+ * Envía un correo electrónico con el código de recuperación de contraseña.
+ * Utiliza una plantilla HTML embebida.
+ * @param {string} to - Correo del destinatario.
+ * @param {string} username - Nombre de usuario.
+ * @param {string} code - Código de verificación generado.
+ * @returns {Promise<void>}
+ */
 export async function sendResetCodeEmail(to: string, username: string, code: string) {
   const htmlTemplate = `
     <!DOCTYPE html>
@@ -55,8 +63,16 @@ export async function sendResetCodeEmail(to: string, username: string, code: str
   await transporter.sendMail(mailOptions);
 }
 
+/**
+ * Genera el contenido HTML para el correo de verificación de cuenta nueva.
+ * Lee una plantilla desde el sistema de archivos y reemplaza los marcadores de posición.
+ * @param {string} username - Nombre de usuario.
+ * @param {string} targetMail - Correo electrónico del usuario.
+ * @param {string} code - Código de verificación.
+ * @returns {string} Contenido HTML generado.
+ */
 export function generateHTMLMail(username: string, targetMail: string, code: string) {
-  let htmlMail : string = fs.readFileSync(path.join(__dirname, "../resources/templates/mail.html"), "utf-8"); 
+  let htmlMail: string = fs.readFileSync(path.join(__dirname, "../resources/templates/mail.html"), "utf-8");
 
   htmlMail = htmlMail.replace("__USERNAME__", username);
   htmlMail = htmlMail.replace(/__TARGETMAIL__/g, targetMail);
@@ -65,6 +81,14 @@ export function generateHTMLMail(username: string, targetMail: string, code: str
   return htmlMail;
 }
 
+/**
+ * Envía el código de verificación de cuenta nueva a uno o más destinatarios.
+ * @param {string} username - Nombre de usuario.
+ * @param {string[]} targetMails - Lista de correos de destino.
+ * @param {string} targetMail - Correo principal del usuario (para la plantilla).
+ * @param {string} code - Código de verificación.
+ * @returns {Promise<any>} Resultado del envío de Nodemailer.
+ */
 export async function sendVerificationCode(
   username: string,
   targetMails: string[],

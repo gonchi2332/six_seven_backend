@@ -4,6 +4,12 @@ import * as TokenTypes from "../types/token.types";
 import * as CommonRepository from "../repositories/shared/common.repository";
 import * as ProfileRepository from "../repositories/profile.repository";
 
+/**
+ * La función `getOrCreatePublicLink` obtiene el enlace de perfil público de un usuario o genera uno nuevo si no existe.
+ * El enlace se compone de un hash aleatorio y el nombre de usuario.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @returns Objeto con `result`, `messageState` y `publicProfileLink` (URL completa del perfil).
+ */
 export async function getOrCreatePublicLink(tokenInfo: TokenTypes.TokenPayload) {
   try {
     const { username } = tokenInfo;
@@ -20,7 +26,7 @@ export async function getOrCreatePublicLink(tokenInfo: TokenTypes.TokenPayload) 
       return {
         result: true,
         messageState: `Enlace de perfil publico de ${username} correctamente obtenida.`,
-        publicProfileLink:  `${baseUrl}/profile/${profilelink}`,
+        publicProfileLink: `${baseUrl}/profile/${profilelink}`,
       };
     }
 
@@ -39,19 +45,28 @@ export async function getOrCreatePublicLink(tokenInfo: TokenTypes.TokenPayload) 
   }
 }
 
+/**
+ * La función `getAllPublicUsersList` recupera una lista básica de todos los usuarios registrados en el sistema.
+ * @returns Objeto con `result`, `messageState` y `users` (lista de usuarios).
+ */
 export async function getAllPublicUsersList() {
   try {
     const users = await ProfileRepository.getAllBasicUsers();
-    return { 
-      result: true, 
-      messageState: "Lista de usuarios obtenida exitosamente", 
-      users: users 
+    return {
+      result: true,
+      messageState: "Lista de usuarios obtenida exitosamente",
+      users: users
     };
   } catch (err) {
     return { result: false, messageState: `Error interno: ${(err as Error).message}` };
   }
 }
 
+/**
+ * La función `getSectionsVisibility` obtiene el estado de visibilidad de las diferentes secciones del perfil de un usuario.
+ * @param {any} getSectionsVisibilityInfo - Objeto que contiene el `username` del usuario.
+ * @returns Objeto con `result`, `messageState` y `sections` (mapa de booleanos indicando si cada sección es visible).
+ */
 export async function getSectionsVisibility(getSectionsVisibilityInfo: any) {
   try {
     const { username } = getSectionsVisibilityInfo;
@@ -60,7 +75,7 @@ export async function getSectionsVisibility(getSectionsVisibilityInfo: any) {
     if (!userExists) {
       return { result: false, messageState: "El usuario no existe" };
     }
-    
+
     const visibilityStatus = await ProfileRepository.getUserSectionsVisibility(username);
     const sections = {
       has_projects: Boolean(visibilityStatus.has_projects),

@@ -5,6 +5,13 @@ import * as DateValidations from "./shared/date.validator";
 import * as RegexValidations from "./shared/regex.validator";
 import * as StringValidations from "./shared/string.validator";
 
+/**
+ * Valida la solicitud para agregar un nuevo registro de experiencia laboral.
+ * Verifica el token, campos obligatorios, formatos de cargo y empresa, longitudes y validez de fechas.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con los datos de experiencia laboral.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function manageUserLaboralExperienceValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -57,6 +64,12 @@ export function manageUserLaboralExperienceValidation(tokenParameter: any, param
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar un registro de experiencia laboral existente.
+ * Verifica el ID y los tipos de datos de los campos opcionales a actualizar.
+ * @param {any} parameters - Objeto con los datos actualizados.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyUserLaboralExperienceValidation(parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateId(parameters);
@@ -99,18 +112,34 @@ export function modifyUserLaboralExperienceValidation(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para ver experiencia laboral pública.
+ * @param {any} parameters - Payload del token decodificado.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function viewPublicLaboralExperienceValidation(parameters: any) {
   const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para ver experiencia laboral privada.
+ * @param {any} parameters - Payload del token decodificado.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function viewPrivateLaboralExperienceValidation(parameters: any) {
   const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar la visibilidad de registros de experiencia laboral de forma masiva.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Mapa de visibilidades.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyLaboralExperienceVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -123,6 +152,12 @@ export function modifyLaboralExperienceVisibilityValidation(tokenParameter: any,
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para eliminar un registro de experiencia laboral.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con el ID del registro.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function deleteUserLaboralExperienceValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);

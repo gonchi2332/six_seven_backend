@@ -2,9 +2,15 @@ import { PoolClient } from "pg";
 import { processReturnQuery, processTransaction } from "../utils/query.util";
 import * as ProjectTypes from "../types/project.types";
 
+/**
+ * Verifica si un proyecto con el mismo nombre ya existe para un usuario.
+ * @param {ProjectTypes.ProjectInfo} projectInfo - Datos del proyecto (nombre).
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa que resuelve a `true` si el proyecto existe, `false` en caso contrario.
+ */
 export async function projectExists(projectInfo: ProjectTypes.ProjectInfo, username: string) {
   const { name } = projectInfo;
-  
+
   const checkQuery = `
     SELECT id FROM "project"
     WHERE name = $1 AND username = $2
@@ -14,6 +20,12 @@ export async function projectExists(projectInfo: ProjectTypes.ProjectInfo, usern
   return !(foundProjects.length === 0);
 }
 
+/**
+ * Crea un nuevo proyecto personal para un usuario en una transacción.
+ * Inserta el proyecto y sus enlaces asociados en las tablas "project", "link" y "project_link".
+ * @param {string} username - Nombre de usuario.
+ * @param {ProjectTypes.ProjectInfo} projectInfo - Datos del proyecto y lista de enlaces.
+ */
 export async function createPersonalProject(username: string, projectInfo: ProjectTypes.ProjectInfo) {
   const { name, description, topic, status, role, imageBuffer, links } = projectInfo;
 
@@ -38,6 +50,12 @@ export async function createPersonalProject(username: string, projectInfo: Proje
   });
 }
 
+/**
+ * Busca un proyecto por su ID y nombre de usuario.
+ * @param {string} username - Nombre de usuario.
+ * @param {number} projectId - ID del proyecto.
+ * @returns Promesa con el ID del proyecto si existe y pertenece al usuario.
+ */
 export async function getProjectByIdAndUser(username: string, projectId: number) {
   const selectQuery = `
     SELECT id FROM "project" 
@@ -47,6 +65,13 @@ export async function getProjectByIdAndUser(username: string, projectId: number)
   return foundProject;
 }
 
+/**
+ * Actualiza un proyecto personal existente en una transacción.
+ * Actualiza los datos básicos del proyecto y reemplaza todos sus enlaces.
+ * @param {string} username - Nombre de usuario.
+ * @param {number} projectId - ID del proyecto a actualizar.
+ * @param {ProjectTypes.ProjectInfo} projectInfo - Datos actualizados del proyecto y nuevos enlaces.
+ */
 export async function updatePersonalProject(username: string, projectId: number, projectInfo: ProjectTypes.ProjectInfo) {
   const { description, topic, status, role, imageBuffer, links } = projectInfo;
 
@@ -81,6 +106,10 @@ export async function updatePersonalProject(username: string, projectId: number,
   });
 }
 
+/**
+ * Elimina un proyecto personal y todos sus enlaces asociados en una transacción.
+ * @param {number} projectId - ID del proyecto a eliminar.
+ */
 export async function deletePersonalProject(projectId: number) {
   await processTransaction(async (client: PoolClient) => {
     const oldLinksQuery = "SELECT link_id FROM \"project_link\" WHERE project_id = $1";
@@ -94,6 +123,12 @@ export async function deletePersonalProject(projectId: number) {
   });
 }
 
+/**
+ * Obtiene todos los proyectos públicos de un usuario, incluyendo sus enlaces.
+ * Convierte la imagen binaria a formato base64.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con la lista de proyectos públicos formateados.
+ */
 export async function getPublicProjects(username: string) {
   const query = `
     SELECT 
@@ -126,6 +161,12 @@ export async function getPublicProjects(username: string) {
   return formattedProjects;
 }
 
+/**
+ * Obtiene todos los proyectos (públicos y privados) de un usuario, incluyendo sus enlaces.
+ * Convierte la imagen binaria a formato base64.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con la lista completa de proyectos formateados.
+ */
 export async function getAllUserProjects(username: string) {
   const query = `
     SELECT 
@@ -159,6 +200,11 @@ export async function getAllUserProjects(username: string) {
   return formattedProjects;
 }
 
+/**
+ * Actualiza la visibilidad de múltiples proyectos de forma masiva.
+ * @param {string} username - Nombre de usuario.
+ * @param {Record<string, boolean>} visibilities - Mapa de IDs y estados de visibilidad.
+ */
 export async function updateProjectsVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
   const queries = Object.entries(visibilities).map(([id, isVisible]) => {
     const query = `

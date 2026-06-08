@@ -4,6 +4,11 @@ import pool from "../../src/config/database.config";
 
 dotenv.config();
 
+/**
+ * Solicita confirmación al usuario a través de la consola.
+ * @param {string} question - Pregunta a mostrar al usuario.
+ * @returns {Promise<string>} Respuesta del usuario.
+ */
 async function askTableDeletionConfirmation(question: string): Promise<string> {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -18,6 +23,11 @@ async function askTableDeletionConfirmation(question: string): Promise<string> {
   });
 }
 
+/**
+ * Verifica si existen tablas en el esquema público de la base de datos.
+ * Si no hay tablas, informa que no es posible realizar el reseteo.
+ * @returns {Promise<void>}
+ */
 async function verifyTablesExistence() {
   const { rows } = await pool.query(`
       SELECT COUNT(*) AS count FROM pg_stat_user_tables
@@ -31,6 +41,12 @@ async function verifyTablesExistence() {
   }
 }
 
+/**
+ * Script para resetear completamente la base de datos.
+ * Elimina el esquema público y lo vuelve a crear, borrando todas las tablas y datos.
+ * Incluye protecciones para ambiente de producción y solicita confirmación manual.
+ * @returns {Promise<void>}
+ */
 export async function resetDatabase(): Promise<void> {
   try {
     if (process.env.NODE_ENV === "production") {
@@ -38,9 +54,6 @@ export async function resetDatabase(): Promise<void> {
       await pool.end();
       process.exit(0);
     }
-
-    //const res = await pool.query('SELECT current_user');
-    //console.log('USUARIO ACTUAL:', res.rows[0].current_user);
 
     const question: string = "Confirmar eliminacion completa de datos y tablas de la Base de Datos (Y/N): ";
     const answer = await askTableDeletionConfirmation(question);
@@ -74,4 +87,5 @@ export async function resetDatabase(): Promise<void> {
   }
 }
 
+// Ejecución del script
 resetDatabase();

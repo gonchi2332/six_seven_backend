@@ -7,11 +7,11 @@ en el objeto `process.env` de Node.js. */
 dotenv.config({ path: path.join(process.cwd(), ".env") });
 
 /**
- *La función `getConectionString` devuelve la cadena de conexión de base de datos apropiada según la
- *entorno (de producción o local).
- *@returns La función `getConectionString` devuelve la cadena de conexión de la base de datos según el
- *entorno. Si `NODE_ENV` está configurado en "producción", devuelve el valor de `DB_URL` del
- *variables de entorno. De lo contrario, devuelve el valor de `LOCAL_DB_URL`.
+ * La función `getConectionString` devuelve la cadena de conexión de base de datos apropiada según la
+ * entorno (de producción o local).
+ * @returns La función `getConectionString` devuelve la cadena de conexión de la base de datos según el
+ * entorno. Si `NODE_ENV` está configurado en "producción", devuelve el valor de `DB_URL` del
+ * variables de entorno. De lo contrario, devuelve el valor de `LOCAL_DB_URL`.
  */
 export function getConectionString() {
   const connectionString = process.env.NODE_ENV === "production" ? process.env.DB_URL : process.env.LOCAL_DB_URL;
@@ -29,9 +29,9 @@ const pool = new Pool({
 });
 
 /**
- *La función `getClient` se conecta asincrónicamente a un grupo de bases de datos y devuelve el cliente.
- *@returns La función `getClient` devuelve un objeto de cliente que se obtiene al conectarse a un
- *pool.
+ * La función `getClient` se conecta asincrónicamente a un grupo de bases de datos y devuelve el cliente.
+ * @returns La función `getClient` devuelve un objeto de cliente que se obtiene al conectarse a un
+ * pool.
  */
 export async function getClient() {
   const client = await pool.connect();

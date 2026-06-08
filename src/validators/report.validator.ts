@@ -1,5 +1,12 @@
 import * as TypeValidations from "./shared/type.validator";
 
+/**
+ * Valida la solicitud para obtener reportes analíticos.
+ * Verifica el token de usuario y la presencia del parámetro `period`.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con los parámetros del reporte (period).
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function getReportsValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);

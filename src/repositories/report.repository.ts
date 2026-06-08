@@ -1,5 +1,13 @@
 import { processReturnQuery } from "../utils/query.util";
 
+/**
+ * Obtiene reportes analíticos de las vistas de interfaz para un usuario en un periodo específico.
+ * Agrupa las vistas por interfaz y por el eje de tiempo (día, mes o año) solicitado.
+ * @param {string} username - Nombre de usuario.
+ * @param {"day" | "month" | "year"} period - Periodo del reporte.
+ * @returns Promesa con los datos analíticos (id interfaz, nombre interfaz, eje tiempo, total vistas).
+ * @throws Error si el periodo no es válido.
+ */
 export async function getInterfaceReports(username: string, period: "day" | "month" | "year") {
   // eslint-disable-next-line no-useless-assignment
   let timeFormat = "";

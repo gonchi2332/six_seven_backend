@@ -2,6 +2,14 @@ import { processReturnQuery } from "../utils/query.util";
 import { formatAcademicInfo } from "../helpers/education.helper";
 import * as EducationTypes from "../types/education.types";
 
+/**
+ * Verifica si un registro de formación académica ya existe para un usuario.
+ * Compara el título y la institución (normalizados) asociados al usuario.
+ * @param {EducationTypes.EducationInfo} educationInfo - Datos de la educación (título, institución).
+ * @param {string} username - Nombre de usuario.
+ * @param {"register" | "modify"} action - Acción que se está realizando (para decidir si normalizar).
+ * @returns Promesa que resuelve a `true` si el registro existe, `false` en caso contrario.
+ */
 export async function educationExists(
   educationInfo: EducationTypes.EducationInfo,
   username: string,
@@ -20,6 +28,11 @@ export async function educationExists(
   return !(foundEducations.length === 0);
 }
 
+/**
+ * Obtiene un registro de formación académica por su ID si es visible.
+ * @param {number} id - ID del registro de educación.
+ * @returns Promesa con los datos del registro (título, institución, grado, visibilidad, fecha inicio, estado).
+ */
 export async function getEducation(id: number) {
   const selectQuery = `
     SELECT a.name AS title, a.institution, d.name AS academicDegree,
@@ -32,6 +45,11 @@ export async function getEducation(id: number) {
   return foundEducation;
 }
 
+/**
+ * Crea un nuevo registro de formación académica para un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @param {EducationTypes.EducationInfo} educacionInfo - Datos del registro a crear.
+ */
 export async function createEducation(username: string, educacionInfo: EducationTypes.EducationInfo) {
   const insertQuery = `
     INSERT INTO "academic_training" (name, academic_degree_id, institution, visible, start_date, 
@@ -47,11 +65,17 @@ export async function createEducation(username: string, educacionInfo: Education
   } = educacionInfo;
   const formatedTitle = await formatAcademicInfo(title);
   const formatedInstitution = await formatAcademicInfo(institution);
-  const values = [title, academyDegreeId, institution, true, startDate, username, formatedTitle, 
+  const values = [title, academyDegreeId, institution, true, startDate, username, formatedTitle,
     formatedInstitution, educationState];
   await processReturnQuery(insertQuery, values);
 }
 
+/**
+ * Actualiza un registro de formación académica existente de forma dinámica.
+ * Solo actualiza los campos proporcionados en `educacionInfo`.
+ * @param {EducationTypes.EducationInfo} educacionInfo - Datos actualizados.
+ * @param {number} id - ID del registro a actualizar.
+ */
 export async function updateEducation(
   educacionInfo: EducationTypes.EducationInfo,
   id: number) {
@@ -93,6 +117,11 @@ export async function updateEducation(
   await processReturnQuery(updateQuery, values);
 }
 
+/**
+ * Elimina un registro de formación académica por su ID.
+ * @param {number} educationId - ID del registro a eliminar.
+ * @returns Promesa con el nombre del registro eliminado.
+ */
 export async function deleteEducation(educationId: number) {
   const deleteQuery = `
     DELETE FROM "academic_training"
@@ -103,6 +132,11 @@ export async function deleteEducation(educationId: number) {
   return deletedEducation;
 }
 
+/**
+ * Obtiene todos los registros de formación académica públicos de un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con la lista de registros públicos.
+ */
 export async function getAllPublicUserEducation(username: string) {
   const selectQuery = `
     SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
@@ -115,6 +149,11 @@ export async function getAllPublicUserEducation(username: string) {
   return foundPublicUserEducation;
 }
 
+/**
+ * Obtiene todos los registros de formación académica (públicos y privados) de un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con la lista completa de registros.
+ */
 export async function getAllUserEducation(username: string) {
   const selectQuery = `
     SELECT a.id, a.name AS title, a.institution, d.name AS academicDegree,
@@ -127,6 +166,10 @@ export async function getAllUserEducation(username: string) {
   return foundUserEducations;
 }
 
+/**
+ * Obtiene el catálogo de grados académicos disponibles.
+ * @returns Promesa con la lista de grados académicos (id, name).
+ */
 export async function getAcademicDegrees() {
   const selectQuery = `
     SELECT id, name AS academicDegree
@@ -136,6 +179,11 @@ export async function getAcademicDegrees() {
   return foundAcademicDegree;
 }
 
+/**
+ * Actualiza la visibilidad de múltiples registros de educación de forma masiva.
+ * @param {string} username - Nombre de usuario.
+ * @param {Record<string, boolean>} visibilities - Mapa de IDs y estados de visibilidad.
+ */
 export async function updateEducationVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
   const queries = Object.entries(visibilities).map(([id, isVisible]) => {
     const query = `
@@ -144,7 +192,7 @@ export async function updateEducationVisibilityBulk(username: string, visibiliti
       WHERE id = $2 AND username = $3
     `;
     const values = [isVisible, parseInt(id, 10), username];
-    return processReturnQuery(query, values); 
+    return processReturnQuery(query, values);
   });
   await Promise.all(queries);
 }

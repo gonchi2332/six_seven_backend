@@ -12,6 +12,17 @@ import * as CertificateTypes from "../types/certificate.types";
 import * as NSFWTypes from "../types/nsfw.types";
 import * as SkillRepository from "../repositories/skill.repository";
 
+/**
+ * La función `skillValidation` utiliza inteligencia artificial (Groq) para validar si el nombre
+ * de una habilidad es legítimo dentro del campo de la informática y desarrollo de software.
+ * Además, verifica si coincide con alguna habilidad ya registrada en el sistema mediante aliases
+ * o abreviaciones reconocidas.
+ * @param {string} skillName - Nombre de la habilidad a validar.
+ * @param {"hard" | "soft"} skillType - Tipo de habilidad: "hard" para técnica o "soft" para blanda.
+ * @returns Un objeto `SkillModerationResponse` con `valid` (booleano que indica si la habilidad es válida),
+ * `reason` (motivo de la validación), `canonName` (nombre canónico si coincide con una existente)
+ * y `name` (nombre para mostrar si coincide). En caso de error, retorna `valid: false` con el mensaje de error.
+ */
 export async function skillValidation(skillName: string, skillType: "hard" | "soft") {
   try {
     const skillTypeData = await getSkillTypeData(skillType);
@@ -132,6 +143,15 @@ export async function skillValidation(skillName: string, skillType: "hard" | "so
   }
 }
 
+/**
+ * La función `positionValidation` utiliza inteligencia artificial (Groq) para validar si un puesto
+ * de trabajo es reconocible dentro del ámbito del desarrollo de software, ciencias de la
+ * computación e informática.
+ * @param {string} position - Nombre del puesto de trabajo a validar.
+ * @returns Un objeto `PositionModerationResponse` con `valid` (booleano) y `reason` (motivo).
+ * Retorna `valid: true` si el puesto es válido en el ámbito tecnológico, o `valid: false` con
+ * el motivo del rechazo. En caso de error, retorna `valid: false` con el mensaje de error.
+ */
 export async function positionValidation(position: string) {
   try {
     const prompt = `Puesto de trabajo a validar: "${position}"`;
@@ -184,6 +204,15 @@ export async function positionValidation(position: string) {
   }
 }
 
+/**
+ * La función `academicTitleValidation` utiliza inteligencia artificial (Groq) para validar si
+ * un título académico es coherente con el ámbito de la informática, ciencias de la computación
+ * o desarrollo de software.
+ * @param {string} title - Nombre del título académico a validar.
+ * @returns Un objeto `TitleModerationResponse` con `valid` (booleano) y `reason` (motivo).
+ * Retorna `valid: true` si el título es válido dentro del ámbito tecnológico, o `valid: false`
+ * con el motivo del rechazo. En caso de error, retorna `valid: false` con el mensaje de error.
+ */
 export async function academicTitleValidation(title: string) {
   try {
     const prompt = `Nombre del Título: "${title}"`;
@@ -231,6 +260,15 @@ export async function academicTitleValidation(title: string) {
   }
 }
 
+/**
+ * La función `certificateImageValidation` utiliza inteligencia artificial (OpenRouter con modelo
+ * de visión) para analizar una imagen de certificado, extrayendo el texto visible de la misma
+ * y determinando si contiene contenido válido de un certificado.
+ * @param {Buffer} image - Buffer de la imagen del certificado en formato JPEG.
+ * @returns Un objeto `CertificateModerationResponse` con `valid` (booleano) y `extractedText`
+ * (texto extraído de la imagen). Si la imagen no puede ser procesada o el timeout de 10 segundos
+ * se agota, retorna `valid: false` con texto vacío.
+ */
 export async function certificateImageValidation(image: Buffer) {
   const abortController = new AbortController();
   const timeout = setTimeout(() => abortController.abort(), 10000);
@@ -293,10 +331,17 @@ export async function certificateImageValidation(image: Buffer) {
   }
 }
 
+/**
+ * La función `NSFWImageValidation` utiliza Hugging Face para clasificar una imagen y determinar
+ * si contiene contenido NSFW (Not Safe For Work / contenido inapropiado).
+ * @param {Buffer} image - Buffer de la imagen a analizar.
+ * @returns Un objeto con `valid` (booleano): `true` si la imagen es segura (predicción NSFW ≤ 0.7),
+ * `false` si la imagen contiene contenido inapropiado o si ocurre un error durante la clasificación.
+ */
 export async function NSFWImageValidation(image: Buffer) {
   try {
     const formatedImage = new Blob([image.buffer as ArrayBuffer], { type: "image/jpeg" });
-    
+
     const response = await hf.imageClassification({
       data: formatedImage,
       model: env.HUGGING_FACE_AI_MODEL

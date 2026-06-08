@@ -14,13 +14,20 @@ import reportRoutes from "./report.routes";
 
 const router = Router();
 
+/**
+ * Endpoint de salud del servidor para verificar disponibilidad.
+ * GET /health
+ */
 router.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
-    status: "OK", 
-    message: "Servidor Backend funcionando corretamente..." 
+    status: "OK",
+    message: "Servidor Backend funcionando corretamente..."
   });
 });
 
+/**
+ * Definición de prefijos de rutas para los diferentes módulos del sistema.
+ */
 router.use("/api/v2/auth", AuthRoutes);
 router.use("/api/v2/register", RegisterRoutes);
 router.use("/api/v2/verification", VerificationRoutes);
@@ -34,6 +41,9 @@ router.use("/api/v1/portfolio", EducationRoutes);
 router.use("/api/v1/portfolio", CertificateRoutes);
 router.use("/api/v1/reports", reportRoutes);
 
+/**
+ * Manejador de rutas no encontradas (404).
+ */
 router.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Ruta no encontrada..." });
 });

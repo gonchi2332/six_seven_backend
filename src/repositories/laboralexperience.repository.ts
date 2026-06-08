@@ -1,6 +1,13 @@
 import { processReturnQuery } from "../utils/query.util";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
 
+/**
+ * Verifica si un registro de experiencia laboral ya existe para un usuario.
+ * Compara el puesto, la empresa y la fecha de inicio.
+ * @param {LaboralExpTypes.LaboralExperienceInfo} laboralExperienceInfo - Datos de la experiencia laboral.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa que resuelve a `true` si el registro existe, `false` en caso contrario.
+ */
 export async function laboralExperienceExists(
   laboralExperienceInfo: LaboralExpTypes.LaboralExperienceInfo,
   username: string,) {
@@ -19,6 +26,12 @@ export async function laboralExperienceExists(
   return !(foundLaboralExperience.length === 0);
 }
 
+/**
+ * Obtiene un registro de experiencia laboral por su ID y nombre de usuario.
+ * @param {string} username - Nombre de usuario.
+ * @param {number} id - ID del registro de experiencia laboral.
+ * @returns Promesa con los datos del registro (puesto, empresa, descripción, visibilidad, fechas).
+ */
 export async function getLaboralExperience(username: string, id: number) {
   const selectQuery = `
     SELECT position, company_name, description, visible, start_date, end_date FROM "laboral_experience"
@@ -28,6 +41,11 @@ export async function getLaboralExperience(username: string, id: number) {
   return foundLaboralExperience;
 }
 
+/**
+ * Crea un nuevo registro de experiencia laboral para un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @param {LaboralExpTypes.LaboralExperienceInfo} laboralExperienceInfo - Datos de la experiencia laboral.
+ */
 export async function createLaboralExperience(username: string, laboralExperienceInfo: LaboralExpTypes.LaboralExperienceInfo) {
   const insertQuery = `
     INSERT INTO "laboral_experience" (position, company_name, description, visible, start_date, 
@@ -45,6 +63,13 @@ export async function createLaboralExperience(username: string, laboralExperienc
   await processReturnQuery(insertQuery, values);
 }
 
+/**
+ * Actualiza un registro de experiencia laboral existente de forma dinámica.
+ * Solo actualiza los campos proporcionados en `laboralExperienceInfo`.
+ * @param {string} username - Nombre de usuario.
+ * @param {LaboralExpTypes.LaboralExperienceInfo} laboralExperienceInfo - Datos actualizados.
+ * @param {number} id - ID del registro a actualizar.
+ */
 export async function updateUserLaboralExperience(
   username: string,
   laboralExperienceInfo: LaboralExpTypes.LaboralExperienceInfo,
@@ -107,6 +132,11 @@ export async function updateUserLaboralExperience(
   }
 }
 
+/**
+ * Obtiene todos los registros de experiencia laboral públicos de un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con la lista de registros públicos.
+ */
 export async function getAllPublicUserLaboralExperiences(username: string) {
   const selectQuery = `
     SELECT id, position, company_name, description, visible, start_date, end_date 
@@ -117,6 +147,11 @@ export async function getAllPublicUserLaboralExperiences(username: string) {
   return userLaboralExperiences;
 }
 
+/**
+ * Obtiene todos los registros de experiencia laboral (públicos y privados) de un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con la lista completa de registros.
+ */
 export async function getAllUserLaboralExperiences(username: string) {
   const selectQuery = `
     SELECT id, position, company_name, description, visible, start_date, end_date FROM "laboral_experience"
@@ -126,6 +161,11 @@ export async function getAllUserLaboralExperiences(username: string) {
   return userLaboralExperiences;
 }
 
+/**
+ * Actualiza la visibilidad de múltiples registros de experiencia laboral de forma masiva.
+ * @param {string} username - Nombre de usuario.
+ * @param {Record<string, boolean>} visibilities - Mapa de IDs y estados de visibilidad.
+ */
 export async function updateLaboralExperiencesVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
   const updates = Object.entries(visibilities).map(([id, visible]) => {
     return processReturnQuery(
@@ -136,6 +176,12 @@ export async function updateLaboralExperiencesVisibilityBulk(username: string, v
   await Promise.all(updates);
 }
 
+/**
+ * Elimina un registro de experiencia laboral por su ID y nombre de usuario.
+ * @param {string} username - Nombre de usuario.
+ * @param {number} id - ID del registro a eliminar.
+ * @returns Promesa con el puesto del registro eliminado.
+ */
 export async function deleteLaboralExperience(username: string, id: number) {
   const deleteQuery = `
     DELETE FROM "laboral_experience"

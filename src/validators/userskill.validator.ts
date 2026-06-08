@@ -5,6 +5,14 @@ import * as NumberValidations from "./shared/number.validator";
 import * as ArrayValidations from "./shared/array.validator";
 import * as RegexValidations from "./shared/regex.validator";
 
+/**
+ * Valida la solicitud para registrar una nueva habilidad global (Hard o Soft).
+ * Verifica el token, longitud del nombre, lenguaje inapropiado y caracteres permitidos.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con el nombre de la habilidad.
+ * @param {"hard" | "soft"} skillType - Tipo de habilidad a registrar.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function registerNewSkillValidation(tokenParameter: any, parameters: any, skillType: "hard" | "soft") {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -28,6 +36,13 @@ export function registerNewSkillValidation(tokenParameter: any, parameters: any,
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para asociar una habilidad existente a un usuario.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con el nombre de la habilidad.
+ * @param {"hard" | "soft"} skillType - Tipo de habilidad.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function registerSkillValidation(tokenParameter: any, parameters: any, skillType: "hard" | "soft") {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -49,6 +64,11 @@ export function registerSkillValidation(tokenParameter: any, parameters: any, sk
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la puntuación para una nueva Hard Skill.
+ * @param {any} parameters - Objeto con la puntuación (1-5).
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function registerNewHardSkillValidation(parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters.punctuation, "number");
@@ -61,6 +81,11 @@ export function registerNewHardSkillValidation(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la puntuación para asociar una Hard Skill existente.
+ * @param {any} parameters - Objeto con la puntuación (1-5).
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function registerHardSkillValidation(parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters.punctuation, "number");
@@ -73,6 +98,11 @@ export function registerHardSkillValidation(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud base para ver habilidades de un usuario.
+ * @param {any} parameters - Objeto con el nombre de usuario o token.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function viewSkillsBaseValidation(parameters: any) {
   const arrayParameter = [parameters.username];
   const finalValidation = TypeValidations.validateTokenPayload(parameters) ||
@@ -81,6 +111,12 @@ export function viewSkillsBaseValidation(parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar la puntuación de una Hard Skill de usuario.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con el nombre de la habilidad y la nueva puntuación.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifyHardSkillValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -106,6 +142,12 @@ export function modifyHardSkillValidation(tokenParameter: any, parameters: any) 
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para eliminar una habilidad de usuario.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Objeto con el nombre de la habilidad.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function deleteSkillValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
@@ -124,6 +166,12 @@ export function deleteSkillValidation(tokenParameter: any, parameters: any) {
   return { result: finalValidation, messageState: message };
 }
 
+/**
+ * Valida la solicitud para modificar la visibilidad de habilidades de forma masiva.
+ * @param {any} tokenParameter - Payload del token decodificado.
+ * @param {any} parameters - Mapa de visibilidades.
+ * @returns {Object} Resultado de la validación y mensaje de error.
+ */
 export function modifySkillsVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);

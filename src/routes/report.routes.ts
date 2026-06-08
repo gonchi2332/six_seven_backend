@@ -4,9 +4,14 @@ import * as ReportController from "../controllers/report.controller";
 
 const router = Router();
 
+/**
+ * Ruta para obtener reportes analíticos del usuario autenticado.
+ * Requiere token de autorización.
+ * GET /user
+ */
 router.get(
   "/user",
-  Authorization.tokenAuthorization, 
+  Authorization.tokenAuthorization,
   ReportController.getReports,
 );
 

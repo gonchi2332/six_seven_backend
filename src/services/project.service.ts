@@ -4,6 +4,14 @@ import * as CommonRepository from "../repositories/shared/common.repository";
 import * as ProjectRepository from "../repositories/project.repository";
 import * as AIService from "../services/ai.service";
 
+/**
+ * La función `registerPersonalProject` registra un nuevo proyecto personal para el usuario autenticado.
+ * Parsea los enlaces del proyecto, valida la existencia del usuario, verifica si el proyecto ya existe
+ * y realiza una validación NSFW de la imagen de portada si se proporciona.
+ * @param {TokenTypes.TokenPayload} toknInfo - Información del token del usuario autenticado.
+ * @param {ProjectTypes.ProjectInfo} projectInfo - Datos del proyecto a registrar (nombre, descripción, links, imagen, etc.).
+ * @returns Objeto con `result` (booleano) y `messageState` indicando el éxito o error de la operación.
+ */
 export async function registerPersonalProject(
   toknInfo: TokenTypes.TokenPayload,
   projectInfo: ProjectTypes.ProjectInfo) {
@@ -55,6 +63,15 @@ export async function registerPersonalProject(
   }
 }
 
+/**
+ * La función `modifyPersonalProject` actualiza la información de un proyecto personal existente.
+ * Valida la existencia del usuario, comprueba si el proyecto ya existe (para evitar duplicados),
+ * verifica que el proyecto pertenezca al usuario y realiza validación NSFW de la nueva imagen si se proporciona.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {any} projectIdInfo - Objeto que contiene el `id` del proyecto a modificar.
+ * @param {ProjectTypes.ProjectInfo} projectInfo - Datos actualizados del proyecto.
+ * @returns Objeto con `result` (booleano) y `messageState` indicando el éxito o error de la operación.
+ */
 export async function modifyPersonalProject(
   tokenInfo: TokenTypes.TokenPayload,
   projectIdInfo: any,
@@ -114,7 +131,14 @@ export async function modifyPersonalProject(
   }
 }
 
-export async function deletePersonalProject(tokenInfo:TokenTypes.TokenPayload, projectIdInfo: any) {
+/**
+ * La función `deletePersonalProject` elimina un proyecto personal del usuario autenticado.
+ * Verifica la existencia del usuario y que el proyecto le pertenezca antes de eliminarlo.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {any} projectIdInfo - Objeto que contiene el `id` del proyecto a eliminar.
+ * @returns Objeto con `result` (booleano) y `messageState` indicando el éxito o error de la operación.
+ */
+export async function deletePersonalProject(tokenInfo: TokenTypes.TokenPayload, projectIdInfo: any) {
   try {
     const { username } = tokenInfo;
     const projectId = projectIdInfo.id ? parseInt(projectIdInfo.id as string, 10) : undefined;
@@ -135,10 +159,16 @@ export async function deletePersonalProject(tokenInfo:TokenTypes.TokenPayload, p
   }
 }
 
+/**
+ * La función `getPublicPersonalProjects` recupera todos los proyectos marcados como públicos de un usuario específico.
+ * Registra una vista de interfaz para fines analíticos.
+ * @param {any} publicPersonProjectsInfo - Objeto que contiene el `username` del usuario a consultar.
+ * @returns Objeto con `result`, `messageState` y `data` (lista de proyectos públicos).
+ */
 export async function getPublicPersonalProjects(publicPersonProjectsInfo: any) {
   try {
     const { username } = publicPersonProjectsInfo;
-    
+
     const interfaceId = 6;
     const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
@@ -153,6 +183,11 @@ export async function getPublicPersonalProjects(publicPersonProjectsInfo: any) {
   }
 }
 
+/**
+ * La función `getPrivatePersonalProjects` recupera todos los proyectos (públicos y privados) del usuario autenticado.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @returns Objeto con `result`, `messageState` y `data` (lista completa de proyectos del usuario).
+ */
 export async function getPrivatePersonalProjects(tokenInfo: TokenTypes.TokenPayload) {
   try {
     const { username } = tokenInfo;
@@ -164,6 +199,12 @@ export async function getPrivatePersonalProjects(tokenInfo: TokenTypes.TokenPayl
   }
 }
 
+/**
+ * La función `updateProjectsVisibility` actualiza la visibilidad (público/privado) de múltiples proyectos de forma masiva.
+ * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
+ * @param {ProjectTypes.UpdateProjectsVisibilityInfo} updateProjectsVisibilityInfo - Objeto con `visibilities`, un mapa de IDs y estados.
+ * @returns Objeto con `result` (booleano) y `messageState`.
+ */
 export async function updateProjectsVisibility(
   tokenInfo: TokenTypes.TokenPayload,
   updateProjectsVisibilityInfo: ProjectTypes.UpdateProjectsVisibilityInfo) {

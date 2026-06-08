@@ -2,6 +2,10 @@ import { PoolClient } from "pg";
 import { processReturnQuery, processTransaction } from "../utils/query.util";
 import * as UserTypes from "../types/user.types";
 
+/**
+ * Actualiza el estado `is_new` de un usuario a `FALSE`.
+ * @param {string} username - Nombre de usuario.
+ */
 export async function updateIsNew(username: string) {
   const updateQuery = `
     UPDATE "user" 
@@ -12,6 +16,11 @@ export async function updateIsNew(username: string) {
   return await processReturnQuery(updateQuery, values);
 }
 
+/**
+ * Busca toda la información de un usuario en la tabla "user".
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con los datos del usuario si existe.
+ */
 export async function findUser(username: string) {
   const findQuery = `
     SELECT * FROM "user"
@@ -21,6 +30,15 @@ export async function findUser(username: string) {
   return foundUsers[0];
 }
 
+/**
+ * Crea o actualiza la información personal completa de un usuario en una transacción.
+ * Maneja ciudades, países, fotos de perfil, nombres, apellidos, teléfonos, correos secundarios y visibilidad.
+ * @param {string} username - Nombre de usuario.
+ * @param {string} currentUserNames - Nombres actuales del usuario (por si no se envían nuevos).
+ * @param {string} currentUserFirstSurname - Primer apellido actual.
+ * @param {UserTypes.UserPersonalInfo} userPersonalInfo - Datos personales a registrar/actualizar.
+ * @param {Express.Multer.File | null} profilePicture - Archivo de imagen de perfil opcional.
+ */
 export async function createUser(
   username: string,
   currentUserNames: string,
@@ -95,8 +113,8 @@ export async function createUser(
       profilePictureId = currentProfilePicture.rows[0].id;
     }
 
-    const currentNames = (names) ? names : currentUserNames;//userFounded[0].names;
-    const currentFirstSurname = (firstSurname) ? firstSurname : currentUserFirstSurname;//userFounded[0].first_surname;
+    const currentNames = (names) ? names : currentUserNames;
+    const currentFirstSurname = (firstSurname) ? firstSurname : currentUserFirstSurname;
     const insertQuery = `
       UPDATE "user"
       SET 
@@ -173,6 +191,11 @@ export async function createUser(
   });
 }
 
+/**
+ * Obtiene toda la información personal de un usuario, incluyendo datos de tablas relacionadas.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con los datos personales (nombres, apellidos, teléfono, ciudad, país, correos, foto, visibilidad).
+ */
 export async function getUserPersonalInfo(username: string) {
   const getQuery = `
     SELECT 
@@ -197,6 +220,11 @@ export async function getUserPersonalInfo(username: string) {
   return await processReturnQuery(getQuery, [username]);
 }
 
+/**
+ * Actualiza la visibilidad de los campos de información personal de un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @param {Record<string, boolean>} fieldsToUpdate - Mapa de campos de visibilidad y sus nuevos estados.
+ */
 export async function updatePersonalInfoVisibility(username: string, fieldsToUpdate: Record<string, boolean>) {
   const keys = Object.keys(fieldsToUpdate);
   const values: (boolean | string)[] = Object.values(fieldsToUpdate);

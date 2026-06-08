@@ -2,6 +2,11 @@ import * as fs from "fs";
 import * as path from "path";
 import pool from "../../src/config/database.config";
 
+/**
+ * Verifica si existen tablas en el esquema público de la base de datos.
+ * Si no hay tablas, informa al usuario y finaliza el proceso.
+ * @returns {Promise<void>}
+ */
 async function verifyTablesExistence() {
   const { rows } = await pool.query(`
     SELECT COUNT(*) AS count FROM pg_stat_user_tables
@@ -15,6 +20,11 @@ async function verifyTablesExistence() {
   }
 }
 
+/**
+ * Script para poblar la base de datos con datos iniciales (seed data).
+ * Lee el archivo `seed.psql` y ejecuta las consultas SQL correspondientes.
+ * @returns {Promise<void>}
+ */
 export async function populateDatabase(): Promise<void> {
   try {
     await verifyTablesExistence();
@@ -30,4 +40,5 @@ export async function populateDatabase(): Promise<void> {
   }
 }
 
+// Ejecución del script
 populateDatabase();

@@ -7,17 +7,17 @@ gestionar configuraciones específicas del entorno. */
 dotenv.config();
 
 /**
- *La función `verifyEnvVariables` asegura la presencia de una variable de entorno especificada y
- *devuelve su valor.
- *@param {string} envVar -El parámetro `envVar` es una cadena que representa el nombre del
- *variable de entorno que desea verificar.
- *@param {cadena | undefined} envValue -El parámetro `envValue` en la función `verifyEnvVariables`
- *es una cadena o valor `undefined` que representa el valor predeterminado que se utilizará, si
- *la variable `envVar` no se encuentra o está vacía en el objeto `process.env`.
- *@returns La función `verifyEnvVariables` devuelve el valor de la variable de entorno especificada
- *por `envVar` si existe en el objeto `process.env`. Si la variable de entorno no existe,
- *devuelve el `envValue` proporcionado como alternativa. Si ni la variable de entorno ni el respaldo,
- *el valor está definido, la función arroja un error que indica que falta la variable de entorno.
+ * La función `verifyEnvVariables` asegura la presencia de una variable de entorno especificada y
+ * devuelve su valor.
+ * @param {string} envVar -El parámetro `envVar` es una cadena que representa el nombre del
+ * variable de entorno que desea verificar.
+ * @param {cadena | undefined} envValue -El parámetro `envValue` en la función `verifyEnvVariables`
+ * es una cadena o valor `undefined` que representa el valor predeterminado que se utilizará, si
+ * la variable `envVar` no se encuentra o está vacía en el objeto `process.env`.
+ * @returns La función `verifyEnvVariables` devuelve el valor de la variable de entorno especificada
+ * por `envVar` si existe en el objeto `process.env`. Si la variable de entorno no existe,
+ * devuelve el `envValue` proporcionado como alternativa. Si ni la variable de entorno ni el respaldo,
+ * el valor está definido, la función arroja un error que indica que falta la variable de entorno.
  */
 function verifyEnvVariables(envVar: string, envValue: string | undefined): string {
   const value = process.env[envVar] || envValue;

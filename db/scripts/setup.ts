@@ -2,6 +2,11 @@ import * as fs from "fs";
 import * as path from "path";
 import pool from "../../src/config/database.config";
 
+/**
+ * Verifica si ya existen tablas en el esquema público.
+ * Si existen, sugiere usar el comando de reseteo en lugar de setup.
+ * @returns {Promise<void>}
+ */
 async function verifyTablesExistence() {
   const { rows } = await pool.query(`
       SELECT COUNT(*) AS count FROM pg_stat_user_tables
@@ -15,6 +20,11 @@ async function verifyTablesExistence() {
   }
 }
 
+/**
+ * Script de configuración inicial de la base de datos.
+ * Lee el archivo `schema.psql` y ejecuta las consultas para crear la estructura de tablas.
+ * @returns {Promise<void>}
+ */
 export async function setupDatabase(): Promise<void> {
   try {
     await verifyTablesExistence();
@@ -31,4 +41,5 @@ export async function setupDatabase(): Promise<void> {
   }
 }
 
+// Ejecución del script
 setupDatabase();

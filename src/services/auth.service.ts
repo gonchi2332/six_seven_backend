@@ -8,6 +8,15 @@ import * as AuthTypes from "../types/auth.types";
 import * as CommonRepository from "../repositories/shared/common.repository";
 import * as AuthRepository from "../repositories/auth.repository";
 
+/**
+ * La función `registerUserService` registra un nuevo usuario en el sistema. Verifica que el nombre
+ * de usuario no exista, encripta la contraseña con bcrypt, crea el usuario en la base de datos
+ * con el rol "Usuario" y genera un token de acceso para la sesión inicial.
+ * @param {AuthTypes.RegisterUserServiceInfo} registerUserServiceInfo - Objeto con los datos del
+ * nuevo usuario: username, password, names, firstSurname, secondSurname y mainRegistrationEmail.
+ * @returns Objeto con `result: true`, mensaje de éxito, datos del usuario y token de acceso.
+ * @throws Error con nombre "ConflictError" si el nombre de usuario ya está en uso.
+ */
 export async function registerUserService(registerUserServiceInfo: AuthTypes.RegisterUserServiceInfo) {
   const {
     username,
@@ -46,6 +55,14 @@ export async function registerUserService(registerUserServiceInfo: AuthTypes.Reg
   };
 }
 
+/**
+ * La función `login` autentica a un usuario verificando sus credenciales (username y contraseña).
+ * Si las credenciales son válidas, genera un refresh token que se almacena en la base de datos
+ * y un access token para la sesión. También procesa la foto de perfil del usuario a formato base64.
+ * @param {AuthTypes.LoginUserInfo} loginUserInfo - Objeto con `username` y `password`.
+ * @returns Objeto con los datos del usuario, foto de perfil en base64, access token y refresh token.
+ * @throws Error con nombre "AuthError" si el usuario no existe o la contraseña no coincide.
+ */
 export async function login(loginUserInfo: AuthTypes.LoginUserInfo) {
   const { username, password } = loginUserInfo;
 
@@ -85,6 +102,15 @@ export async function login(loginUserInfo: AuthTypes.LoginUserInfo) {
   };
 }
 
+/**
+ * La función `resetPassword` restablece la contraseña del usuario después de verificar el código
+ * de recuperación. Valida que el código sea válido y no haya expirado, y que la nueva contraseña
+ * sea diferente a la actual. Luego encripta la nueva contraseña y la actualiza en la base de datos.
+ * @param {AuthTypes.ResetPasswordInfo} resetPasswordInfo - Objeto con `username`, `newPassword`
+ * y `verificationCode`.
+ * @throws Error con nombre "AuthError" si el código de verificación es inválido o expirado.
+ * @throws Error con nombre "ConflictError" si la nueva contraseña es igual a la anterior.
+ */
 export async function resetPassword(resetPasswordInfo: AuthTypes.ResetPasswordInfo) {
   const { username, newPassword, verificationCode } = resetPasswordInfo;
 
@@ -108,9 +134,16 @@ export async function resetPassword(resetPasswordInfo: AuthTypes.ResetPasswordIn
   await AuthRepository.updatePasswordAndDeleteCode(username, newHashedPassword);
 }
 
+/**
+ * La función `forgotPasswordService` genera y envía un código de recuperación de contraseña
+ * al correo electrónico registrado del usuario (principal y secundario si existe).
+ * @param {AuthTypes.ForgotPasswordInfo} forgotPasswordInfo - Objeto con `username`.
+ * @returns Objeto con `result: true`, mensaje de éxito y los correos a los que se envió el código.
+ * @throws Error con nombre "NotFoundError" si el nombre de usuario no existe en el sistema.
+ */
 export async function forgotPasswordService(forgotPasswordInfo: AuthTypes.ForgotPasswordInfo) {
   try {
-    const { username } = forgotPasswordInfo; 
+    const { username } = forgotPasswordInfo;
     const users = await CommonRepository.findByUsername(username);
     if (users.length === 0) {
       const error = new Error("El nombre de usuario no existe.");
@@ -143,9 +176,15 @@ export async function forgotPasswordService(forgotPasswordInfo: AuthTypes.Forgot
   }
 }
 
+/**
+ * La función `verifyCodeService` verifica que un código de recuperación de contraseña sea válido
+ * para el usuario indicado, consultando los códigos almacenados en la base de datos.
+ * @param {AuthTypes.VerifyResetCodeInfo} verifyResetCodeInfo - Objeto con `username` y `code`.
+ * @returns `true` si el código es válido y corresponde al usuario, `false` en caso contrario.
+ */
 export async function verifyCodeService(verifyResetCodeInfo: AuthTypes.VerifyResetCodeInfo) {
   const { username, code } = verifyResetCodeInfo;
-  
+
   const users = await CommonRepository.findByUsername(username);
   if (users.length === 0) return false;
 
@@ -153,6 +192,14 @@ export async function verifyCodeService(verifyResetCodeInfo: AuthTypes.VerifyRes
   return result.length > 0;
 }
 
+/**
+ * La función `refreshSession` renueva el access token de un usuario utilizando su refresh token.
+ * Decodifica el refresh token, verifica que exista en la base de datos y que pertenezca al usuario
+ * correcto, y genera un nuevo access token.
+ * @param {AuthTypes.RefreshTokenInfo} refreshTokenInfo - Objeto con `refreshToken`.
+ * @returns Objeto con el nuevo `accessToken`.
+ * @throws Error si el refresh token es inválido o no coincide con el registro en la base de datos.
+ */
 export async function refreshSession(refreshTokenInfo: AuthTypes.RefreshTokenInfo) {
   const { refreshToken } = refreshTokenInfo;
 
@@ -163,7 +210,7 @@ export async function refreshSession(refreshTokenInfo: AuthTypes.RefreshTokenInf
     throw new Error("INVALID_REFRESH_TOKEN");
   }
 
-  const users = await AuthRepository.findUserStateByUserame(tokenRecord.username); 
+  const users = await AuthRepository.findUserStateByUserame(tokenRecord.username);
   const foundUser = users[0];
   const newAccessToken = generateAccessToken({
     username: tokenRecord.username,
@@ -172,6 +219,13 @@ export async function refreshSession(refreshTokenInfo: AuthTypes.RefreshTokenInf
   return { accessToken: newAccessToken };
 }
 
+/**
+ * La función `logoutSession` cierra la sesión del usuario eliminando su refresh token
+ * de la base de datos, invalidando así la posibilidad de renovar el access token.
+ * @param {AuthTypes.RefreshTokenInfo} refreshTokenInfo - Objeto con `refreshToken`.
+ * @returns Objeto con `success: true` si el token fue eliminado correctamente.
+ * @throws Error si el refresh token no se encuentra en la base de datos.
+ */
 export async function logoutSession(refreshTokenInfo: AuthTypes.RefreshTokenInfo) {
   const { refreshToken } = refreshTokenInfo;
 

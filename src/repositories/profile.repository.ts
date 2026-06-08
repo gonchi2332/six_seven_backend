@@ -1,5 +1,10 @@
 import { processReturnQuery } from "../utils/query.util";
 
+/**
+ * Obtiene el enlace de perfil público de un usuario.
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con el `public_profile_link`.
+ */
 export async function getProfileLink(username: string) {
   const querySelect = `
     SELECT public_profile_link FROM "user"
@@ -8,6 +13,11 @@ export async function getProfileLink(username: string) {
   return await processReturnQuery(querySelect, [username]);
 }
 
+/**
+ * Actualiza el enlace de perfil público de un usuario.
+ * @param {string} publicLink - Nuevo hash/enlace público.
+ * @param {string} username - Nombre de usuario.
+ */
 export async function updateProfileLink(publicLink: string, username: string) {
   const queryUpdate = `
     UPDATE "user"
@@ -18,6 +28,10 @@ export async function updateProfileLink(publicLink: string, username: string) {
   return await processReturnQuery(queryUpdate, values);
 }
 
+/**
+ * Obtiene una lista básica de todos los usuarios verificados en el sistema.
+ * @returns Promesa con una lista de objetos conteniendo `username`, `names` y `first_surname`.
+ */
 export async function getAllBasicUsers() {
   const selectQuery = `
     SELECT username, names, first_surname
@@ -29,6 +43,12 @@ export async function getAllBasicUsers() {
   return users;
 }
 
+/**
+ * Verifica la existencia de datos visibles en las diferentes secciones del perfil de un usuario.
+ * Comprueba proyectos, educación, certificados, experiencia laboral y habilidades (técnicas y blandas).
+ * @param {string} username - Nombre de usuario.
+ * @returns Promesa con un objeto conteniendo booleanos para cada sección (`has_projects`, `has_education`, etc.).
+ */
 export async function getUserSectionsVisibility(username: string) {
   const query = `
     SELECT
