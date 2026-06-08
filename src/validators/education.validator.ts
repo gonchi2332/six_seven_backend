@@ -8,7 +8,7 @@ import * as EducationTypes from "../types/education.types";
 
 export function manageEducationValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = ObjectValidations.validateObjectKeys(parameters);
@@ -91,7 +91,7 @@ export function modifyEducationValidation(parameters: any) {
 }
 
 export function handleEducationValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido." : "";
   return { result: finalValidation, messageState: message };
 }
@@ -103,7 +103,7 @@ export function viewPublicEducationValidation(parameters: any) {
 }
 
 export function viewPrivateEducationValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
@@ -116,7 +116,7 @@ export function deleteEducationValidation(parameters: any) {
 
 export function modifyEducationVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido" : message;
 
   const secondValidation = ArrayValidations.validateObjectArray(parameters);

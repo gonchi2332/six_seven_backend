@@ -7,7 +7,7 @@ import * as RegexValidations from "./shared/regex.validator";
 
 export function registerNewSkillValidation(tokenParameter: any, parameters: any, skillType: "hard" | "soft") {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const skillTypeData = getSkillTypeData(skillType);
@@ -30,7 +30,7 @@ export function registerNewSkillValidation(tokenParameter: any, parameters: any,
 
 export function registerSkillValidation(tokenParameter: any, parameters: any, skillType: "hard" | "soft") {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
@@ -74,14 +74,16 @@ export function registerHardSkillValidation(parameters: any) {
 }
 
 export function viewSkillsBaseValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateNonObjectParameterType(parameters, "string");
+  const arrayParameter = [parameters.username];
+  const finalValidation = TypeValidations.validateTokenPayload(parameters) ||
+    TypeValidations.validateArrayParameterType(arrayParameter, "string");
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
 export function modifyHardSkillValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = TypeValidations.validateNonObjectParameterType(parameters.skillName, "string");
@@ -106,7 +108,7 @@ export function modifyHardSkillValidation(tokenParameter: any, parameters: any) 
 
 export function deleteSkillValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario o de habilidad incompletos o invalidos." : message;
 
   const secondValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
@@ -124,7 +126,7 @@ export function deleteSkillValidation(tokenParameter: any, parameters: any) {
 
 export function modifySkillsVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = ArrayValidations.validateObjectArray(parameters);

@@ -47,3 +47,7 @@ export function validateEnum(parameters: any, enumValue: any) {
   const ans = (!Object.values(enumValue).includes(parameters));
   return !ans;
 }
+
+export function validateTokenPayload(token: any) {
+  return !!token?.username && typeof token.username === "string";
+}

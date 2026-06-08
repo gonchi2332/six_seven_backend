@@ -53,7 +53,7 @@ function commonProjectValidations(parameters: any) {
 
 export function registerProjectValidation(tokenParameter: any, parameters: any, imageParameter: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario invalido." : message;
 
   const secondValidation = ImageValidations.imageExists(imageParameter);
@@ -75,7 +75,7 @@ export function registerProjectValidation(tokenParameter: any, parameters: any, 
 
 export function modifyProjectValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario invalido." : message;
 
   const secondValidation = TypeValidations.validateId(parameters);
@@ -90,7 +90,7 @@ export function modifyProjectValidation(tokenParameter: any, parameters: any) {
 
 export function deleteProjectValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario invalido." : message;
 
   const secondValidation = TypeValidations.validateId(parameters);
@@ -101,20 +101,21 @@ export function deleteProjectValidation(tokenParameter: any, parameters: any) {
 }
 
 export function getPublicProjectsValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const arrayParameter = [parameters.username];
+  const finalValidation = TypeValidations.validateArrayParameterType(arrayParameter, "string");
   const message = (!finalValidation) ? "Nombre de usuario inválido" : "";
   return { result: finalValidation, messageState: message };
 }
 
 export function getPrivateProjectsValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario inválido" : "";
   return { result: finalValidation, messageState: message };
 }
 
 export function modifyProjectsVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario invalido." : message;
 
   const secondValidation = ArrayValidations.validateObjectArray(parameters);

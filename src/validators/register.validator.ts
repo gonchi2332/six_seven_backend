@@ -9,7 +9,7 @@ export function handlePersonalInfoRequestValidation(
   parameters: any,
   imageParameter: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = ObjectValidations.validateObjectKeys(parameters);
@@ -44,20 +44,21 @@ export function handlePersonalInfoRequestValidation(
 }
 
 export function viewPublicPersonalInfoValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const arrayParameter = [parameters.username];
+  const finalValidation = TypeValidations.validateArrayParameterType(arrayParameter, "string");
   const message = (!finalValidation) ? "Nombre de usuario inválido" : "";
   return { result: finalValidation, messageState: message };
 }
 
 export function viewPrivatePersonalInfoValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario inválido" : "";
   return { result: finalValidation, messageState: message };
 }
 
 export function modifyPersonalInfoVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario inválido" : message;
 
   const secondValidation = ArrayValidations.validateObjectArray(parameters);

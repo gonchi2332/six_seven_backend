@@ -89,8 +89,7 @@ export async function viewPublicEducation(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const response = await EducationService.viewPublicEducation(
-      req.user as TokenTypes.TokenPayload);
+    const response = await EducationService.viewPublicEducation(req.params);
     if (!response.result) {
       return res.status(400).json({ success: false, message: response.messageState });
     }

@@ -93,7 +93,7 @@ async function handleEducation(
   }
 }
 
-export async function viewPublicEducation(tokenInfo: TokenTypes.TokenPayload) {
+export async function viewPublicEducation(tokenInfo: any) {
   try {
     const { username } = tokenInfo;
 

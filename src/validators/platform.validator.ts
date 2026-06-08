@@ -3,7 +3,7 @@ import * as StringValidations from "./shared/string.validator";
 
 export function saveLinkedinProfileValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido" : message;
 
   const secondValidation = StringValidations.validateTrimedString(parameters);
@@ -18,7 +18,7 @@ export function saveLinkedinProfileValidation(tokenParameter: any, parameters: a
 
 export function saveGithubProfileValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido" : message;
 
   const secondValidation = StringValidations.validateTrimedString(parameters);

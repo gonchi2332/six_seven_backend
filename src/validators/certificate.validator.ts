@@ -11,7 +11,7 @@ export function manageUserCertificateValidation(
   parameters: any,
   imageParameter: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = ObjectValidations.validateObjectKeys(parameters);
@@ -102,14 +102,14 @@ export function viewPublicCertificatesValidation(parameters: any) {
 }
 
 export function viewPrivateCertificatesValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
 export function deleteUserCertificateValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido" : message;
 
   const secondValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
@@ -121,7 +121,7 @@ export function deleteUserCertificateValidation(tokenParameter: any, parameters:
 
 export function modifyCertificatesVisibility(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido" : message;
 
   const secondValidation = ArrayValidations.validateObjectArray(parameters);

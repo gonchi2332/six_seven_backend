@@ -7,7 +7,7 @@ import * as StringValidations from "./shared/string.validator";
 
 export function manageUserLaboralExperienceValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   let arrayParameter = [parameters.position];
@@ -106,14 +106,14 @@ export function viewPublicLaboralExperienceValidation(parameters: any) {
 }
 
 export function viewPrivateLaboralExperienceValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }
 
 export function modifyLaboralExperienceVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = ArrayValidations.validateObjectArray(parameters);
@@ -125,7 +125,7 @@ export function modifyLaboralExperienceVisibilityValidation(tokenParameter: any,
 
 export function deleteUserLaboralExperienceValidation(tokenParameter: any, parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(tokenParameter, "string");
+  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
   const secondValidation = TypeValidations.validateId(parameters);
