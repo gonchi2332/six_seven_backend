@@ -1,92 +1,66 @@
-import { processReturnQuery } from "../utils/query";
+import * as TokenTypes from "../types/token.types";
+import * as PlatformTypes from "../types/platform.types";
+import * as CommonRepository from "../repositories/shared/common.repository";
+import * as PlatformRepository from "../repositories/platform.repository";
 
-export async function saveUserLinkedin(username: string, linkedinUsername: string) {
+export async function saveUserLinkedin(
+  tokenInfo: TokenTypes.TokenPayload,
+  saveUserLinkedinInfo: PlatformTypes.SaveUserLinkedinInfo) {
   try {
-    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
-    if (checkUser.length === 0) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
-    }
-    const platformQuery = "SELECT id FROM \"external_platform\" WHERE name = 'LinkedIn'";
-    const platforms = await processReturnQuery(platformQuery, []);
-    if (platforms.length === 0) {
-      return {
-        result: false,
-        messageState: "La plataforma 'LinkedIn' no está configurada en la base de datos."
-      };
-    }
-    const platformId = platforms[0].id;
-    const upsertQuery = `
-      INSERT INTO "user_platform" (external_platform_id, username, link, visit_count)
-      VALUES ($1, $2, $3, 0)
-      ON CONFLICT (username, external_platform_id) 
-      DO UPDATE SET link = EXCLUDED.link;
-    `;
-    await processReturnQuery(upsertQuery, [platformId, username, linkedinUsername]);
-    return { 
-      result: true, 
-      messageState: "Perfil de LinkedIn guardado correctamente." 
-    };
-  } catch (err) {
-    return { 
-      result: false, 
-      messageState: `Error en el servidor: ${(err as Error).message}` 
-    };
-  }
-}
+    const { username } = tokenInfo;
+    const { linkedinUsername } = saveUserLinkedinInfo;
 
-export async function saveUserGithub(username: string, githubUsername: string) {
-  try {
-    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
-    if (checkUser.length === 0) {
-      return {
-        result: false,
-        messageState: "El usuario no existe"
-      };
-    }
-    const platformQuery = "SELECT id FROM \"external_platform\" WHERE name = 'GitHub'";
-    const platforms = await processReturnQuery(platformQuery, []);
-    if (platforms.length === 0) {
-      return {
-        result: false,
-        messageState: "La plataforma 'GitHub' no está configurada en la base de datos"
-      };
-    }
-    const platformId = platforms[0].id;
-    const upsertQuery = `
-      INSERT INTO "user_platform" (external_platform_id, username, link, visit_count)
-      VALUES ($1, $2, $3, 0)
-      ON CONFLICT (username, external_platform_id) 
-      DO UPDATE SET link = EXCLUDED.link;
-    `;
-    await processReturnQuery(upsertQuery, [platformId, username, githubUsername]);
-    return { 
-      result: true, 
-      messageState: "Perfil de GitHub guardado correctamente" 
-    };
-  } catch (err) {
-    return { 
-      result: false, 
-      messageState: `Error en el servidor: ${(err as Error).message}` 
-    };
-  }
-}
-
-export async function getUserLinkedin(username: string) {
-  try {
-    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
+    const checkUser = await CommonRepository.findByUsername(username);
     if (checkUser.length === 0) {
       return { result: false, messageState: "El usuario no existe." };
     }
-    const getQuery = `
-      SELECT up.link
-      FROM "user_platform" up
-      JOIN "external_platform" ep ON up.external_platform_id = ep.id
-      WHERE up.username = $1 AND ep.name = 'LinkedIn'
-    `;
-    const userPlatforms = await processReturnQuery(getQuery, [username]);
+
+    const platforms = await PlatformRepository.findPlatforms("LinkedIn");
+    if (platforms.length === 0) {
+      return { result: false, messageState: "La plataforma 'LinkedIn' no está configurada en la base de datos." };
+    }
+    const platformId = platforms[0].id;
+    await PlatformRepository.insertOrUpdatePlatform(platformId, username, linkedinUsername);
+    return { result: true, messageState: "Perfil de LinkedIn guardado correctamente." };
+  } catch (err) {
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
+  }
+}
+
+export async function saveUserGithub(
+  tokenInfo: TokenTypes.TokenPayload,
+  saveUserGithubInfo: PlatformTypes.SaveUserGithubinInfo) {
+  try {
+    const { username } = tokenInfo;
+    const { githubUsername } = saveUserGithubInfo;
+
+    const checkUser = await CommonRepository.findByUsername(username);
+    if (checkUser.length === 0) {
+      return { result: false, messageState: "El usuario no existe" };
+    }
+
+    const platforms = await PlatformRepository.findPlatforms("GitHub");
+    if (platforms.length === 0) {
+      return { result: false, messageState: "La plataforma 'GitHub' no está configurada en la base de datos" };
+    }
+    const platformId = platforms[0].id;
+    await PlatformRepository.insertOrUpdatePlatform(platformId, username, githubUsername);
+    return { result: true, messageState: "Perfil de GitHub guardado correctamente" };
+  } catch (err) {
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
+  }
+}
+
+export async function getUserLinkedin(getUserLinkedinInfo: any) {
+  try {
+    const { username } = getUserLinkedinInfo;
+
+    const checkUser = await CommonRepository.findByUsername(username);
+    if (checkUser.length === 0) {
+      return { result: false, messageState: "El usuario no existe." };
+    }
+
+    const userPlatforms = await PlatformRepository.findUserPlatform(username, "LinkedIn");
     if (userPlatforms.length === 0) {
       return { 
         result: true, 
@@ -100,26 +74,20 @@ export async function getUserLinkedin(username: string) {
       linkedinUsername: userPlatforms[0].link 
     };
   } catch (err) {
-    return { 
-      result: false, 
-      messageState: `Error en el servidor: ${(err as Error).message}` 
-    };
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
   }
 }
 
-export async function getUserGithub(username: string) {
+export async function getUserGithub(getUserGithubInfo: any) {
   try {
-    const checkUser = await processReturnQuery("SELECT username FROM \"user\" WHERE username = $1", [username]);
+    const { username } = getUserGithubInfo; 
+
+    const checkUser = await CommonRepository.findByUsername(username);
     if (checkUser.length === 0) {
       return { result: false, messageState: "El usuario no existe" };
     }
-    const getQuery = `
-      SELECT up.link
-      FROM "user_platform" up
-      JOIN "external_platform" ep ON up.external_platform_id = ep.id
-      WHERE up.username = $1 AND ep.name = 'GitHub'
-    `;
-    const userPlatforms = await processReturnQuery(getQuery, [username]);
+
+    const userPlatforms = await PlatformRepository.findUserPlatform(username, "GitHub");
     if (userPlatforms.length === 0) {
       return { 
         result: true, 
@@ -133,9 +101,6 @@ export async function getUserGithub(username: string) {
       githubUsername: userPlatforms[0].link 
     };
   } catch (err) {
-    return { 
-      result: false, 
-      messageState: `Error en el servidor: ${(err as Error).message}` 
-    };
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
   }
 }

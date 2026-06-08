@@ -1,30 +1,20 @@
 import { Request, Response } from "express";
 import * as TokenTypes from "../types/token.types";
+import * as VerificationValidations from "../validators/verification.validator";
 import * as VerificationService from "../services/verification.service";
 
 export async function getUserMail(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-  
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario invalido."
-      });
+    const validations = VerificationValidations.getUserMailValidation(req.user as TokenTypes.TokenPayload);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const { result, messageState, email } = await VerificationService.getUserMail(username);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = await VerificationService.getUserMail(req.user as TokenTypes.TokenPayload);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: messageState,
-      email: email
-    });
+    return res.status(200).json({ success: true, message: response.messageState, email: response.email });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -35,25 +25,20 @@ export async function getUserMail(req: Request, res: Response) {
 
 export async function sendMailVerification(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-  
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario invalido."
-      });
+    const validations = VerificationValidations.sendMailVerificationValidation(
+      req.user as TokenTypes.TokenPayload);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const { result, messageState, email } = await VerificationService.sendMailVerificationCode(username);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = await VerificationService.sendMailVerificationCode(
+      req.user as TokenTypes.TokenPayload);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
     return res.status(200).json({
       success: true,
-      message: `Codigo de verificacion enviado correctamente a ${email}`
+      message: `Codigo de verificacion enviado correctamente a ${response.email}`
     });
   } catch (err) {
     return res.status(500).json({
@@ -65,40 +50,18 @@ export async function sendMailVerification(req: Request, res: Response) {
 
 export async function compareMailCode(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { currentCode } = req.query;
-
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario invalido."
-      });
-    }
-    if (!currentCode || typeof currentCode !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Codigo de verficiacion invalido, error de campos."
-      });
-    }
-    if (currentCode.length != 8) {
-      return res.status(400).json({
-        success: false,
-        message: "El codigo de verificacion introducido no es de 8 digitos."
-      });
+    const validations = VerificationValidations.compareMailCodeValidation(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const { result, messageState } = await VerificationService.compareVerificationMailCodes(username, currentCode);
-
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = await VerificationService.compareVerificationMailCodes(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: `Verificacion de ${username} completada con exito`
-    });
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,

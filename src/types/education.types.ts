@@ -2,7 +2,6 @@ export interface EducationInfo {
   title: string;
   academyDegreeId: number;
   institution: string;
-  //visible: boolean;
   startDate: Date;
   educationState: EducationState;
 }
@@ -19,4 +18,8 @@ export interface AcademicGradeInfo {
 export interface TitleModerationResponse {
   valid: boolean;
   reason: string;
+}
+
+export interface UpdateEducationVisibilityInfo {
+  visibilities: Record<string, boolean>;
 }

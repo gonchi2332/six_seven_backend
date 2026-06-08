@@ -10,3 +10,11 @@ export interface CertificateModerationResponse {
   extractedText?: string;
   reason?: string;
 }
+
+export interface IdInfo {
+  id: number
+}
+
+export interface UpdateCertificatesVisibilityInfo {
+  visibilities: Record<string, boolean>;
+}

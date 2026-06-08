@@ -1,149 +1,90 @@
 import { getEducationAction } from "../helpers/education.helper";
+import * as TokenTypes from "../types/token.types";
 import * as EducationTypes from "../types/education.types";
-import * as Assertions from "../helpers/assertions.helper";
-import * as Selects from "../repositories/selects.helper";
-import * as Inserts from "../helpers/inserts.helper";
-import * as Updates from "../repositories/updates.helper";
-import * as Deletes from "../repositories/deletes.helper";
+import * as CommonRepository from "../repositories/shared/common.repository";
+import * as EducationReporitory from "../repositories/education.repository";
+import * as AIService from "../services/ai.service";
 
 async function manageEducation(
-  username: string,
+  tokenInfo: TokenTypes.TokenPayload,
   educationInfo: EducationTypes.EducationInfo,
   action: "register" | "modify",
   id?: number) {
   try {
-    if (educationInfo.startDate) {
-      educationInfo.startDate = new Date(educationInfo.startDate);
-      if (isNaN(educationInfo.startDate.getTime())) {
-        return {
-          result: false,
-          messageState: "El año de inicio es inválido"
-        };
-      }
-    }
+    const { username } = tokenInfo;
+    const { title } = educationInfo;
 
-    const { startDate } = educationInfo;
-
-    const userExists = await Assertions.userExists(username);
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe"
-      };
+      return { result: false, messageState: "El usuario no existe" };
     }
-
     const educationAction = getEducationAction(action);
-    const educationExists = await Assertions.educationExists(educationInfo, username, action);
+    const educationExists = await EducationReporitory.educationExists(educationInfo, username, action);
     if (educationExists) {
-      return {
-        result: false,
-        messageState: "La formación académica ya existe y está asociada a este usuario"
-      };
+      return { result: false, messageState: "La formación académica ya existe y está asociada a este usuario" };
     }
-
     if (action === "modify") {
-      const foundEducation = await Selects.getEducation(id!);
+      const foundEducation = await EducationReporitory.getEducation(id!);
       if (!foundEducation || foundEducation.length === 0) {
-        return {
-          result: false,
-          messageState: "La educacion educacion consultada no existe"
-        };
+        return { result: false, messageState: "La educacion educacion consultada no existe" };
       }
     }
-
-    if (!startDate) {
-      return {
-        result: false,
-        messageState: "Fecha de inicio o egreso invalida"
-      };
-    }
-    if (startDate) {
-      if (isNaN(startDate.getTime())) {
-        return {
-          result: false,
-          messageState: "Fecha de inicio o egreso invalida"
-        };
-      }
-      if (startDate > new Date()) {
-        return {
-          result: false,
-          messageState: "Fecha de inicio o egreso no puede ser futura"
-        };
-      }
-      if (startDate < new Date(new Date().setFullYear(new Date().getFullYear() - 100))) {
-        return {
-          result: false,
-          messageState: "El año de inicio o egreso tiene que estar dentro del rango de hoy y hace 100 años"
-        };
-      }
-    }
-
-    const validationResult = await educationAction.serviceValidations(educationInfo);
-    if (validationResult && !validationResult.result) {
-      return {
-        result: false,
-        messageState: validationResult.messageState
-      };
+    const response = await AIService.academicTitleValidation(title);
+    if (!response.valid) {
+      return { result: false, messageState: response.reason };
     }
 
     if (action === "register") {
-      await Inserts.createEducation(username, educationInfo);
+      await EducationReporitory.createEducation(username, educationInfo);
     } else {
-      await Updates.updateEducation(educationInfo, id!);
+      await EducationReporitory.updateEducation(educationInfo, id!);
     }
-    return {
-      result: true,
-      messageState: `Educacion ${educationAction.singleWord} exitosamente`
-    };
+    return { result: true, messageState: `Educacion ${educationAction.singleWord} exitosamente` };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }
 
-export async function registerEducation(username: string, educationInfo: EducationTypes.EducationInfo) {
-  return await manageEducation(username, educationInfo, "register");
+export async function registerEducation(
+  tokenInfo: TokenTypes.TokenPayload,
+  educationInfo: EducationTypes.EducationInfo) {
+  return await manageEducation(tokenInfo, educationInfo, "register");
 }
 
 export async function modifyEducation(
-  username: string,
+  tokenInfo: TokenTypes.TokenPayload,
   educationInfo: EducationTypes.EducationInfo,
-  id: number) {
-  return await manageEducation(username, educationInfo, "modify", id);
+  idInfo: any) {
+  const parsedId = idInfo.id ? parseInt(idInfo.id as string, 10) : undefined;
+  return await manageEducation(tokenInfo, educationInfo, "modify", parsedId);
 }
 
 async function handleEducation(
-  username: string,
+  tokenInfo: TokenTypes.TokenPayload,
   action: "view" | "delete",
   id?: number) {
   try {
-    const userExists = await Assertions.userExists(username);
+    const { username } = tokenInfo;
+
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
       return {
         result: false,
         messageState: "El usuario no existe"
       };
     }
-    const educationExperience = await Selects.getEducation(id!);
+    const educationExperience = await EducationReporitory.getEducation(id!);
     if (!educationExperience || educationExperience.length === 0) {
-      return {
-        result: false,
-        messageState: "La educacion consultada no existe"
-      };
+      return { result: false, messageState: "La educacion consultada no existe" };
     }
-    const deletedEducation = await Deletes.deleteEducation(id!);
+    const deletedEducation = await EducationReporitory.deleteEducation(id!);
     if (deletedEducation.length === 0) {
       return {
         result: false,
         messageState: "El registro de educacion a eliminar no esta asociada a este usuario o no existe"
       };
     }
-    return {
-      result: true,
-      messageState: "El registro de educacion se ha eliminado correctamente"
-    };
+    return { result: true, messageState: "El registro de educacion se ha eliminado correctamente" };
   } catch (err) {
     return {
       result: false,
@@ -152,59 +93,45 @@ async function handleEducation(
   }
 }
 
-export async function viewPublicEducation(username: string) {
+export async function viewPublicEducation(tokenInfo: TokenTypes.TokenPayload) {
   try {
+    const { username } = tokenInfo;
+
     const interfaceId = 5;
-    const userExists = await Assertions.userExists(username);
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe"
-      };
+      return { result: false, messageState: "El usuario no existe" };
     }
-    const education = await Selects.getAllPublicUserEducation(username);
-    await Inserts.insertInterfaceView(username, interfaceId);
-    return {
-      result: true,
-      messageState: "Educacion obtenida",
-      education: education
-    };
+
+    const education = await EducationReporitory.getAllPublicUserEducation(username);
+    await CommonRepository.insertInterfaceView(username, interfaceId);
+    return { result: true, messageState: "Educacion obtenida", education: education };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno: ${(err as Error).message}` };
   }
 }
 
-export async function viewPrivateEducation(username: string) {
+export async function viewPrivateEducation(tokenInfo: TokenTypes.TokenPayload) {
   try {
-    const education = await Selects.getAllUserEducation(username);
-    return {
-      result: true,
-      messageState: "Educacion obtenida",
-      education: education
-    };
+    const { username } = tokenInfo;
+
+    const education = await EducationReporitory.getAllUserEducation(username);
+    return { result: true, messageState: "Educacion obtenida", education: education };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno: ${(err as Error).message}` };
   }
 }
 
-export async function deleteEducation(username: string, id: number) {
-  return await handleEducation(username, "delete", id);
+export async function deleteEducation(tokenInfo: TokenTypes.TokenPayload, idInfo: any) {
+  const parsedId = idInfo.id ? parseInt(idInfo.id as string, 10) : undefined;
+  return await handleEducation(tokenInfo, "delete", parsedId);
 }
 
 export async function viewAcademicGrade() {
   try {
-    const educationGrade = await Selects.getAcademicDegrees();
+    const educationGrade = await EducationReporitory.getAcademicDegrees();
     if (!educationGrade || educationGrade.length === 0) {
-      return {
-        result: false,
-        messageState: "No se encontro los registros de grado academico"
-      };
+      return { result: false, messageState: "No se encontro los registros de grado academico" };
     }
     return {
       result: true,
@@ -212,31 +139,24 @@ export async function viewAcademicGrade() {
       educationGrade: educationGrade
     };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }
 
-export async function updateEducationVisibility(username: string, visibilities: Record<string, boolean>) {
+export async function updateEducationVisibility(
+  tokenInfo: TokenTypes.TokenPayload,
+  updateEducationVisibilityInfo: EducationTypes.UpdateEducationVisibilityInfo) {
   try {
-    const userExists = await Assertions.userExists(username);
+    const { username } = tokenInfo;
+    const { visibilities } = updateEducationVisibilityInfo;
+
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
+      return { result: false, messageState: "El usuario no existe." };
     }
-    await Updates.updateEducationVisibilityBulk(username, visibilities);
-    return {
-      result: true,
-      messageState: "Cambios guardados exitosamente"
-    };
+    await EducationReporitory.updateEducationVisibilityBulk(username, visibilities);
+    return { result: true, messageState: "Cambios guardados exitosamente" };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }

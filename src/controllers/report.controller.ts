@@ -1,37 +1,22 @@
 import { Request, Response } from "express";
 import * as TokenTypes from "../types/token.types";
+import * as ReportValidations from "../validators/report.validator";
 import * as ReportService from "../services/report.service";
 
 export async function getReports(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const period = req.query.period as string;
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario inválido"
-      });
+    const validations = ReportValidations.getReportsValidation(
+      req.user as TokenTypes.TokenPayload, req.query.period as string);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    if (!period || typeof period !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "El parametro periodo es requerido"
-      });
+    const response = await ReportService.getReports(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-
-    const reports = await ReportService.getReports(username, period);
-    if (!reports.result) {
-      return res.status(400).json({
-        success: false,
-        message: reports.messageState
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      message: reports.messageState,
-      reports: reports.reports
-    });
+    return res.status(200).json({ success: true, message: response.messageState, reports: response.reports });
   } catch (err) {
     if ((err as Error).message === "INVALID_PERIOD") {
       return res.status(400).json({

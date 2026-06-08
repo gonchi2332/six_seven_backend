@@ -1,11 +1,11 @@
 import Fuse from "fuse.js";
 import * as MeasureConstants from "../utils/constants/measure.constants";
-import * as Selects from "../repositories/selects.helper";
 import * as SkillTypes from "../types/skill.types";
+import * as SkillRepository from "../repositories/skill.repository";
 
 export async function getFuse(skillType: SkillTypes.SkillType) {
   try{
-    const skills = await Selects.getAllSkillsCanonName(skillType);
+    const skills = await SkillRepository.getAllSkillsCanonName(skillType);
     const fuse = new Fuse(skills, { threshold: MeasureConstants.fuseThreshold });
     return fuse;
   } catch (err) {

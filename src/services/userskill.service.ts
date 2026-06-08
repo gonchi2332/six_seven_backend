@@ -1,30 +1,37 @@
 import { getSkillTypeData } from "../helpers/skill.helper";
+import * as MeasureConstants from "../utils/constants/measure.constants";
 import * as SkillTypes from "../types/skill.types";
-import * as Selects from "../repositories/selects.helper";
-import * as Inserts from "../helpers/inserts.helper";
-import * as Updates from "../repositories/updates.helper";
-import * as Deletes from "../repositories/deletes.helper";
-import * as Assertions from "../helpers/assertions.helper";
+import * as TokenTypes from "../types/token.types";
+import * as UserSkillTypes from "../types/userskill.types";
+import * as CommonRepository from "../repositories/shared/common.repository";
+import * as UserSkillRepository from "../repositories/userskill.repository";
 import * as AIService from "./ai.service";
 
 async function registerNewUserSkill(
   username: string,
   skillName: string,
-  canonSkillName: string,
   type: "hard" | "soft",
   punctuation?: number) {
   try {
-    const userExists = await Assertions.userExists(username);
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
+      return { result: false, messageState: "El usuario no existe." };
     }
 
     const skillTypeData = getSkillTypeData(type);
+    const formatedSkillName = skillTypeData.formater(skillName);
 
-    const foundUserSkill = await Selects.getUserSkill(username, skillName, skillTypeData.enum);
+    const resultSkillNames = (await skillTypeData.fuse).search(formatedSkillName);
+    let correctedSkillName: string;
+    if (!resultSkillNames || resultSkillNames.length === 0 || !resultSkillNames[0].score ||
+      resultSkillNames[0].score > MeasureConstants.fuseThreshold) {
+      correctedSkillName = formatedSkillName;
+    } else {
+      correctedSkillName = resultSkillNames[0].item as string;
+    }
+    const newSkillName = correctedSkillName.replace(/^\w/, (c) => c.toUpperCase());
+
+    const foundUserSkill = await UserSkillRepository.getUserSkill(username, newSkillName, skillTypeData.enum);
     if (foundUserSkill.length > 0) {
       return {
         result: false,
@@ -32,23 +39,20 @@ async function registerNewUserSkill(
       };
     }
 
-    const foundSkill = await Selects.getSkill(canonSkillName, skillTypeData.enum);
+    const foundSkill = await UserSkillRepository.getSkill(formatedSkillName, skillTypeData.enum);
     let skillId;
     if (!foundSkill || foundSkill.length === 0) {
-      const { valid, reason, name, canonName } = await AIService.skillValidation(canonSkillName, type);
-      if (!valid) {
-        return {
-          result: false,
-          messageState: reason
-        };
+      const response = await AIService.skillValidation(formatedSkillName, type);
+      if (!response.valid) {
+        return { result: false, messageState: response.reason };
       }
-
       let createdSkill;
-      if (!name || !canonName) {
-        createdSkill = await Inserts.createSkill(skillName, canonSkillName, skillTypeData.enum);
+      if (!response.name || !response.canonName) {
+        createdSkill = await UserSkillRepository.createSkill(newSkillName, formatedSkillName, skillTypeData.enum);
         skillId = createdSkill[0].id;
       } else {
-        const checkedFoundSkill = await Selects.getUserSkill(username, name, skillTypeData.enum);
+        const checkedFoundSkill = await UserSkillRepository.getUserSkill(
+          username, response.name, skillTypeData.enum);
         if (checkedFoundSkill.length > 0) {
           return {
             result: false,
@@ -56,9 +60,10 @@ async function registerNewUserSkill(
           };
         }
 
-        const foundByCanon = await Selects.getSkill(canonName, skillTypeData.enum);
+        const foundByCanon = await UserSkillRepository.getSkill(response.canonName, skillTypeData.enum);
         if (!foundByCanon || foundByCanon.length === 0) {
-          createdSkill = await Inserts.createSkill(skillName, canonSkillName, skillTypeData.enum);
+          createdSkill = await UserSkillRepository.createSkill(
+            newSkillName, formatedSkillName, skillTypeData.enum);
           skillId = createdSkill[0].id;
         } else {
           skillId = foundByCanon[0].id;
@@ -69,35 +74,33 @@ async function registerNewUserSkill(
     }
 
     if (type === "hard") {
-      await Inserts.createUserSkill(skillId, username, punctuation);
+      await UserSkillRepository.createUserSkill(skillId, username, punctuation);
     } else {
-      await Inserts.createUserSkill(skillId, username);
+      await UserSkillRepository.createUserSkill(skillId, username);
     }
     return {
       result: true,
-      messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} existe y se ha registrado correctamente.`
+      messageState: `La habilidad ${skillTypeData.singleWord}: ${newSkillName} se ha registrado correctamente.`
     };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error en el servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
   }
 }
 
 export async function registerNewUserHardSkill(
-  username: string, 
-  skillName: string,
-  canonSkillName: string, 
-  punctuation: number) {
-  return await registerNewUserSkill(username, skillName, canonSkillName, "hard", punctuation);
+  tokenInfo: TokenTypes.TokenPayload, 
+  registerNewUserSkillInfo: UserSkillTypes.RegisterNewUserSkillInfo) {
+  const { username } = tokenInfo;
+  const { skillName, punctuation } = registerNewUserSkillInfo;
+  return await registerNewUserSkill(username, skillName, "hard", punctuation);
 }
 
 export async function registerNewUserSoftSkill(
-  username: string, 
-  skillName: string,
-  canonSkillName: string) {
-  return await registerNewUserSkill(username, skillName, canonSkillName, "soft");
+  tokenInfo: TokenTypes.TokenPayload, 
+  registerNewUserSkillInfo: UserSkillTypes.RegisterNewUserSkillInfo) {
+  const { username } = tokenInfo;
+  const { skillName } = registerNewUserSkillInfo;
+  return await registerNewUserSkill(username, skillName, "soft");
 }
 
 async function registerUserSkill(
@@ -106,25 +109,19 @@ async function registerUserSkill(
   type: "hard" | "soft", 
   punctuation?: number) {
   try {
-    const userExists = await Assertions.userExists(username);
-    if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
-    }
+    const userExists = await CommonRepository.userExists(username);
+    if (!userExists)
+      return { result: false, messageState: "El usuario no existe." };
 
     const skillTypeData = getSkillTypeData(type);
-
-    const foundSkill = await Selects.getSkill(skillName, skillTypeData.enum);
+    const foundSkill = await UserSkillRepository.getSkill(skillName, skillTypeData.enum);
     if (!foundSkill || foundSkill.length === 0) {
       return {
         result: false,
         messageState: `La habilidad ${skillTypeData.singleWord} que se intenta registrar no existe.`
       };
     }
-
-    const foundUserSkill = await Selects.getUserSkill(username, skillName, skillTypeData.enum);
+    const foundUserSkill = await UserSkillRepository.getUserSkill(username, skillName, skillTypeData.enum);
     if (foundUserSkill.length > 0) {
       return {
         result: false,
@@ -134,43 +131,50 @@ async function registerUserSkill(
     
     const skillId = foundSkill[0].id;
     if (type === "hard") {
-      await Inserts.createUserSkill(skillId, username, punctuation);
+      await UserSkillRepository.createUserSkill(skillId, username, punctuation);
     } else {
-      await Inserts.createUserSkill(skillId, username);
+      await UserSkillRepository.createUserSkill(skillId, username);
     }
     return {
       result: true,
       messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha registrado correctamente.`
     };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error en el servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
   }
 }
 
-export async function registerUserHardSkill(username: string, skillName: string, punctuation: number) {
+export async function registerUserHardSkill(
+  tokenInfo: TokenTypes.TokenPayload,
+  registerNewSkillInfo: UserSkillTypes.RegisterNewUserSkillInfo) {
+  const { username } = tokenInfo; 
+  const { skillName, punctuation } = registerNewSkillInfo;
   return await registerUserSkill(username, skillName, "hard", punctuation);
 }
 
-export async function registerUserSoftSkill(username: string, skillName: string) {
+export async function registerUserSoftSkill(
+  tokenInfo: TokenTypes.TokenPayload,
+  registerNewSkillInfo: UserSkillTypes.RegisterNewUserSkillInfo) {
+  const { username } = tokenInfo;
+  const { skillName } = registerNewSkillInfo;
   return await registerUserSkill(username, skillName, "soft");
 }
 
-async function viewUserSkillsBase(username: string, type: "hard" | "soft", isPublic: boolean) {
+async function viewUserSkillsBase(
+  tokenInfo: TokenTypes.TokenPayload | any,
+  type: "hard" | "soft",
+  isPublic: boolean) {
   try {
-    const userExists = await Assertions.userExists(username);
+    const { username } = tokenInfo;  
+
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe"
-      };
+      return { result: false, messageState: "El usuario no existe" };
     }
     const skillTypeData = getSkillTypeData(type);
     const userSkills = isPublic 
-      ? await Selects.getAllPublicUserSkills(username, skillTypeData.enum)
-      : await Selects.getAllUserSkills(username, skillTypeData.enum);
+      ? await UserSkillRepository.getAllPublicUserSkills(username, skillTypeData.enum)
+      : await UserSkillRepository.getAllUserSkills(username, skillTypeData.enum);
     if (userSkills.length === 0) {
       return {
         result: true,
@@ -184,45 +188,42 @@ async function viewUserSkillsBase(username: string, type: "hard" | "soft", isPub
       skills: userSkills
     };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error en el servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
   }
 }
 
-export async function viewPublicUserHardSkills(username: string) {
-  return await viewUserSkillsBase(username, "hard", true);
+export async function viewPublicUserHardSkills(tokenInfo: TokenTypes.TokenPayload | any) {
+  return await viewUserSkillsBase(tokenInfo, "hard", true);
 }
 
-export async function viewPrivateUserHardSkills(username: string) {
-  return await viewUserSkillsBase(username, "hard", false);
+export async function viewPrivateUserHardSkills(tokenInfo: TokenTypes.TokenPayload | any) {
+  return await viewUserSkillsBase(tokenInfo, "hard", false);
 }
 
-export async function viewPublicUserSoftSkills(username: string) {
-  return await viewUserSkillsBase(username, "soft", true);
+export async function viewPublicUserSoftSkills(tokenInfo: TokenTypes.TokenPayload | any) {
+  return await viewUserSkillsBase(tokenInfo, "soft", true);
 }
 
-export async function viewPrivateUserSoftSkills(username: string) {
-  return await viewUserSkillsBase(username, "soft", false);
+export async function viewPrivateUserSoftSkills(tokenInfo: TokenTypes.TokenPayload | any) {
+  return await viewUserSkillsBase(tokenInfo, "soft", false);
 }
 
-export async function modifyUserHardSkill(username: string, skillName: string, newPunctuation: number) {
+export async function modifyUserHardSkill(
+  tokenInfo: TokenTypes.TokenPayload,
+  modifyUserSkillInfo: UserSkillTypes.ModifyUserSkillInfo) {
   try {
-    const userExists = await Assertions.userExists(username); 
+    const { username } = tokenInfo;
+    const { skillName, newPunctuation } = modifyUserSkillInfo;
+
+    const userExists = await CommonRepository.userExists(username); 
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
+      return { result: false, messageState: "El usuario no existe." };
     }
 
-    const foundUserSkill = await Selects.getUserSkill(username, skillName, SkillTypes.SkillType.HARDSKILL);
+    const foundUserSkill = await UserSkillRepository.getUserSkill(
+      username, skillName, SkillTypes.SkillType.HARDSKILL);
     if (foundUserSkill.length === 0) {
-      return {
-        result: false,
-        messageState: "La habilidad tecnica a modificar no esta asociada a este usuario."
-      };
+      return { result: false, messageState: "La habilidad tecnica a modificar no esta asociada a este usuario." };
     }
     if (foundUserSkill[0].punctuation === newPunctuation) {
       return {
@@ -231,11 +232,9 @@ export async function modifyUserHardSkill(username: string, skillName: string, n
       };
     }
 
-    await Updates.updateUserHardSkill(newPunctuation, username, skillName);
+    await UserSkillRepository.updateUserHardSkill(newPunctuation, username, skillName);
     return {
-      result: true,
-      messageState: `Habilidad tecnica de ${username} modificada correctamente.`
-    };
+      result: true, messageState: `Habilidad tecnica de ${username} modificada correctamente.` };
   } catch (err) {
     return {
       result: false,
@@ -244,18 +243,22 @@ export async function modifyUserHardSkill(username: string, skillName: string, n
   }
 }
 
-async function deleteUserSkill(username: string, skillName: string, type: "hard" | "soft") {
+async function deleteUserSkill(
+  tokenInfo: TokenTypes.TokenPayload,
+  deleteUserSkillInfo: UserSkillTypes.DeleteUserSkillInfo,
+  type: "hard" | "soft") {
   try {
-    const userExists = await Assertions.userExists(username);
+    const { username } = tokenInfo;
+    let { skillName } = deleteUserSkillInfo;
+    skillName = skillName.trim();
+
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe"
-      };
+      return { result: false, messageState: "El usuario no existe" };
     }
 
     const skillTypeData = getSkillTypeData(type);
-    const deletedSkill = await Deletes.deleteUserSkill(username, skillName, skillTypeData.enum);
+    const deletedSkill = await UserSkillRepository.deleteUserSkill(username, skillName, skillTypeData.enum);
     if (deletedSkill.length === 0) {
       return {
         result: false,
@@ -267,39 +270,36 @@ async function deleteUserSkill(username: string, skillName: string, type: "hard"
       messageState: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha eliminado correctamente`
     };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error en el servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error en el servidor: ${(err as Error).message}` };
   }
 }
 
-export async function deleteUserHardSkill(username: string, skillName: string) {
-  return await deleteUserSkill(username, skillName, "hard");
+export async function deleteUserHardSkill(
+  tokenInfo: TokenTypes.TokenPayload,
+  deleteUserSkillInfo: UserSkillTypes.DeleteUserSkillInfo) {
+  return await deleteUserSkill(tokenInfo, deleteUserSkillInfo, "hard");
 }
 
-export async function deleteUserSoftSkill(username: string, skillName: string) {
-  return await deleteUserSkill(username, skillName, "soft");
+export async function deleteUserSoftSkill(
+  tokenInfo: TokenTypes.TokenPayload,
+  deleteUserSkillInfo: UserSkillTypes.DeleteUserSkillInfo) {
+  return await deleteUserSkill(tokenInfo, deleteUserSkillInfo, "soft");
 }
 
-export async function updateSkillsVisibility(username: string, visibilities: Record<string, boolean>) {
+export async function updateSkillsVisibility(
+  tokenInfo: TokenTypes.TokenPayload,
+  updateSkillVisibilityInfo: UserSkillTypes.UpdateSkillVisibilityInfo) {
   try {
-    const userExists = await Assertions.userExists(username);
+    const { username } = tokenInfo;
+    const { visibilities } = updateSkillVisibilityInfo;
+
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
+      return { result: false, messageState: "El usuario no existe." };
     }
-    await Updates.updateSkillsVisibilityBulk(username, visibilities);
-    return {
-      result: true,
-      messageState: "Cambios guardados exitosamente"
-    };
+    await UserSkillRepository.updateSkillsVisibilityBulk(username, visibilities);
+    return { result: true, messageState: "Cambios guardados exitosamente" };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }

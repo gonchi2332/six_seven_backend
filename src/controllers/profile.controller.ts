@@ -1,28 +1,26 @@
 import { Request, Response } from "express";
 import * as TokenTypes from "../types/token.types";
+import * as ProfileValidations from "../validators/profile.validator";
 import * as ProfileService from "../services/profile.service";
 
 export async function getOrCreatePublicLink(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload || req.query;
+    const validations = ProfileValidations.getOrCreatePublicLinkValidation(
+      req.user as TokenTypes.TokenPayload || req.query);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
+    }
 
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario invalido."
-      });
+    const response = await ProfileService.getOrCreatePublicLink(
+      req.user as TokenTypes.TokenPayload || req.query);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    const { result, messageState, publicProfileLink } = await ProfileService.getOrCreatePublicLink(username);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
-    }
+    const username = (req.user as TokenTypes.TokenPayload || req.query).username;
     return res.status(200).json({
       success: true,
       message: `Se ha obtenido el enlace del perfil publico de ${username} correctamente.`,
-      userPublicLink: publicProfileLink
+      userPublicLink: response.publicProfileLink
     }); 
   } catch (err) {
     return res.status(500).json({
@@ -36,10 +34,7 @@ export async function getUsersList(req: Request, res: Response) {
   try {
     const response = await ProfileService.getAllPublicUsersList();
     if (!response.result) {
-      return res.status(400).json({ 
-        success: false, 
-        message: response.messageState 
-      });
+      return res.status(400).json({ success: false, message: response.messageState });
     }
     return res.status(200).json({
       success: true,
@@ -56,21 +51,16 @@ export async function getUsersList(req: Request, res: Response) {
 
 export async function viewSectionsVisibility(req: Request, res: Response) {
   try {
-    const { username } = req.params;
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario faltante o inválido"
-      });
+    const validations = ProfileValidations.viewSectionsVisibilityValidation(req.params);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const { result, messageState, sections } = await ProfileService.getSectionsVisibility(username);
-    if (!result) {
-      return res.status(404).json({
-        success: false,
-        message: messageState
-      });
+
+    const response = await ProfileService.getSectionsVisibility(req.params);
+    if (!response.result) {
+      return res.status(404).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json(sections);
+    return res.status(200).json(response.sections);
   } catch (err) {
     return res.status(500).json({
       success: false,

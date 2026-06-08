@@ -1,35 +1,22 @@
 import { Request, Response } from "express";
 import * as TokenTypes from "../types/token.types";
+import * as PlatformValidator from "../validators/platform.validator";
 import * as PlatformService from "../services/platform.service";
 
 export async function saveLinkedinProfile(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    let { linkedinUsername } = req.body;
-    if (!linkedinUsername || typeof linkedinUsername !== "string" || linkedinUsername.trim().length === 0) {
-      return res.status(400).json({ 
-        success: false,
-        message: "El identificador de LinkedIn es obligatorio." 
-      });
+    const validations = PlatformValidator.saveLinkedinProfileValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    linkedinUsername = linkedinUsername.trim();
-    if (linkedinUsername.includes("linkedin.com")) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Por favor ingresa solo tu nombre de usuario, no la URL completa." 
-      });
+
+    const response = await PlatformService.saveUserLinkedin(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    const { result, messageState } = await PlatformService.saveUserLinkedin(username, linkedinUsername);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      message: messageState
-    });
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({ 
       success: false,
@@ -40,32 +27,17 @@ export async function saveLinkedinProfile(req: Request, res: Response) {
 
 export async function saveGithubProfile(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    let { githubUsername } = req.body;
-    if (!githubUsername || typeof githubUsername !== "string" || githubUsername.trim().length === 0) {
-      return res.status(400).json({ 
-        success: false,
-        message: "El identificador de Github es obligatorio" 
-      });
+    const validations = PlatformValidator.saveGithubProfileValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    githubUsername = githubUsername.trim();
-    if (githubUsername.includes("github.com")) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Por favor ingresa solo tu nombre de usuario, no la URL completa." 
-      });
+    const response = await PlatformService.saveUserGithub(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    const { result, messageState } = await PlatformService.saveUserGithub(username, githubUsername);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      message: messageState
-    });
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({ 
       success: false,
@@ -76,30 +48,20 @@ export async function saveGithubProfile(req: Request, res: Response) {
 
 export async function getLinkedinProfile(req: Request, res: Response) {
   try {
-    const { username } = req.params;
-
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario inválido."
-      });
+    const validations = PlatformValidator.getLinkedinProfileValidation(req.params);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const { result, messageState, linkedinUsername } = await PlatformService.getUserLinkedin(username);
-    
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = await PlatformService.getUserLinkedin(req.params);    
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-
     return res.status(200).json({
       success: true,
-      message: messageState,
-      linkedinUsername: linkedinUsername
+      message: response.messageState,
+      linkedinUsername: response.linkedinUsername
     });
-
   } catch (err) {
     return res.status(500).json({ 
       success: false, message: `Error en el servidor: ${(err as Error).message}` 
@@ -109,24 +71,19 @@ export async function getLinkedinProfile(req: Request, res: Response) {
 
 export async function getGithubProfile(req: Request, res: Response) {
   try {
-    const { username } = req.params;
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario inválido"
-      });
+    const validations = PlatformValidator.getLinkedinProfileValidation(req.params);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const { result, messageState, githubUsername } = await PlatformService.getUserGithub(username);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+
+    const response = await PlatformService.getUserGithub(req.params);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
     return res.status(200).json({
       success: true,
-      message: messageState,
-      githubUsername: githubUsername 
+      message: response.messageState,
+      githubUsername: response.githubUsername 
     });
   } catch (err) {
     return res.status(500).json({ 

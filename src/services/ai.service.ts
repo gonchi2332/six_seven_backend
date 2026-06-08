@@ -10,14 +10,14 @@ import * as LaboralExpTypes from "../types/laboralexperience.types";
 import * as EducacionTypes from "../types/education.types";
 import * as CertificateTypes from "../types/certificate.types";
 import * as NSFWTypes from "../types/nsfw.types";
-import * as Selects from "../repositories/selects.helper";
+import * as SkillRepository from "../repositories/skill.repository";
 
 export async function skillValidation(skillName: string, skillType: "hard" | "soft") {
   try {
     const skillTypeData = await getSkillTypeData(skillType);
 
-    const skillsNames = await Selects.getAllSkills(skillTypeData.enum);
-    const skillsCanonNames = await Selects.getAllSkillsCanonName(skillTypeData.enum);
+    const skillsNames = await SkillRepository.getAllSkills(skillTypeData.enum);
+    const skillsCanonNames = await SkillRepository.getAllSkillsCanonName(skillTypeData.enum);
 
     const namesList = skillsNames.map((s) => s.name).join(", ");
     const canonList = skillsCanonNames.map((s) => s.canon_name).join(", ");
@@ -297,19 +297,16 @@ export async function NSFWImageValidation(image: Buffer) {
   try {
     const formatedImage = new Blob([image.buffer as ArrayBuffer], { type: "image/jpeg" });
     
-    //console.log("Iniciando análisis NSFW...");
     const response = await hf.imageClassification({
       data: formatedImage,
       model: env.HUGGING_FACE_AI_MODEL
     }) as NSFWTypes.NSFWModerationResponse[];
 
-    //console.log("Respuesta HF:", response);
     const prediction = response.find(p => p.label === "nsfw")?.score || 0;
     return {
       valid: prediction <= 0.7,
     };
   } catch (err) {
-    //console.error("Error NSFW:", (err as Error).message);
     return {
       valid: false,
       reason: `Error NSFW: ${(err as Error).message}`

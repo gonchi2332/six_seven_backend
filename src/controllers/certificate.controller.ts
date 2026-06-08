@@ -1,51 +1,35 @@
 import { Request, Response } from "express";
 import { getCertificateAction } from "../helpers/certificate.helper";
 import * as TokenTypes from "../types/token.types";
+import * as CertificateValidations from "../validators/certificate.validator";
+import * as ArrayValidations from "../validators/shared/array.validator";
 import * as CertificateService from "../services/certificate.service";
 
 async function manageUserCertificate(
   req: Request,
   res: Response,
   action: "register" | "modify",
-  id?: number) {
+  idInfo?: any) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const certificateInfo = req.body;
-    const coverImage = req.file as Express.Multer.File;
-
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario faltante o invalido."
-      });
-    }
-    if (!certificateInfo || Object.keys(certificateInfo).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Información del certificado faltante o invalida."
-      });
-    }
-    if (!coverImage || (coverImage && !coverImage.mimetype.startsWith("image/"))) {
-      return res.status(400).json({
-        success: false,
-        message: "Imagen de portada invalida."
-      });
+    const validation = await CertificateValidations.manageUserCertificateValidation(
+      req.user as TokenTypes.TokenPayload, req.body, req.file as Express.Multer.File);
+    if (!validation.result) {
+      return res.status(400).json({ success: false, message: validation.messageState });
     }
 
     let ans;
     if (action === "register") {
-      ans = await CertificateService.registerUserCertificate(username, certificateInfo, coverImage);
+      ans = await CertificateService.registerUserCertificate(
+        req.user as TokenTypes.TokenPayload, req.body, req.file as Express.Multer.File);
     } else {
-      ans = await CertificateService.modifyUserCertificate(username, certificateInfo, coverImage, id!);
+      ans = await CertificateService.modifyUserCertificate(
+        req.user as TokenTypes.TokenPayload, req.body, req.file as Express.Multer.File, idInfo!);
     }
 
-    const { result, messageState } = ans;
+    const response = ans;
     const certificateAction = getCertificateAction(action);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
     return res.status(201).json({
       success: true,
@@ -64,35 +48,29 @@ export async function registerUserCertificate(req: Request, res: Response) {
 }
 
 export async function modifyUserCertificate(req: Request, res: Response) {
-  const { id } = req.query;
-  const parsedId = id ? parseInt(id as string, 10) : undefined;
-
-  if (!id || isNaN(parsedId!)) {
-    return res.status(400).json({
-      success: false,
-      message: "Id de certificado invalido."
-    });
+  const validations = CertificateValidations.modifyUserCertificateValidation(req.query);
+  if (!validations.result) {
+    return res.status(400).json({ success: false, message: validations.messageState });
   }
-  return await manageUserCertificate(req, res, "modify", parsedId);
+  return await manageUserCertificate(req, res, "modify", req.query);
 }
 
 export async function viewPublicCertificates(req: Request, res: Response) {
   try {
-    const { username } = req.params;
-    if (!username || typeof username !== "string") {
+    const validations = CertificateValidations.viewPublicCertificatesValidation(req.params);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
+    }
+
+    const response = await CertificateService.viewPublicCertificates(req.params);
+    if (!response.result) {
       return res.status(400).json({
         success: false,
-        message: "Nombre de usuario faltante o invalido"
+        message: response.messageState
       });
     }
-    const { result, messageState, certificates } = await CertificateService.viewPublicCertificates(username);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
-    }
-    if (!certificates || certificates.length === 0) {
+    const arrayValidation = ArrayValidations.validateEmptyArray(response.certificates);
+    if (!arrayValidation) {
       return res.status(200).json({
         success: true,
         message: "El usuario no tiene certificados publicos",
@@ -102,7 +80,7 @@ export async function viewPublicCertificates(req: Request, res: Response) {
     return res.status(200).json({
       success: true,
       message: "Certificados obtenidos exitosamente",
-      certificates: certificates
+      certificates: response.certificates
     });
   } catch (err) {
     return res.status(500).json({
@@ -114,15 +92,17 @@ export async function viewPublicCertificates(req: Request, res: Response) {
 
 export async function viewPrivateCertificates(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { result, messageState, certificates } = await CertificateService.viewPrivateCertificates(username);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const validations = CertificateValidations.viewPrivateCertificatesValidation(req.user as TokenTypes.TokenPayload);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    if (!certificates || certificates.length === 0) {
+
+    const response = await CertificateService.viewPrivateCertificates(req.user as TokenTypes.TokenPayload);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
+    }
+    const arrayValidation = ArrayValidations.validateEmptyArray(response.certificates);
+    if (!arrayValidation) {
       return res.status(200).json({
         success: true,
         message: "No tienes certificados registrados",
@@ -132,7 +112,7 @@ export async function viewPrivateCertificates(req: Request, res: Response) {
     return res.status(200).json({
       success: true,
       message: "Tus certificados se han obtenido exitosamente",
-      certificates: certificates
+      certificates: response.certificates
     });
   } catch (err) {
     return res.status(500).json({
@@ -144,26 +124,18 @@ export async function viewPrivateCertificates(req: Request, res: Response) {
 
 export async function deleteUserCertificate(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { id } = req.query;
-    const parsedId = id ? parseInt(id as string, 10) : undefined;
-    if (!id || isNaN(parsedId!)) {
-      return res.status(400).json({
-        success: false,
-        message: "Id de certificado invalido"
-      });
+    const validations = CertificateValidations.deleteUserCertificateValidation(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const { result, messageState } = await CertificateService.deleteUserCertificate(username, parsedId!);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+
+    const response = await CertificateService.deleteUserCertificate(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: "Certificado eliminado exitosamente"
-    });
+    return res.status(200).json({ success: true, message: "Certificado eliminado exitosamente" });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -174,15 +146,14 @@ export async function deleteUserCertificate(req: Request, res: Response) {
 
 export async function modifyCertificatesVisibility(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { visibilities } = req.body;
-    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
-      return res.status(400).json({
-        success: false,
-        message: "Formato de visibilidad inválido. Se esperaba un objeto."
-      });
+    const validations = CertificateValidations.modifyCertificatesVisibility(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const response = await CertificateService.updateCertificatesVisibility(username, visibilities);
+
+    const response = await CertificateService.updateCertificatesVisibility(
+      req.user as TokenTypes.TokenPayload, req.body);
     if (!response.result) {
       return res.status(400).json({
         success: false,

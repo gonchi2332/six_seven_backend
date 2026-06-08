@@ -1,104 +1,48 @@
 import { Request, Response } from "express";
-import { profanity, uniqueWords, uniqueTrickyWords } from "../config/leoprofanity.config";
-import { containsBadWord } from "../utils/validations";
-import { getSkillTypeData } from "../helpers/skill.helper";
-import * as MeasureConstants from "../utils/constants/measure.constants";
-import * as RegexConstants from "../utils/constants/regex.constants"; 
 import * as TokenTypes from "../types/token.types";
+import * as UserSkillValidations from "../validators/userskill.validator";
+import * as ArrayValidations from "../validators/shared/array.validator";
 import * as UserSkillService from "../services/userskill.service";
 
 async function registerNewSkill(
-  req: Request, 
+  req: Request,
   res: Response,
-  skillType: "hard" | "soft",
-  punctuation?: number) {
+  skillType: "hard" | "soft") {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { skillName } = req.body;
-
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario faltante o invalido."
-      });
-    }
-
-    const skillTypeData = getSkillTypeData(skillType);
-
-    const formatedSkillName = skillTypeData.formater(skillName);
-    if (!formatedSkillName || typeof formatedSkillName !== "string" ||
-      formatedSkillName.length === 0 || formatedSkillName.length > 50) {
-      return res.status(400).json({
-        success: false,
-        message: "El nombre de habilidad supera el limite de caracteres o es invalido."
-      });
-    }
-    if (profanity.check(formatedSkillName) || containsBadWord(formatedSkillName, uniqueWords, uniqueTrickyWords)) {
-      return res.status(400).json({
-        success: false,
-        message: "El nombre de la habilidad es inapropiado."
-      });
-    }
-    const resultSkillNames = (await skillTypeData.fuse).search(formatedSkillName);
-    let correctedSkillName : string;
-    if (!resultSkillNames || resultSkillNames.length === 0 || !resultSkillNames[0].score ||
-      resultSkillNames[0].score > MeasureConstants.fuseThreshold) {
-      correctedSkillName = formatedSkillName; 
-    } else {
-      correctedSkillName = resultSkillNames[0].item as string;
+    const validations = UserSkillValidations.registerNewSkillValidation(
+      req.user as TokenTypes.TokenPayload, req.body, skillType);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
     let ans;
-    const newSkillName = correctedSkillName.replace(/^\w/, (c) => c.toUpperCase());;
     if (skillType === "hard") {
-      if (!punctuation || typeof punctuation !== "number") {
-        return res.status(400).json({
-          success: false,
-          message: "Puntuacion invalida o fuera de rango."
-        });
-      }
-      if (punctuation < 1 || punctuation > 5) {
-        return res.status(400).json({
-          success: false,
-          message: "Puntuacion fuera de rango, la puntuacion debe ser un numero entre 1 y 5."
-        });
-      }
-
-      ans = await UserSkillService.registerNewUserHardSkill(username, newSkillName, correctedSkillName, punctuation);
+      ans = await UserSkillService.registerNewUserHardSkill(
+        req.user as TokenTypes.TokenPayload, req.body);
     } else {
-      if (!RegexConstants.latinAlphabetRegex.test(skillName)) {
-        return res.status(400).json({
-          success: false,
-          message: "Solo se permite caracteres del alfabeto latino."
-        });
-      }
-
-      ans = await UserSkillService.registerNewUserSoftSkill(username, newSkillName, formatedSkillName);
+      ans = await UserSkillService.registerNewUserSoftSkill(
+        req.user as TokenTypes.TokenPayload, req.body);
     }
 
-    const { result, messageState } = ans;
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = ans;
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(201).json({
-      success: true,
-      message: `La habilidad ${skillTypeData.singleWord}: ${newSkillName} se ha registrado correctamente.`
-    });
-
+    return res.status(201).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,
       message: `Error en el servidor: ${(err as Error).message}`
     });
-  } 
+  }
 }
 
 export async function registerNewHardSkill(req: Request, res: Response) {
-  const { punctuation } = req.body;
-  return await registerNewSkill(req, res, "hard", punctuation);
+  const validations = UserSkillValidations.registerNewHardSkillValidation(req.body);
+  if (!validations.result) {
+    return res.status(400).json({ success: false, message: validations.messageState });
+  }
+  return await registerNewSkill(req, res, "hard");
 }
 
 export async function registerNewSoftSkill(req: Request, res: Response) {
@@ -106,67 +50,28 @@ export async function registerNewSoftSkill(req: Request, res: Response) {
 }
 
 async function registerSkill(
-  req: Request, 
+  req: Request,
   res: Response,
-  skillType: "hard" | "soft",
-  punctuation?: number) {
+  skillType: "hard" | "soft") {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { skillName } = req.body;
-
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario faltante o invalido."
-      });
-    }
-    
-    const skillTypeData = getSkillTypeData(skillType);
-
-    if (!skillName || typeof skillName !== "string" || 
-      skillName.length === 0 || skillName.length > 50) {
-      return res.status(400).json({
-        success: false,
-        message: "El nombre de habilidad supera el limite de caracteres o es invalido."
-      });
+    const validations = UserSkillValidations.registerSkillValidation(
+      req.user as TokenTypes.TokenPayload, req.body, skillType);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
     let ans;
     if (skillType === "hard") {
-      if (!punctuation || typeof punctuation !== "number") {
-        return res.status(400).json({
-          success: false,
-          message: "Puntuacion invalida o fuera de rango."
-        });
-      }
-      if (punctuation < 1 || punctuation > 5) {
-        return res.status(400).json({
-          success: false,
-          message: "Puntuacion fuera de rango, la puntuacion debe ser un numero entre 1 y 5."
-        });
-      }
-      ans = await UserSkillService.registerUserHardSkill(username, skillName, punctuation);
+      ans = await UserSkillService.registerUserHardSkill(req.user as TokenTypes.TokenPayload, req.body);
     } else {
-      if (!RegexConstants.latinAlphabetRegex.test(skillName)) {
-        return res.status(400).json({
-          success: false,
-          message: "Solo se permite caracteres del alfabeto latino."
-        });
-      }
-      ans = await UserSkillService.registerUserSoftSkill(username, skillName);
+      ans = await UserSkillService.registerUserSoftSkill(req.user as TokenTypes.TokenPayload, req.body);
     }
 
-    const { result, messageState } = ans;
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = ans;
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(201).json({
-      success: true,
-      message: `La habilidad ${skillTypeData.singleWord}: ${skillName} se ha registrado correctamente.`
-    });
+    return res.status(201).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -176,8 +81,11 @@ async function registerSkill(
 }
 
 export async function registerHardSkill(req: Request, res: Response) {
-  const { punctuation } = req.body;
-  return await registerSkill(req, res, "hard", punctuation);
+  const validations = UserSkillValidations.registerHardSkillValidation(req.body);
+  if (!validations.result) {
+    return res.status(400).json({ success: false, message: validations.messageState });
+  }
+  return await registerSkill(req, res, "hard");
 }
 
 export async function registerSoftSkill(req: Request, res: Response) {
@@ -186,32 +94,33 @@ export async function registerSoftSkill(req: Request, res: Response) {
 
 async function viewSkillsBase(req: Request, res: Response, skillType: "hard" | "soft", isPublic: boolean) {
   try {
-    const username = isPublic ? req.params.username : (req.user as TokenTypes.TokenPayload).username;
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario faltante o invalido"
-      });
+    const validations = UserSkillValidations.viewSkillsBaseValidation(
+      req.params || (req.user as TokenTypes.TokenPayload));
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
+
     const skillTypeWord = (skillType === "hard") ? "tecnicas" : "blandas";
     let ans;
     if (skillType === "hard") {
-      ans = isPublic 
-        ? await UserSkillService.viewPublicUserHardSkills(username)
-        : await UserSkillService.viewPrivateUserHardSkills(username);
+      ans = isPublic
+        ? await UserSkillService.viewPublicUserHardSkills(
+          req.params || (req.user as TokenTypes.TokenPayload))
+        : await UserSkillService.viewPrivateUserHardSkills(
+          req.params || (req.user as TokenTypes.TokenPayload));
     } else {
       ans = isPublic
-        ? await UserSkillService.viewPublicUserSoftSkills(username)
-        : await UserSkillService.viewPrivateUserSoftSkills(username);
+        ? await UserSkillService.viewPublicUserSoftSkills(
+          req.params || (req.user as TokenTypes.TokenPayload))
+        : await UserSkillService.viewPrivateUserSoftSkills(
+          req.params || (req.user as TokenTypes.TokenPayload));
     }
-    const { result, messageState, skills } = ans;
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = ans;
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    if (!skills || skills.length === 0) {
+    const arrayValidation = ArrayValidations.validateEmptyArray(response.skills);
+    if (!arrayValidation) {
       return res.status(200).json({
         success: true,
         message: `El usuario no tiene habilidades ${skillTypeWord} ${isPublic ? "publicas " : ""}registradas`,
@@ -221,7 +130,7 @@ async function viewSkillsBase(req: Request, res: Response, skillType: "hard" | "
     return res.status(200).json({
       success: true,
       message: `Las habilidades ${skillTypeWord} se han obtenido correctamente`,
-      skills: skills
+      skills: response.skills
     });
   } catch (err) {
     return res.status(500).json({
@@ -249,46 +158,17 @@ export async function viewPrivateSoftSkills(req: Request, res: Response) {
 
 export async function modifyHardSkill(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { skillName, newPunctuation } = req.body;
-
-    if (!username || typeof username !== "string" ||
-      !skillName || typeof skillName !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario o de habilidad incompletos o invalidos."
-      });
-    }
-    if (skillName.length === 0 || skillName.length > 50) {
-      return res.status(400).json({
-        success: false,
-        message: "El nombre de habilidad supera el limite de caracteres o es invalido."
-      });
-    }
-    if (!newPunctuation || typeof newPunctuation !== "number") {
-      return res.status(400).json({
-        success: false,
-        message: "Puntuacion invalida."
-      });
-    }
-    if (newPunctuation < 1 || newPunctuation > 5) {
-      return res.status(400).json({
-        success: false,
-        message: "Puntuacion fuera de rango, la puntuacion debe ser un numero entre 1 y 5."
-      });
+    const validations = UserSkillValidations.modifyHardSkillValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const { result, messageState } = await UserSkillService.modifyUserHardSkill(username, skillName, newPunctuation);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = await UserSkillService.modifyUserHardSkill(req.user as TokenTypes.TokenPayload, req.body);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: "Habilidad tecnica modificada correctamente."
-    });
+    return res.status(200).json({ success: true, message: "Habilidad tecnica modificada correctamente." });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -299,42 +179,24 @@ export async function modifyHardSkill(req: Request, res: Response) {
 
 async function deleteSkill(req: Request, res: Response, skillType: "hard" | "soft") {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { skillName } = req.body;
+    const validations = UserSkillValidations.deleteSkillValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
+    } 
 
-    if (!username || typeof username !== "string" ||
-      !skillName || typeof skillName !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario o de habilidad incompletos o invalidos."
-      });
-    }
-    if (skillName.length === 0 || skillName.length > 50) {
-      return res.status(400).json({
-        success: false,
-        message: "El nombre de habilidad supera el limite de caracteres o es invalido."
-      });
-    }
-
-    const skillTypeWord = (skillType === "hard") ? "tecnica" : "blanda";
     let ans;
     if (skillType === "hard") {
-      ans = await UserSkillService.deleteUserHardSkill(username, skillName.trim());
+      ans = await UserSkillService.deleteUserHardSkill(req.user as TokenTypes.TokenPayload, req.body);
     } else {
-      ans = await UserSkillService.deleteUserSoftSkill(username, skillName.trim());
+      ans = await UserSkillService.deleteUserSoftSkill(req.user as TokenTypes.TokenPayload, req.body);
     }
 
-    const { result, messageState } = ans;
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = ans;
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: `La habilidad ${skillTypeWord}: ${skillName} se ha eliminado correctamente.`
-    }); 
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -353,25 +215,18 @@ export async function deleteSoftSkill(req: Request, res: Response) {
 
 export async function modifySkillsVisibility(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { visibilities } = req.body;
-    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
-      return res.status(400).json({
-        success: false,
-        message: "Formato de visibilidad inválido. Se esperaba un objeto."
-      });
+    const validations = UserSkillValidations.modifySkillsVisibilityValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const response = await UserSkillService.updateSkillsVisibility(username, visibilities);
+    
+    const response = await UserSkillService.updateSkillsVisibility(
+      req.user as TokenTypes.TokenPayload, req.body);
     if (!response.result) {
-      return res.status(400).json({
-        success: false,
-        message: response.messageState
-      });
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: response.messageState
-    });
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,

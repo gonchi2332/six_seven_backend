@@ -1,36 +1,18 @@
 import { Request, Response } from "express";
 import * as TokenTypes from "../types/token.types";
+import * as ProjectValidations from "../validators/project.validator";
 import * as ProjectService from "../services/project.service";
-import * as ProjectTypes from "../types/project.types";
 
 export async function registerProject(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    let parsedLinks: ProjectTypes.ProjectLink[] = [];
-    if (req.body.links) {
-      try {
-        parsedLinks = Array.isArray(req.body.links) ? req.body.links : JSON.parse(req.body.links);
-      } catch {
-        parsedLinks = []; 
-      }
+    const validations = ProjectValidations.registerProjectValidation(
+      req.user as TokenTypes.TokenPayload, req.body, req.file);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const projectInfo: ProjectTypes.ProjectInfo = {
-      name: req.body.name,
-      description: req.body.description,
-      status: req.body.status,
-      topic: req.body.topic,
-      role: req.body.role,
-      links: parsedLinks
-    };
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "La imagen del proyecto es requerida"
-      });
-    }
-    projectInfo.imageBuffer = req.file.buffer;
 
-    const ans = await ProjectService.registerPersonalProject(username, projectInfo);
+    const ans = await ProjectService.registerPersonalProject(
+      req.user as TokenTypes.TokenPayload, req.body);
     if (!ans.result) {
       return res.status(400).json({
         success: false,
@@ -51,33 +33,14 @@ export async function registerProject(req: Request, res: Response) {
 
 export async function modifyProject(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { id } = req.query;
-    const projectId = id ? parseInt(id as string, 10) : undefined;
-    if (!projectId || isNaN(projectId)) {
-      return res.status(400).json({
-        success: false,
-        message: "ID de proyecto inválido."
-      });
+    const validations = ProjectValidations.modifyProjectValidation(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    let links: ProjectTypes.ProjectLink[] = [];
-    if (req.body.links) {
-      try {
-        links = Array.isArray(req.body.links) ? req.body.links : JSON.parse(req.body.links);
-      } catch {
-        links = [];
-      }
-    }
-    const projectInfo: ProjectTypes.ProjectInfo = {
-      name: "", // Campo inmutable
-      description: req.body.description,
-      status: req.body.status,
-      topic: req.body.topic,
-      role: req.body.role,
-      links: links,
-      imageBuffer: req.file ? req.file.buffer : undefined
-    };
-    const response = await ProjectService.modifyPersonalProject(username, projectId, projectInfo);
+
+    const response = await ProjectService.modifyPersonalProject(
+      req.user as TokenTypes.TokenPayload, req.query, req.body);
     if (!response.result) {
       return res.status(400).json({
         success: false,
@@ -98,26 +61,18 @@ export async function modifyProject(req: Request, res: Response) {
 
 export async function deleteProject(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { id } = req.query;
-    const projectId = id ? parseInt(id as string, 10) : undefined;
-    if (!projectId || isNaN(projectId)) {
-      return res.status(400).json({
-        success: false,
-        message: "ID de proyecto inválido."
-      });
+    const validations = ProjectValidations.deleteProjectValidation(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const response = await ProjectService.deletePersonalProject(username, projectId);
+
+    const response = await ProjectService.deletePersonalProject(
+      req.user as TokenTypes.TokenPayload, req.query);
     if (!response.result) {
-      return res.status(400).json({
-        success: false,
-        message: response.messageState
-      });
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: response.messageState
-    });
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -128,25 +83,16 @@ export async function deleteProject(req: Request, res: Response) {
 
 export async function getPublicProjects(req: Request, res: Response) {
   try {
-    const { username } = req.params;
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario inválido"
-      });
+    const validations = ProjectValidations.getPublicProjectsValidation(req.params);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const response = await ProjectService.getPublicPersonalProjects(username);
+
+    const response = await ProjectService.getPublicPersonalProjects(req.params);
     if (!response.result) {
-      return res.status(400).json({
-        success: false,
-        message: response.messageState
-      });
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: response.messageState,
-      projects: response.data
-    });
+    return res.status(200).json({ success: true, message: response.messageState, projects: response.data });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -157,21 +103,16 @@ export async function getPublicProjects(req: Request, res: Response) {
 
 export async function getPrivateProjects(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-
-    const response = await ProjectService.getPrivatePersonalProjects(username);
-    
-    if (!response.result) {
-      return res.status(400).json({
-        success: false,
-        message: response.messageState
-      });
+    const validations = ProjectValidations.getPrivateProjectsValidation(req.user as TokenTypes.TokenPayload);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: response.messageState,
-      projects: response.data
-    });
+
+    const response = await ProjectService.getPrivatePersonalProjects(req.user as TokenTypes.TokenPayload);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
+    }
+    return res.status(200).json({ success: true, message: response.messageState, projects: response.data });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -182,25 +123,18 @@ export async function getPrivateProjects(req: Request, res: Response) {
 
 export async function modifyProjectsVisibility(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { visibilities } = req.body; 
-    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
-      return res.status(400).json({
-        success: false,
-        message: "Formato de visibilidad inválido. Se esperaba un objeto."
-      });
+    const validations = ProjectValidations.modifyProjectsVisibilityValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const response = await ProjectService.updateProjectsVisibility(username, visibilities);
+
+    const response = await ProjectService.updateProjectsVisibility(
+      req.user as TokenTypes.TokenPayload, req.body);
     if (!response.result) {
-      return res.status(400).json({
-        success: false,
-        message: response.messageState
-      });
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: response.messageState
-    });
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,

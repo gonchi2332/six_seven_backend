@@ -1,19 +1,18 @@
 import { Request, Response } from "express";
 import { getSkillTypeData } from "../helpers/skill.helper";
+import * as ArrayValidation from "../validators/shared/array.validator";
 import * as SkillService from "../services/skill.service";
 
 async function getAllSkills(req: Request, res: Response, skillType: "hard" | "soft") {
   try {
     const skillTypeData = await getSkillTypeData(skillType);
 
-    const { result, messageState, skills } = await SkillService.getAllSkills(skillType);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    const response = await SkillService.getAllSkills(skillType);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    if (!skills || skills.length === 0) {
+    const arrayValidation = ArrayValidation.validateEmptyArray(response.skills);
+    if (!arrayValidation) {
       return res.status(200).json({
         success: true,
         message: `No existen habilidades ${skillTypeData.pluralWord} registradas en el sistema.`
@@ -22,7 +21,7 @@ async function getAllSkills(req: Request, res: Response, skillType: "hard" | "so
     return res.status(200).json({
       success: true,
       message: `Todas las habilidades ${skillTypeData.pluralWord} registradas se han obtenido correctamente.`,
-      data: skills
+      data: response.skills
     });
   } catch (err) {
     return res.status(500).json({

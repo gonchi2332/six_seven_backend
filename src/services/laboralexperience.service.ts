@@ -1,71 +1,36 @@
 import { getLaboralExpAction } from "../helpers/laboralexperience.helper";
 import * as LaboralExpTypes from "../types/laboralexperience.types";
-import * as Assertions from "../helpers/assertions.helper";
-import * as Selects from "../repositories/selects.helper";
-import * as Inserts from "../helpers/inserts.helper";
-import * as Updates from "../repositories/updates.helper";
-import * as Deletes from "../repositories/deletes.helper";
+import * as TokenTypes from "../types/token.types";
+import * as CommonRepository from "../repositories/shared/common.repository";
+import * as LaboralExpRepository from "../repositories/laboralexperience.repository";
+import * as AIService from "../services/ai.service";
 
 async function manageUserLaboralExperience(
-  username: string, 
+  tokeInfo: TokenTypes.TokenPayload,
   laboralExperienceInfo: LaboralExpTypes.LaboralExperienceInfo,
   action: "register" | "modify",
   id?: number) {
   try {
-    if (laboralExperienceInfo.startDate) {
-      laboralExperienceInfo.startDate = new Date(laboralExperienceInfo.startDate);
-      if (isNaN(laboralExperienceInfo.startDate.getTime())) {
-        return {
-          result: false,
-          messageState: "La fecha de inicio es inválida."
-        };
-      }
-    }
-    if (laboralExperienceInfo.endDate) {
-      laboralExperienceInfo.endDate = new Date(laboralExperienceInfo.endDate);
-      if (isNaN((laboralExperienceInfo.endDate as Date).getTime())) {
-        return {
-          result: false,
-          messageState: "La fecha de fin es inválida." 
-        };
-      }
-    }
-    
-    const { startDate, endDate = null } = laboralExperienceInfo;
+    const { username } = tokeInfo;
+    const { position, startDate, endDate = null } = laboralExperienceInfo;
 
-    const userExists = await Assertions.userExists(username);
+    const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
-      return {
-        result: false,
-        messageState: "El usuario no existe."
-      };
+      return { result: false, messageState: "El usuario no existe." };
     }
-
     const laboralExperienceAction = getLaboralExpAction(action);
-    const laboralExperienceExits = await Assertions.laboralExperienceExists(laboralExperienceInfo, username);
+    const laboralExperienceExits = await LaboralExpRepository.laboralExperienceExists(
+      laboralExperienceInfo, username);
     if (laboralExperienceExits) {
-      return {
-        result: false,
-        messageState: "La experiencia laboral ya existe y está asociada a este usuario"
-      };
+      return { result: false, messageState: "La experiencia laboral ya existe y está asociada a este usuario" };
     }
 
     if (action === "modify") {
-      const foundLaboralExperience = await Selects.getLaboralExperience(username, id!);
+      const foundLaboralExperience = await LaboralExpRepository.getLaboralExperience(username, id!);
       if (!foundLaboralExperience || foundLaboralExperience.length === 0) {
-        return {
-          result: false,
-          messageState: "La experiencia laboral consultada no existe."
-        };
+        return { result: false, messageState: "La experiencia laboral consultada no existe." };
       }
       if (endDate) {
-        if (!(endDate instanceof Date)) {
-          return {
-            result: false,
-            messageState: "La fecha de fin es invalida"
-          };
-        }
-        //const currentStartDate = foundLaboralExperience[0].start_date;
         let currentStartDate;
         if (!laboralExperienceInfo.startDate) {
           currentStartDate = foundLaboralExperience[0].start_date;
@@ -81,12 +46,6 @@ async function manageUserLaboralExperience(
       }
     } else {
       if (endDate) {
-        if (!(endDate instanceof Date)) {
-          return {
-            result: false,
-            messageState: "La fecha de fin es invalida"
-          };
-        }
         if (startDate > endDate) {
           return {
             result: false,
@@ -95,143 +54,108 @@ async function manageUserLaboralExperience(
         }
       }
     }
-
-    const validationResult = await laboralExperienceAction.serviceValidations(laboralExperienceInfo);
-    if (validationResult && !validationResult.result) {
-      return {
-        result: false,
-        messageState: validationResult.messageState
-      };
+    const response = await AIService.positionValidation(position);
+    if (!response.valid) {
+      return { result: false, messageState: response.reason };
     }
-
-    //if (visible && typeof visible !== "boolean") {
-    //  return {
-    //    result: false,
-    //    messageState: "Parametro de visibilidad invalido."
-    //  };
-    //}
 
     if (action === "register") {
-      await Inserts.createLaboralExperience(username, laboralExperienceInfo);
+      await LaboralExpRepository.createLaboralExperience(username, laboralExperienceInfo);
     } else {
-      await Updates.updateUserLaboralExperience(username, laboralExperienceInfo, id!);
+      await LaboralExpRepository.updateUserLaboralExperience(username, laboralExperienceInfo, id!);
     }
-    return {
-      result: true,
-      messageState: `Experiencia laboral ${laboralExperienceAction.singleWord} exitosamente`
-    };   
+    return { result: true, messageState: `Experiencia laboral ${laboralExperienceAction.singleWord} exitosamente` };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }
 
-export async function registerUserLaboralExperience(username: string, laboralExperienceInfo: LaboralExpTypes.LaboralExperienceInfo) {
-  return await manageUserLaboralExperience(username, laboralExperienceInfo, "register");
+export async function registerUserLaboralExperience(
+  tokeInfo: TokenTypes.TokenPayload,
+  laboralExperienceInfo: LaboralExpTypes.LaboralExperienceInfo) {
+  return await manageUserLaboralExperience(tokeInfo, laboralExperienceInfo, "register");
 }
 
 export async function modifyUserLaboralExperience(
-  username: string, 
+  tokeInfo: TokenTypes.TokenPayload,
   laboralExperienceInfo: LaboralExpTypes.LaboralExperienceInfo,
-  id: number) {
-  return await manageUserLaboralExperience(username, laboralExperienceInfo, "modify", id);
+  idInfo: any) {
+  const parsedId = idInfo.id ? parseInt(idInfo.id as string, 10) : undefined;
+  return await manageUserLaboralExperience(tokeInfo, laboralExperienceInfo, "modify", parsedId);
 }
 
-export async function viewPublicLaboralExperience(username: string) {
+export async function viewPublicLaboralExperience(tokeInfo: TokenTypes.TokenPayload) {
   try {
+    const { username } = tokeInfo;
+
     const interfaceId = 4;
-    const userExists = await Assertions.userExists(username);
-    if (!userExists) return {
-      result: false,
-      messageState: "El usuario no existe"
-    };
-    const userLaboralExperiences = await Selects.getAllPublicUserLaboralExperiences(username);
-    await Inserts.insertInterfaceView(username, interfaceId);
+    const userExists = await CommonRepository.userExists(username);
+    if (!userExists) return { result: false, messageState: "El usuario no existe" };
+    const userLaboralExperiences = await LaboralExpRepository.getAllPublicUserLaboralExperiences(username);
+    await CommonRepository.insertInterfaceView(username, interfaceId);
+
+    return { result: true, messageState: "Experiencias obtenidas", laboralExperiences: userLaboralExperiences };
+  } catch (err) {
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
+  }
+}
+
+export async function viewPrivateLaboralExperience(tokeInfo: TokenTypes.TokenPayload) {
+  try {
+    const { username } = tokeInfo;
+
+    const userExists = await CommonRepository.userExists(username);
+    if (!userExists) return { result: false, messageState: "El usuario no existe" };
     
-    return {
-      result: true,
-      messageState: "Experiencias obtenidas",
-      laboralExperiences: userLaboralExperiences
-    };
+    const userLaboralExperiences = await LaboralExpRepository.getAllUserLaboralExperiences(username);
+    return { result: true, messageState: "Experiencias obtenidas", laboralExperiences: userLaboralExperiences };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }
 
-export async function viewPrivateLaboralExperience(username: string) {
+export async function updateLaboralExperienceVisibility(
+  tokeInfo: TokenTypes.TokenPayload,
+  visibilities: Record<string, boolean>) {
   try {
-    const userExists = await Assertions.userExists(username);
-    if (!userExists) return {
-      result: false,
-      messageState: "El usuario no existe"
-    };
-    const userLaboralExperiences = await Selects.getAllUserLaboralExperiences(username);
-    return {
-      result: true, messageState: "Experiencias obtenidas",
-      laboralExperiences: userLaboralExperiences
-    };
+    const { username } = tokeInfo;
+
+    const userExists = await CommonRepository.userExists(username);
+    if (!userExists) 
+      return { result: false, messageState: "El usuario no existe" };
+    
+    await LaboralExpRepository.updateLaboralExperiencesVisibilityBulk(username, visibilities);
+    return { result: true, messageState: "Cambios guardados exitosamente" };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }
 
-export async function updateLaboralExperienceVisibility(username: string, visibilities: Record<string, boolean>) {
+export async function deleteUserLaboralExperience(
+  tokeInfo: TokenTypes.TokenPayload,
+  idInfo: any) {
   try {
-    const userExists = await Assertions.userExists(username);
-    if (!userExists) return {
-      result: false,
-      messageState: "El usuario no existe"
-    };
-    await Updates.updateLaboralExperiencesVisibilityBulk(username, visibilities);
-    return {
-      result: true,
-      messageState: "Cambios guardados exitosamente"
-    };
-  } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
-  }
-}
+    const { username } = tokeInfo;
+    const id = idInfo.id ? parseInt(idInfo.id as string, 10) : undefined;
 
-export async function deleteUserLaboralExperience(username: string, id: number) {
-  try {
-    const userExists = await Assertions.userExists(username);
-    if (!userExists) return {
-      result: false,
-      messageState: "El usuario no existe"
-    };
-    const foundLaboralExperience = await Selects.getLaboralExperience(username, id);
+    const userExists = await CommonRepository.userExists(username);
+    if (!userExists) 
+      return { result: false, messageState: "El usuario no existe" };
+    
+    const foundLaboralExperience = await LaboralExpRepository.getLaboralExperience(username, id!);
     if (!foundLaboralExperience || foundLaboralExperience.length === 0) {
-      return {
-        result: false,
-        messageState: "La experiencia laboral consultada no existe"
-      };
+      return { result: false, messageState: "La experiencia laboral consultada no existe" };
     }
-    const deletedLaboralExperience = await Deletes.deleteLaboralExperience(username, id);
+    
+    const deletedLaboralExperience = await LaboralExpRepository.deleteLaboralExperience(username, id!);
     if (deletedLaboralExperience.length === 0) {
       return {
         result: false,
         messageState: "La experiencia laboral a eliminar no esta asociada a este usuario o no existe"
       };
     }
-    return {
-      result: true,
-      messageState: "La experiencia laboral se ha eliminado correctamente"
-    };
+    return { result: true, messageState: "La experiencia laboral se ha eliminado correctamente" };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error interno del servidor: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
   }
 }

@@ -8,8 +8,11 @@ export interface ProjectInfo {
   description: string;
   topic: string;
   role: string;
-  //visible: boolean;
   status: string;
   links: ProjectLink[];
   imageBuffer?: Buffer;
+}
+
+export interface UpdateProjectsVisibilityInfo {
+  visibilities: Record<string, boolean>;
 }

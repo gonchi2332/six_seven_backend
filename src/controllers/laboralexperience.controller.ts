@@ -1,44 +1,35 @@
 import { Request, Response } from "express";
 import { getLaboralExpAction } from "../helpers/laboralexperience.helper";
 import * as TokenTypes from "../types/token.types";
+import * as LaboralExpValidations from "../validators/laboralexperience.validator";
+import * as ArrayValidations from "../validators/shared/array.validator";
 import * as LaboralExpService from "../services/laboralexperience.service";
 
 async function manageUserLaboralExperience(
   req: Request,
   res: Response,
   action: "register" | "modify",
-  id?: number) {
+  idInfo?: any) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const laboralExperienceInfo = req.body;
-
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario faltante o invalido."
-      });
-    }
-    if (!laboralExperienceInfo || Object.keys(laboralExperienceInfo).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Parametros de informacion laboral del usuario insuficientes."
-      });
+    const validations = LaboralExpValidations.manageUserLaboralExperienceValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
     let ans;
     if (action === "register") {
-      ans = await LaboralExpService.registerUserLaboralExperience(username, laboralExperienceInfo);
+      ans = await LaboralExpService.registerUserLaboralExperience(
+        req.user as TokenTypes.TokenPayload, req.body);
     } else {
-      ans = await LaboralExpService.modifyUserLaboralExperience(username, laboralExperienceInfo, id!);
+      ans = await LaboralExpService.modifyUserLaboralExperience(
+        req.user as TokenTypes.TokenPayload, req.body, idInfo!);
     }
 
-    const { result, messageState } = ans;
+    const response = ans;
     const laboralExperienceAction = getLaboralExpAction(action);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
     return res.status(200).json({
       success: true,
@@ -57,30 +48,26 @@ export async function registerUserLaboralExperience(req: Request, res: Response)
 }
 
 export async function modifyUserLaboralExperience(req: Request, res: Response) {
-  const { id } = req.query;
-  const parsedId = id ? parseInt(id as string, 10) : undefined;
-
-  if (!id || isNaN(parsedId!)) {
-    return res.status(400).json({
-      success: false,
-      message: "Id de experiencia laboral invalido."
-    });
+  const validations = LaboralExpValidations.modifyUserLaboralExperienceValidation(req.query);
+  if (!validations.result) {
+    return res.status(400).json({ success: false, message: validations.messageState });
   }
-  return await manageUserLaboralExperience(req, res, "modify", parsedId);
+  return await manageUserLaboralExperience(req, res, "modify", req.query);
 }
 
 export async function viewPublicLaboralExperience(req: Request, res: Response) {
   try {
-    const { username } = req.params;
-    if (!username || typeof username !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Nombre de usuario faltante o invalido"
-      });
+    const validations = LaboralExpValidations.viewPublicLaboralExperienceValidation(req.params);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const { result, messageState, laboralExperiences } = await LaboralExpService.viewPublicLaboralExperience(username);
-    if (!result) return res.status(400).json({ success: false, message: messageState });
-    if (!laboralExperiences || laboralExperiences.length === 0) {
+
+    const response = await LaboralExpService.viewPublicLaboralExperience(
+      req.user as TokenTypes.TokenPayload);
+    if (!response.result) return res.status(400).json({ success: false, message: response.messageState });
+    
+    const arrayValidation = ArrayValidations.validateEmptyArray(response.laboralExperiences);
+    if (!arrayValidation) {
       return res.status(200).json({
         success: true,
         message: "El usuario no tiene experiencias laborales publicas",
@@ -90,7 +77,7 @@ export async function viewPublicLaboralExperience(req: Request, res: Response) {
     return res.status(200).json({
       success: true,
       message: "Las experiencias laborales se han obtenido correctamente",
-      laboralExperiences: laboralExperiences
+      laboralExperiences: response.laboralExperiences
     });
   } catch (err) {
     return res.status(500).json({
@@ -102,13 +89,18 @@ export async function viewPublicLaboralExperience(req: Request, res: Response) {
 
 export async function viewPrivateLaboralExperience(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { result, messageState, laboralExperiences } = await LaboralExpService.viewPrivateLaboralExperience(username);
-    if (!result) return res.status(400).json({
-      success: false,
-      message: messageState
-    });
-    if (!laboralExperiences || laboralExperiences.length === 0) {
+    const validations = LaboralExpValidations.viewPrivateLaboralExperienceValidation(
+      req.user as TokenTypes.TokenPayload);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
+    }
+
+    const response = await LaboralExpService.viewPrivateLaboralExperience(req.user as TokenTypes.TokenPayload);
+    if (!response.result) 
+      return res.status(400).json({ success: false, message: response.messageState });
+
+    const arrayValidation = ArrayValidations.validateEmptyArray(response.laboralExperiences);
+    if (!arrayValidation) {
       return res.status(200).json({
         success: true,
         message: "No tienes experiencias laborales registradas.",
@@ -118,7 +110,7 @@ export async function viewPrivateLaboralExperience(req: Request, res: Response) 
     return res.status(200).json({
       success: true,
       message: "Tus experiencias laborales se han obtenido correctamente",
-      laboralExperiences: laboralExperiences
+      laboralExperiences: response.laboralExperiences
     });
   } catch (err) {
     return res.status(500).json({
@@ -130,27 +122,18 @@ export async function viewPrivateLaboralExperience(req: Request, res: Response) 
 
 export async function modifyLaboralExperienceVisibility(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { visibilities } = req.body;
-
-    if (!visibilities || typeof visibilities !== "object" || Array.isArray(visibilities)) {
-      return res.status(400).json({
-        success: false,
-        message: "Formato de visibilidad inválido. Se esperaba un objeto."
-      });
+    const validations = LaboralExpValidations.modifyLaboralExperienceVisibilityValidation(
+      req.user as TokenTypes.TokenPayload, req.body);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const response = await LaboralExpService.updateLaboralExperienceVisibility(username, visibilities);
+    const response = await LaboralExpService.updateLaboralExperienceVisibility(
+      req.user as TokenTypes.TokenPayload, req.body);
     if (!response.result) {
-      return res.status(400).json({
-        success: false,
-        message: response.messageState
-      });
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: response.messageState
-    });
+    return res.status(200).json({ success: true, message: response.messageState });
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -161,26 +144,18 @@ export async function modifyLaboralExperienceVisibility(req: Request, res: Respo
 
 export async function deleteUserLaboralExperience(req: Request, res: Response) {
   try {
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const { id } = req.query;
-    const parsedId = id ? parseInt(id as string, 10) : undefined; // por si las moscas, para depurar jsjs
-    if (!id || isNaN(parsedId!)) {
-      return res.status(400).json({
-        success: false,
-        message: "Id de experiencia laboral invalido"
-      });
+    const validations = LaboralExpValidations.deleteUserLaboralExperienceValidation(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!validations.result) {
+      return res.status(400).json({ success: false, message: validations.messageState });
     }
-    const { result, messageState } = await LaboralExpService.deleteUserLaboralExperience(username, parsedId!);
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        message: messageState
-      });
+
+    const response = await LaboralExpService.deleteUserLaboralExperience(
+      req.user as TokenTypes.TokenPayload, req.query);
+    if (!response.result) {
+      return res.status(400).json({ success: false, message: response.messageState });
     }
-    return res.status(200).json({
-      success: true,
-      message: "La experiencia laboral se ha eliminado correctamente"
-    });
+    return res.status(200).json({ success: true, message: "La experiencia laboral se ha eliminado correctamente" });
   } catch (err) {
     return res.status(500).json({
       success: false,

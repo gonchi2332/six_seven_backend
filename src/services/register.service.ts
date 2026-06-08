@@ -1,253 +1,40 @@
 import "../config/env.config";
-import { PoolClient } from "pg";
-import { processTransaction, processReturnQuery } from "../utils/query";
 import * as UserTypes from "../types/user.types";
+import * as TokenTypes from "../types/token.types";
+import * as RegisterTypes from "../types/register.types";
+import * as RegisterRepository from "../repositories/register.repository";
+import * as CommonRepository from "../repositories/shared/common.repository";
 import * as AIService from "../services/ai.service";
-import * as Inserts from "../repositories/inserts.helper";
 
 async function processUserPersonalInfoAction(
-  username: string,
+  tokenInfo: TokenTypes.TokenPayload,
   userPersonalInfo: UserTypes.UserPersonalInfo,
   profilePicture: Express.Multer.File | null,
-  actionLabel: "registra" | "actualiza"
-) {
+  actionLabel: "registra" | "actualiza") {
   try {
-    const {
-      phone = null,
-      names = null,
-      firstSurname = null,
-      secondSurname = null,
-      residenceCity = null,
-      residenceCountry = null,
-      contactEmail = null,
-      secondaryRegistrationEmail = null
-    } = userPersonalInfo;
+    const { username } = tokenInfo;
 
-    let checkQuery = `
-      SELECT names, first_surname, is_new FROM "user" 
-      WHERE username = $1
-    `;
-    const userFounded = await processReturnQuery(checkQuery, [username]);
-
-    if (userFounded.length === 0) {
-      return {
-        result: false,
-        messageState: "Usuario no encontrado."
-      };
+    const userFound = await RegisterRepository.findUser(username);
+    if (!userFound || userFound.length === 0) {
+      return { result: false, messageState: "Usuario no encontrado." };
     }
-    if (userFounded.length > 1) {
-      return {
-        result: false,
-        messageState: "Existen muchos usuarios con la misma identificacion."
-      };
-    }
-
-    const isNew = userFounded[0].is_new;
+    const isNew = userFound[0].is_new;
     if (isNew) {
-      const updateQuery = `
-          update "user" 
-          SET is_new = FALSE
-          where username = $1
-        `;
-      const values = [username];
-      await processReturnQuery(updateQuery, values);
-    }
-
-    const phoneRegex = /^\+?[-\d\s()]{7,15}$/;
-    if (phone && !phoneRegex.test(phone)) {
-      return {
-        result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, numero de telefono invalido.`
-      };
-    }
-    if ((names && typeof names !== "string") ||
-      (firstSurname && typeof firstSurname !== "string") ||
-      (secondSurname && typeof secondSurname !== "string")) {
-      return {
-        result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
-      };
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (contactEmail && !emailRegex.test(contactEmail)) {
-      return {
-        result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, correo de contacto invalido.`
-      };
-    }
-    if (secondaryRegistrationEmail && !emailRegex.test(secondaryRegistrationEmail)) {
-      return {
-        result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido.`
-      };
+      await RegisterRepository.updateIsNew(username);
     }
     if (profilePicture) {
-      const { valid, reason } = await AIService.NSFWImageValidation(profilePicture.buffer);
-      if (!valid) {
-        if (reason) {
-          return {
-            result: false,
-            messageState: reason
-          };
+      const response = await AIService.NSFWImageValidation(profilePicture.buffer);
+      if (!response.valid) {
+        if (response.reason) {
+          return { result: false, messageState: response.reason };
         }
-        return {
-          result: false,
-          messageState: "La foto de perfil contiene contenido obseno"
-        };
+        return { result: false, messageState: "La foto de perfil contiene contenido obseno" };
       }
     }
 
-    await processTransaction<unknown>(async function (client: PoolClient) {
-      let residenceCityId: number | undefined = undefined;
-      if (residenceCity) {
-        if (typeof residenceCity !== "string") {
-          return {
-            return: false,
-            messageState: `No se pudo ${actionLabel}r la informacion, ciudad de residencia invalida.`
-          };
-        }
-        checkQuery = `
-          SELECT id FROM residence_city
-          WHERE name = $1
-        `;
-        const { rows: foundedCities } = await client.query(checkQuery, [residenceCity]);
-        if (foundedCities.length === 0) {
-          const insertionQuery = `
-            INSERT INTO "residence_city" (name)
-            VALUES ($1)
-            RETURNING id
-          `;
-          const { rows: newCity } = await client.query(insertionQuery, [residenceCity]);
-          residenceCityId = newCity[0].id;
-        } else {
-          residenceCityId = foundedCities[0].id;
-        }
-      }
-
-      let residenceCountryId: number | undefined = undefined;
-      if (residenceCountry) {
-        if (typeof residenceCountry !== "string") {
-          return {
-            return: false,
-            messageState: `No se pudo ${actionLabel}r la informacion, pais de residencia invalido.`
-          };
-        }
-        checkQuery = `
-          SELECT id FROM residence_country
-          WHERE name = $1
-        `;
-        const { rows: foundedCountries } = await client.query(checkQuery, [residenceCountry]);
-        if (foundedCountries.length === 0) {
-          const insertionQuery = `
-            INSERT INTO "residence_country" (name)
-            VALUES ($1)
-            RETURNING id
-          `;
-          const { rows: newCountry } = await client.query(insertionQuery, [residenceCountry]);
-          residenceCountryId = newCountry[0].id;
-        } else {
-          residenceCountryId = foundedCountries[0].id;
-        }
-      }
-
-      let profilePictureId: number = 1;
-      if (profilePicture) {
-        checkQuery = `
-          SELECT setval(pg_get_serial_sequence('"profile_picture"', 'id'),
-          (SELECT MAX(id) FROM "profile_picture"));
-        `;
-        await client.query(checkQuery);
-        const insertQuery = `
-          INSERT INTO "profile_picture" (profile_picture)
-          VALUES ($1)
-          RETURNING id
-        `;
-        const currentProfilePicture = await client.query(insertQuery, [profilePicture.buffer]);
-        profilePictureId = currentProfilePicture.rows[0].id;
-      }
-
-      const currentNames = (names) ? names : userFounded[0].names;
-      const currentFirstSurname = (firstSurname) ? firstSurname : userFounded[0].first_surname;
-      const insertQuery = `
-        UPDATE "user"
-        SET 
-          names = $1,
-          first_surname = $2
-        WHERE username = $3
-        `;
-      const values = [currentNames, currentFirstSurname, username];
-      await client.query(insertQuery, values);
-
-      if (secondSurname) {
-        const insertQuery = `
-          INSERT INTO "user_second_surname" (username, second_surname)
-          VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET second_surname = EXCLUDED.second_surname
-      `;
-        const values = [username, secondSurname];
-        await client.query(insertQuery, values);
-      }
-
-      if (phone) {
-        const insertQuery = `
-          INSERT INTO "user_phone_number" (username, phone_number)
-          VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET phone_number = EXCLUDED.phone_number
-        `;
-        const values = [username, phone];
-        await client.query(insertQuery, values);
-      }
-
-      if (residenceCityId) {
-        const insertQuery = `
-          INSERT INTO "user_residence_city" (username, residence_city_id)
-          VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET residence_city_id = EXCLUDED.residence_city_id
-        `;
-        const values = [username, residenceCityId];
-        await client.query(insertQuery, values);
-      }
-
-      if (residenceCountryId) {
-        const insertQuery = `
-          INSERT INTO "user_residence_country" (username, residence_country_id)
-          VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET residence_country_id = EXCLUDED.residence_country_id
-      `;
-        const values = [username, residenceCountryId];
-        await client.query(insertQuery, values);
-      }
-
-      if (contactEmail) {
-        const insertQuery = `
-          INSERT INTO "user_contact_email" (username, contact_email)
-          VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET contact_email = EXCLUDED.contact_email
-        `;
-        const values = [username, contactEmail];
-        await client.query(insertQuery, values);
-      }
-
-      if (secondaryRegistrationEmail) {
-        const insertQuery = `
-          INSERT INTO "user_registration_email" (username, registration_email)
-          VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET registration_email = EXCLUDED.registration_email
-        `;
-        const values = [username, secondaryRegistrationEmail];
-        await client.query(insertQuery, values);
-      }
-
-      if (profilePictureId !== 1) {
-        const insertQuery = `
-          INSERT INTO "user_profile_picture" (username, profile_picture_id)
-          VALUES ($1, $2)
-          ON CONFLICT (username) DO UPDATE SET profile_picture_id = EXCLUDED.profile_picture_id
-        `;
-        const values = [username, profilePictureId];
-        await client.query(insertQuery, values);
-      }
-    });
+    const currentUserNames = userFound.names;
+    const currentUserFirstSurname = userFound.firstSurname;
+    await RegisterRepository.createUser(username, currentUserNames, currentUserFirstSurname, userPersonalInfo, profilePicture);
     return {
       result: true,
       messageState: `Datos de informacion personal del usuario ${actionLabel}dos exitosamente.`
@@ -261,63 +48,34 @@ async function processUserPersonalInfoAction(
 }
 
 export async function registerUserPersonalInfo(
-  username: string,
+  tokenInfo: TokenTypes.TokenPayload,
   userPersonalInfo: UserTypes.UserPersonalInfo,
   profilePicture: Express.Multer.File | null) {
-  return processUserPersonalInfoAction(username, userPersonalInfo, profilePicture, "registra");
+  return processUserPersonalInfoAction(tokenInfo, userPersonalInfo, profilePicture, "registra");
 }
 
 export async function updateUserPersonalInfo(
-  username: string,
+  tokenInfo: TokenTypes.TokenPayload,
   userPersonalInfo: UserTypes.UserPersonalInfo,
   profilePicture: Express.Multer.File | null) {
-  return processUserPersonalInfoAction(username, userPersonalInfo, profilePicture, "actualiza");
+  return processUserPersonalInfoAction(tokenInfo, userPersonalInfo, profilePicture, "actualiza");
 }
 
-export async function viewUserPersonalInfo(username: string) {
+export async function viewUserPersonalInfo(tokenInfo: TokenTypes.TokenPayload) {
   try {
-    const checkQuery = `
-      SELECT username FROM "user"
-      WHERE username = $1
-    `;
-    const userFounded = await processReturnQuery(checkQuery, [username]);
-    if (userFounded.length === 0) {
-      return {
-        result: false,
-        messageState: "Usuario no encontrado."
-      };
+    const { username } = tokenInfo;
+
+    const userFound = await CommonRepository.findByUsername(username);
+    if (!userFound || userFound.length === 0) {
+      return { result: false, messageState: "Usuario no encontrado." };
     }
 
-    const getQuery = `
-      SELECT 
-        u.username, u.is_new, u.state, u.names, u.first_surname, u.main_registration_email, 
-        u.show_name, u.show_contact_email, u.show_phone, u.show_residence,
-        upn.phone_number, umn.second_surname, rci.name AS residence_city_name, 
-        rc.name AS residence_country_name, uce.contact_email, 
-        ure.registration_email, pp.profile_picture
-      FROM "user" u
-      LEFT JOIN "user_phone_number" upn ON u.username = upn.username
-      LEFT JOIN "user_second_surname" umn ON u.username = umn.username
-      LEFT JOIN "user_residence_city" urci ON u.username = urci.username
-      LEFT JOIN "residence_city" rci ON urci.residence_city_id = rci.id
-      LEFT JOIN "user_residence_country" urc ON u.username = urc.username
-      LEFT JOIN "residence_country" rc ON urc.residence_country_id = rc.id
-      LEFT JOIN "user_contact_email" uce ON u.username = uce.username
-      LEFT JOIN "user_registration_email" ure ON u.username = ure.username
-      LEFT JOIN "user_profile_picture" upp ON u.username = upp.username
-      LEFT JOIN "profile_picture" pp ON upp.profile_picture_id = pp.id
-      WHERE u.username = $1
-    `;
-    const values = [username];
-    const usersPersonalInfo = await processReturnQuery(getQuery, values);
-
+    const usersPersonalInfo = await RegisterRepository.getUserPersonalInfo(username);
     let personalInfo = usersPersonalInfo[0];
     const profilePicture = personalInfo.profile_picture;
-    if (profilePicture) {
-      personalInfo.profile_picture = `data:image/jpeg;base64,${profilePicture.toString("base64")}`;
-    } else {
-      personalInfo.profile_picture = null;
-    }
+    personalInfo.profile_picture = (profilePicture)
+      ? `data:image/jpeg;base64,${profilePicture.toString("base64")}`
+      : null;
 
     personalInfo = Object.fromEntries(Object.entries(personalInfo).filter(([, value]) => value !== null));
     return {
@@ -326,18 +84,18 @@ export async function viewUserPersonalInfo(username: string) {
       currentPersonalInfo: personalInfo,
     };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error al acceder a la informacion personal: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error al acceder a la informacion personal: ${(err as Error).message}` };
   }
 }
 
-export async function viewPublicUserPersonalInfo(username: string) {
+export async function viewPublicUserPersonalInfo(viewPersonalInfo: any) {
   try {
+    const { username } = viewPersonalInfo;
     const interfaceId = 1;
+    
     const response = await viewUserPersonalInfo(username);
-    if (!response.result) return response;
+    if (!response.result) 
+      return response;
     const data = response.currentPersonalInfo;
     const publicProfile = {
       username: data.username,
@@ -351,29 +109,30 @@ export async function viewPublicUserPersonalInfo(username: string) {
       residence_country_name: data.show_residence ? data.residence_country_name : undefined,
       main_registration_email: data.main_registration_email
     };
+
     const cleanedProfile = Object.fromEntries(Object.entries(publicProfile).filter(([, value]) => value !== undefined));
-    await Inserts.insertInterfaceView(username, interfaceId);
+    await CommonRepository.insertInterfaceView(username, interfaceId);
     return {
       result: true,
       messageState: `Perfil público de ${username} obtenido correctamente.`,
       currentPersonalInfo: cleanedProfile
     };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error: ${(err as Error).message}` };
   }
 }
 
-export async function updatePersonalInfoVisibility(username: string, visibilities: any) {
+export async function updatePersonalInfoVisibility(
+  tokenInfo: TokenTypes.TokenPayload,
+  updatePersonalInfoVisibilityInfo: RegisterTypes.UpdatePersonalInfoVisibility) {
   try {
-    const checkQuery = "SELECT username FROM \"user\" WHERE username = $1";
-    const userFounded = await processReturnQuery(checkQuery, [username]);
-    if (userFounded.length === 0) return {
-      result: false,
-      messageState: "Usuario no encontrado"
-    };
+    const { username } = tokenInfo;
+    const { visibilities } = updatePersonalInfoVisibilityInfo;
+
+    const userFounded = await CommonRepository.findByUsername(username);
+    if (userFounded.length === 0) 
+      return { result: false, messageState: "Usuario no encontrado" };
+
     const allowedFields = ["show_name", "show_contact_email", "show_phone", "show_residence"];
     const fieldsToUpdate: Record<string, boolean> = {};
     for (const key of allowedFields) {
@@ -382,29 +141,12 @@ export async function updatePersonalInfoVisibility(username: string, visibilitie
       }
     }
     if (Object.keys(fieldsToUpdate).length === 0) {
-      return {
-        result: true,
-        messageState: "No se enviaron campos válidos para actualizar"
-      };
+      return { result: true, messageState: "No se enviaron campos válidos para actualizar" };
     }
-    const keys = Object.keys(fieldsToUpdate);
-    const values: (boolean | string)[] = Object.values(fieldsToUpdate);
-    const setClause = keys.map((key, index) => `"${key}" = $${index + 1}`).join(", ");
-    const query = `
-      UPDATE "user" 
-      SET ${setClause}
-      WHERE username = $${keys.length + 1}
-    `;
-    values.push(username);
-    await processReturnQuery(query, values);
-    return {
-      result: true,
-      messageState: "Cambios guardados exitosamente"
-    };
+    
+    await RegisterRepository.updatePersonalInfoVisibility(username, fieldsToUpdate);
+    return { result: true, messageState: "Cambios guardados exitosamente" };
   } catch (err) {
-    return {
-      result: false,
-      messageState: `Error: ${(err as Error).message}`
-    };
+    return { result: false, messageState: `Error: ${(err as Error).message}` };
   }
 }

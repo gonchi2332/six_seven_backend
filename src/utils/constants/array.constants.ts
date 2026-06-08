@@ -1,11 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const spanishBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/ESP.txt"), "utf-8");
-const mexicanBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/MEX.txt"), "utf-8");
-const argentinianBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/ARG.txt"), "utf-8");
-const bolivianBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/BOL.txt"), "utf-8");
-const englishBadWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/ENG.txt"), "utf-8");
+const spanishBadWords = fs.readFileSync(path.join(__dirname, "../../resources/profanity/ESP.txt"), "utf-8");
+const mexicanBadWords = fs.readFileSync(path.join(__dirname, "../../resources/profanity/MEX.txt"), "utf-8");
+const argentinianBadWords = fs.readFileSync(path.join(__dirname, "../../resources/profanity/ARG.txt"), "utf-8");
+const bolivianBadWords = fs.readFileSync(path.join(__dirname, "../../resources/profanity/BOL.txt"), "utf-8");
+const englishBadWords = fs.readFileSync(path.join(__dirname, "../../resources/profanity/ENG.txt"), "utf-8");
 const batchBadWords = [spanishBadWords, mexicanBadWords, argentinianBadWords, bolivianBadWords, englishBadWords];
 let words: string[] = [];
 for (const badWords of batchBadWords) {
@@ -18,7 +18,7 @@ for (const badWords of batchBadWords) {
 }
 export const uniqueWords = [...new Set(words)];
 
-const trickyWords = fs.readFileSync(path.join(__dirname, "../resources/profanity/trickywords.txt"), "utf-8");
+const trickyWords = fs.readFileSync(path.join(__dirname, "../../resources/profanity/trickywords.txt"), "utf-8");
 const formatedTrickyWords = trickyWords
   .split("\n")
   .map(w => w.trim().toLowerCase())
@@ -39,3 +39,14 @@ export const certificateWords = [
   "otorgado", "reconoce", "acredita", "graduado", "egresado",
   "verificado", "verified", "award"
 ];
+
+export const DIAS_ES: Record<string, string> = {
+  "Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves",
+  "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"
+};
+
+export const MESES_ES: Record<string, string> = {
+  "January": "Enero", "February": "Febrero", "March": "Marzo", "April": "Abril",
+  "May": "Mayo", "June": "Junio", "July": "Julio", "August": "Agosto",
+  "September": "Septiembre", "October": "Octubre", "November": "Noviembre", "December": "Diciembre"
+};
