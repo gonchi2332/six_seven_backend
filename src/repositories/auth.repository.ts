@@ -159,7 +159,8 @@ export async function findUserStateByUserame(username: string) {
 export async function deleteRefreshToken(refreshToken: string) {
   const deleteTokenQuery = `
     DELETE FROM refresh_token
-    WHERE token = $1;
+    WHERE token = $1
+    RETURNING token
   `;
   return await processReturnQuery(deleteTokenQuery, [refreshToken]);
 }

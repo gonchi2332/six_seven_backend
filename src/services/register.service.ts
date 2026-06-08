@@ -18,7 +18,7 @@ async function processUserPersonalInfoAction(
     if (!userFound) {
       return { result: false, messageState: "Usuario no encontrado." };
     }
-    const isNew = userFound[0].is_new;
+    const isNew = userFound.is_new;
     if (isNew) {
       await RegisterRepository.updateIsNew(username);
     }
@@ -61,8 +61,10 @@ export async function updateUserPersonalInfo(
   return processUserPersonalInfoAction(tokenInfo, userPersonalInfo, profilePicture, "actualiza");
 }
 
-export async function viewUserPersonalInfo(username: string) {
+export async function viewUserPersonalInfo(tokenInfo: TokenTypes.TokenPayload) {
   try {
+    const { username } = tokenInfo;
+
     const userFound = await CommonRepository.findByUsername(username);
     if (!userFound || userFound.length === 0) {
       return { result: false, messageState: "Usuario no encontrado." };
@@ -91,7 +93,7 @@ export async function viewPublicUserPersonalInfo(viewPersonalInfo: any) {
     const { username } = viewPersonalInfo;
     const interfaceId = 1;
     
-    const response = await viewUserPersonalInfo(username);
+    const response = await viewUserPersonalInfo({ username } as TokenTypes.TokenPayload);
     if (!response.result) 
       return response;
     const data = response.currentPersonalInfo;

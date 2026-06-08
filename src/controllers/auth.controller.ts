@@ -31,9 +31,7 @@ export async function loginUser(req: Request, res: Response) {
   try {
     const validations = AuthValidations.loginUserValidation(req.body);
     if (!validations.result) {
-      if (!validations.result) {
-        return res.status(400).json({ error: validations.messageState });
-      }
+      return res.status(400).json({ error: validations.messageState });
     }
 
     const response = await AuthService.login(req.body);

@@ -56,7 +56,6 @@ export async function modifyEducation(req: Request, res: Response) {
 async function handleEducation(
   req: Request,
   res: Response,
-  action: "view" | "delete",
   idInfo?: any) {
   try {
     const validations = EducationValidation.handleEducationValidation(
@@ -89,7 +88,7 @@ export async function viewPublicEducation(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const response = await EducationService.viewPublicEducation(req.params);
+    const response = await EducationService.viewPublicEducation(req.params as any);
     if (!response.result) {
       return res.status(400).json({ success: false, message: response.messageState });
     }
@@ -152,7 +151,7 @@ export async function deleteEducation(req: Request, res: Response) {
   if (!validations.result) {
     return res.status(400).json({ success: false, message: validations.messageState });
   }
-  return await handleEducation(req, res, "delete", req.query);
+  return await handleEducation(req, res, req.query);
 }
 
 export async function viewEducationGrade(req: Request, res: Response) {

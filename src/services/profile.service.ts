@@ -30,7 +30,7 @@ export async function getOrCreatePublicLink(tokenInfo: TokenTypes.TokenPayload) 
     await ProfileRepository.updateProfileLink(publicLink, username);
     return {
       result: true,
-      messageState: "Enlace de perfil publico de ${username} correctamente obtenida.",
+      messageState: `Enlace de perfil publico de ${username} correctamente obtenida.`,
       publicProfileLink: `${baseUrl}/profile/${publicLink}`
     };
   }

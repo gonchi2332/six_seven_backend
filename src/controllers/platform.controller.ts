@@ -71,7 +71,7 @@ export async function getLinkedinProfile(req: Request, res: Response) {
 
 export async function getGithubProfile(req: Request, res: Response) {
   try {
-    const validations = PlatformValidator.getLinkedinProfileValidation(req.params);
+    const validations = PlatformValidator.getGithubProfileValidation(req.params);
     if (!validations.result) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }

@@ -82,8 +82,7 @@ export async function viewPrivatePersonalInfo(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const { username } = req.user as TokenTypes.TokenPayload;
-    const response = await RegisterService.viewUserPersonalInfo(username);
+    const response = await RegisterService.viewUserPersonalInfo(req.user as TokenTypes.TokenPayload);
     if (!response.result) {
       return res.status(400).json({ success: false, message: response.messageState });
     }

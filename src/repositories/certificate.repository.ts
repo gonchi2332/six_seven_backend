@@ -58,7 +58,7 @@ export async function updateCertificate(
   }
   if (coverImage) {
     setParts.push(`file = $${placeholderIndex++}`);
-    values.push(coverImage);
+    values.push(coverImage.buffer);
   }
   if (issueDate) {
     setParts.push(`issue_date = $${placeholderIndex++}`);

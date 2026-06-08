@@ -62,8 +62,7 @@ export async function viewPublicLaboralExperience(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
 
-    const response = await LaboralExpService.viewPublicLaboralExperience(
-      req.user as TokenTypes.TokenPayload);
+    const response = await LaboralExpService.viewPublicLaboralExperience(req.params as any);
     if (!response.result) return res.status(400).json({ success: false, message: response.messageState });
     
     const arrayValidation = ArrayValidations.validateEmptyArray(response.laboralExperiences);

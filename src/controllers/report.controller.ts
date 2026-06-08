@@ -6,7 +6,7 @@ import * as ReportService from "../services/report.service";
 export async function getReports(req: Request, res: Response) {
   try {
     const validations = ReportValidations.getReportsValidation(
-      req.user as TokenTypes.TokenPayload, req.query.period as string);
+      req.user as TokenTypes.TokenPayload, req.query);
     if (!validations.result) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }

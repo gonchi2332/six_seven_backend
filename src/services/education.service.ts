@@ -61,7 +61,6 @@ export async function modifyEducation(
 
 async function handleEducation(
   tokenInfo: TokenTypes.TokenPayload,
-  action: "view" | "delete",
   id?: number) {
   try {
     const { username } = tokenInfo;
@@ -124,7 +123,7 @@ export async function viewPrivateEducation(tokenInfo: TokenTypes.TokenPayload) {
 
 export async function deleteEducation(tokenInfo: TokenTypes.TokenPayload, idInfo: any) {
   const parsedId = idInfo.id ? parseInt(idInfo.id as string, 10) : undefined;
-  return await handleEducation(tokenInfo, "delete", parsedId);
+  return await handleEducation(tokenInfo, parsedId);
 }
 
 export async function viewAcademicGrade() {

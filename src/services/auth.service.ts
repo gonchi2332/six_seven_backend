@@ -59,7 +59,9 @@ export async function login(loginUserInfo: AuthTypes.LoginUserInfo) {
   const foundUser = users[0];
   const profilePicture = foundUser.profile_picture;
   const proccessedProfilePicture = profilePicture.toString("base64");
-  foundUser.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
+  foundUser.profile_picture = (proccessedProfilePicture)
+    ? `data:image/jpeg;base64,${proccessedProfilePicture}`
+    : null;
 
   const isMatch = await bcrypt.compare(password, foundUser.hashed_password);
   if (!isMatch) {
@@ -174,7 +176,7 @@ export async function logoutSession(refreshTokenInfo: AuthTypes.RefreshTokenInfo
   const { refreshToken } = refreshTokenInfo;
 
   const deleted = await AuthRepository.deleteRefreshToken(refreshToken);
-  if (!deleted) {
+  if (!deleted || deleted.length === 0) {
     throw new Error("TOKEN_NOT_FOUND");
   }
   return { success: true };

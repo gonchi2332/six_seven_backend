@@ -48,7 +48,7 @@ export async function registerPersonalProject(
       }
     }
 
-    await ProjectRepository.createPersonalProject(username, projectInfo);
+    await ProjectRepository.createPersonalProject(username, formatedProjectInfo);
     return { result: true, messageState: "Proyecto personal registrado exitosamente." };
   } catch (err) {
     return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };

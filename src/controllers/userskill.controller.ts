@@ -94,8 +94,8 @@ export async function registerSoftSkill(req: Request, res: Response) {
 
 async function viewSkillsBase(req: Request, res: Response, skillType: "hard" | "soft", isPublic: boolean) {
   try {
-    const validations = UserSkillValidations.viewSkillsBaseValidation(
-      req.params || (req.user as TokenTypes.TokenPayload));
+    const parameter = isPublic ? req.params : req.user as TokenTypes.TokenPayload;
+    const validations = UserSkillValidations.viewSkillsBaseValidation(parameter);
     if (!validations.result) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
