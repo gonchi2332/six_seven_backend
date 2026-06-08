@@ -50,16 +50,16 @@ export async function login(loginUserInfo: AuthTypes.LoginUserInfo) {
   const { username, password } = loginUserInfo;
 
   const users = await AuthRepository.findUserValues(username);
-  const foundUser = users[0];
-  const profilePicture = foundUser.profile_picture;
-  const proccessedProfilePicture = profilePicture.toString("base64");
-  foundUser.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
-
   if (users.length === 0) {
     const error = new Error("Usuario o contraseña incorrectos");
     error.name = "AuthError";
     throw error;
   }
+
+  const foundUser = users[0];
+  const profilePicture = foundUser.profile_picture;
+  const proccessedProfilePicture = profilePicture.toString("base64");
+  foundUser.profile_picture = `data:image/jpeg;base64,${proccessedProfilePicture}`;
 
   const isMatch = await bcrypt.compare(password, foundUser.hashed_password);
   if (!isMatch) {
@@ -118,11 +118,11 @@ export async function forgotPasswordService(forgotPasswordInfo: AuthTypes.Forgot
     const resetCode = generateCode();
     await AuthRepository.insertOrUpdateResetCode(username, resetCode);
 
-    const emailRes = await AuthRepository.insertRegistrationEmail(username);
+    const emailRes = await AuthRepository.findRegistrationEmail(username);
     const mainRegistrationEmail = emailRes[0].main_registration_email;
     await sendResetCodeEmail(mainRegistrationEmail, username, resetCode);
 
-    const secondaryRegistrationEmail = await AuthRepository.insertSecondaryEmail(username);
+    const secondaryRegistrationEmail = await AuthRepository.findSecondaryEmail(username);
     if (secondaryRegistrationEmail.length === 1) {
       const secondaryEmailRes = secondaryRegistrationEmail[0].registration_email;
       await sendResetCodeEmail(secondaryEmailRes, username, resetCode);

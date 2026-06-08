@@ -15,7 +15,7 @@ async function processUserPersonalInfoAction(
     const { username } = tokenInfo;
 
     const userFound = await RegisterRepository.findUser(username);
-    if (!userFound || userFound.length === 0) {
+    if (!userFound) {
       return { result: false, messageState: "Usuario no encontrado." };
     }
     const isNew = userFound[0].is_new;
@@ -33,7 +33,7 @@ async function processUserPersonalInfoAction(
     }
 
     const currentUserNames = userFound.names;
-    const currentUserFirstSurname = userFound.firstSurname;
+    const currentUserFirstSurname = userFound.first_surname;
     await RegisterRepository.createUser(username, currentUserNames, currentUserFirstSurname, userPersonalInfo, profilePicture);
     return {
       result: true,
@@ -61,10 +61,8 @@ export async function updateUserPersonalInfo(
   return processUserPersonalInfoAction(tokenInfo, userPersonalInfo, profilePicture, "actualiza");
 }
 
-export async function viewUserPersonalInfo(tokenInfo: TokenTypes.TokenPayload) {
+export async function viewUserPersonalInfo(username: string) {
   try {
-    const { username } = tokenInfo;
-
     const userFound = await CommonRepository.findByUsername(username);
     if (!userFound || userFound.length === 0) {
       return { result: false, messageState: "Usuario no encontrado." };

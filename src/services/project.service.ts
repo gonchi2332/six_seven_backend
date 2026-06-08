@@ -74,7 +74,7 @@ export async function modifyPersonalProject(
     }
     const formatedProjectInfo: ProjectTypes.ProjectInfo = {
       name: "",
-      description: projectIdInfo.description,
+      description: projectInfo.description,
       status: projectInfo.status,
       topic: projectInfo.topic,
       role: projectInfo.role,

@@ -114,7 +114,7 @@ export async function insertOrUpdateResetCode(username: string, resetCode: strin
   return await processReturnQuery(upsertCodeQuery, [username, resetCode]);
 }
 
-export async function insertRegistrationEmail(username: string) {
+export async function findRegistrationEmail(username: string) {
   const emailQuery = `
     SELECT main_registration_email FROM "user"
     WHERE username = $1
@@ -122,7 +122,7 @@ export async function insertRegistrationEmail(username: string) {
   return await processReturnQuery(emailQuery, [username]);
 }
 
-export async function insertSecondaryEmail(username: string) {
+export async function findSecondaryEmail(username: string) {
   const secondaryEmailQuery = `
     SELECT registration_email FROM "user_registration_email"
     WHERE username = $1

@@ -48,9 +48,8 @@ export async function sendMailVerificationCode(tokenInfo: TokenTypes.TokenPayloa
     const targetMails = [targetMail];
 
     const secondaryRegistrationEmail = await VerificationRepository.getUserSecondaryEmail(username);
-    if (secondaryRegistrationEmail.length === 1) {
-      const secondaryTargetMail = secondaryRegistrationEmail.registration_email;
-      targetMails.push(secondaryTargetMail);
+    if (secondaryRegistrationEmail) {
+      targetMails.push(secondaryRegistrationEmail.registration_email);
     }
 
     await sendVerificationCode(username, targetMails, targetMail, code);
