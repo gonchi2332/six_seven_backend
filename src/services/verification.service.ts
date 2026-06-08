@@ -38,7 +38,7 @@ export async function sendMailVerificationCode(tokenInfo: TokenTypes.TokenPayloa
     } else {
       const currentCodeInfo = codeInfo[0];
       const currentCode = currentCodeInfo.code;
-      await VerificationRepository.forceExplirationCode(username, currentCode);
+      await VerificationRepository.forceExpirationCode(username, currentCode);
       code = generateCode();
       await VerificationRepository.insertVerificationMailCode(username, code);
     }

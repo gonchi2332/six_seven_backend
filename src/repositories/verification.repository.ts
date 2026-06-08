@@ -27,7 +27,7 @@ export async function insertVerificationMailCode(username: string, code: string)
   return await processReturnQuery(insertQuery, values);
 }
 
-export async function forceExplirationCode(username: string, currentCode: string) {
+export async function forceExpirationCode(username: string, currentCode: string) {
   const insertQuery = `
     UPDATE "verification_mail_code"
     SET expires_at = now() - interval '1 hour'

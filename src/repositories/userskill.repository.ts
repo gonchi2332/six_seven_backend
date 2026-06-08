@@ -34,7 +34,7 @@ export async function createSkill(skillName: string, canonSkillName: string, ski
   return createdSkill; 
 }
 
-export async function createUserSkill(skillId: string, username: string, punctuation?: number) {
+export async function createUserSkill(skillId: number, username: string, punctuation?: number) {
   let insertQuery, values;
   if(!punctuation) {
     insertQuery = `
