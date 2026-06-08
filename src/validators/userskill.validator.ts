@@ -21,7 +21,7 @@ export function registerNewSkillValidation(tokenParameter: any, parameters: any,
   const thirdValidation = StringValidations.validateProfanityString(formatedSkillName);
   message = (!thirdValidation) ? "El nombre de la habilidad es inapropiado." : message;
 
-  const fourthValidation = (skillType === "hard") && RegexValidations.validateLatinAlphabetFormat(parameters.skillName);
+  const fourthValidation = (skillType === "soft") && RegexValidations.validateLatinAlphabetFormat(parameters.skillName);
   message = (!fourthValidation) ? "Solo se permite caracteres del alfabeto latino." : message;
 
   const finalValidation = firstValidation && secondValidation;
@@ -42,7 +42,7 @@ export function registerSkillValidation(tokenParameter: any, parameters: any, sk
   const fourthValidation = StringValidations.validateStringMaxLength(parameters.skillName, 50);
   message = (!fourthValidation) ? "El nombre de habilidad supera el limite de caracteres o es invalido." : message;
 
-  const fifthValidation = (skillType === "hard") && RegexValidations.validateLatinAlphabetFormat(parameters.skillName);
+  const fifthValidation = (skillType === "soft") && RegexValidations.validateLatinAlphabetFormat(parameters.skillName);
   message = (!fifthValidation) ? "Solo se permite caracteres del alfabeto latino." : message;
 
   const finalValidation = firstValidation && secondValidation;
@@ -51,7 +51,7 @@ export function registerSkillValidation(tokenParameter: any, parameters: any, sk
 
 export function registerNewHardSkillValidation(parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "number");
+  const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters.punctuation, "number");
   message = (!firstValidation) ? "Puntuacion invalida o fuera de rango." : message;
 
   const secondValidation = NumberValidations.amountOutOfRange(parameters.punctuation, 1, 5);
@@ -63,7 +63,7 @@ export function registerNewHardSkillValidation(parameters: any) {
 
 export function registerHardSkillValidation(parameters: any) {
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "number");
+  const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters.punctuation, "number");
   message = (!firstValidation) ? "Puntuacion invalida o fuera de rango." : message;
 
   const secondValidation = NumberValidations.amountOutOfRange(parameters.punctuation, 1, 5);
@@ -120,7 +120,7 @@ export function deleteSkillValidation(tokenParameter: any, parameters: any) {
   const fourthValidation = StringValidations.validateStringMaxLength(parameters.skillName, 50);
   message = (!fourthValidation) ? "El nombre de habilidad supera el limite de caracteres o es invalido." : message;
 
-  const finalValidation = firstValidation && secondValidation && thirdValidation && firstValidation;
+  const finalValidation = firstValidation && secondValidation && thirdValidation && fourthValidation;
   return { result: finalValidation, messageState: message };
 }
 

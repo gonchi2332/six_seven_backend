@@ -10,7 +10,8 @@ export function getOrCreatePublicLinkValidation(parameters: any) {
 
 export function viewSectionsVisibilityValidation(parameters: any) {
   const arrayParameter = [parameters.username];
-  const finalValidation = TypeValidations.validateArrayParameterType(arrayParameter, "string");
+  const finalValidation = TypeValidations.validateArrayParameterType(arrayParameter, "string") ||
+    TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o inválido" : "";
   return { result: finalValidation, messageState: message };
 }

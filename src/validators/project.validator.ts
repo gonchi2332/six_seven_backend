@@ -47,7 +47,7 @@ function commonProjectValidations(parameters: any) {
   message = (!eighthValidation.result) ? eighthValidation.messageState : message;
 
   const finalValidation = firstValidation && secondValidation && thirdValidation && fourthValidation &&
-    fifthValidation && sixthValidation && seventhValidation && eighthValidation;
+    fifthValidation && sixthValidation && seventhValidation && eighthValidation.result;
   return { result: finalValidation, messageState: message };
 }
 

@@ -24,10 +24,10 @@ export function saveGithubProfileValidation(tokenParameter: any, parameters: any
   const secondValidation = StringValidations.validateTrimedString(parameters);
   message = (!secondValidation) ? "El identificador de Github es obligatorio"  : message;
 
-  const thirdValidation = StringValidations.validateContentString(parameters.linkedinUsername.trim(), "github.com");
+  const thirdValidation = StringValidations.validateContentString(parameters.githubUsername.trim(), "github.com");
   message = (!thirdValidation) ? "Por favor ingresa solo tu nombre de usuario, no la URL completa."  : message;
 
-  const finalValidation = firstValidation && secondValidation;
+  const finalValidation = firstValidation && secondValidation && thirdValidation;
   return { result: finalValidation, messageState: message };
 }
 

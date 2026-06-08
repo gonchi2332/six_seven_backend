@@ -29,7 +29,7 @@ export function stringLenghtNotEqualsTo(parameter: string, compareAmount: number
 export function validateMultipleStringLenght(parameters: string[], min: number[], max: number[]) {
   let ans = false;
   const parametersLenght = parameters.length;
-  for (let i = 0; i < parametersLenght - 1; i++) {
+  for (let i = 0; i < parametersLenght; i++) {
     ans = ans || (parameters[i].length < min[i] || parameters[i].length > max[i]);
     if (ans) {
       break;

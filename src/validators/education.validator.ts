@@ -51,10 +51,10 @@ export function manageEducationValidation(tokenParameter: any, parameters: any) 
     DateValidations.validateDate(parameters.startDate);
   message = (!twelfthValidation) ? "Fecha de inicio o egreso invalida" : message;
 
-  const thirteenthValidation = DateValidations.validateFutureDate(parameters.issueDate);
+  const thirteenthValidation = DateValidations.validateFutureDate(parameters.startDate);
   message = (!thirteenthValidation) ? "Fecha de inicio o egreso no puede ser futura" : message;
 
-  const fourteenthValidation = DateValidations.dateInRangeOver100Years(parameters.issueDate);
+  const fourteenthValidation = DateValidations.dateInRangeOver100Years(parameters.startDate);
   message = (!fourteenthValidation) ? "El año de inicio o egreso tiene que estar dentro del rango de hoy y hace 100 años" : message;
 
   const finalValidation = firstValidation && secondValidation && thirdValidation && fourthValidation &&
@@ -75,10 +75,10 @@ export function modifyEducationValidation(parameters: any) {
   message = (!thirdValidation) ? "El nombre de la institucion es invalido" : message;
 
   const fourthValidation = (parameters.institution) &&
-    StringValidations.validateStringMaxLength(parameters.institucion, 50);
+    StringValidations.validateStringMaxLength(parameters.institution, 50);
   message = (!fourthValidation) ? "El nombre de la institucion superan el limite de caracteres" : message;
 
-  const fifthValidation = TypeValidations.validateOptionalParameterType(parameters.educationState, "number");
+  const fifthValidation = TypeValidations.validateOptionalParameterType(parameters.educationState, "string");
   message = (!fifthValidation) ? "El estado de la educacion es invalido" : message;
 
   const sixthValidation = (parameters.educationState) && 
@@ -97,7 +97,7 @@ export function handleEducationValidation(parameters: any) {
 }
 
 export function viewPublicEducationValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }

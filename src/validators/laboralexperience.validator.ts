@@ -20,7 +20,7 @@ export function manageUserLaboralExperienceValidation(tokenParameter: any, param
   const fourthValidation = DateValidations.validateDate(parameters.startDate);
   message = (!fourthValidation) ? "La fecha de inicio es inválida." : message;
 
-  const fifthValidation = DateValidations.validateDate(parameters.startDate);
+  const fifthValidation = (!parameters.endDate) || DateValidations.validateDate(parameters.endDate);
   message = (!fifthValidation) ? "La fecha de fin es inválida." : message;
 
   const sixthValidation = RegexValidations.validateWorkPositionFormat(parameters.position) ||
@@ -94,13 +94,13 @@ export function modifyUserLaboralExperienceValidation(parameters: any) {
   const ninthValidation = (parameters.description) && StringValidations.validateMultipleStringLenght(arrayParameter, minArray, maxArray);
   message = (!ninthValidation) ? "Descripcion invalida" : message;
 
-  const finalValidation = fifthValidation && secondValidation && thirdValidation && fourthValidation &&
+  const finalValidation = firstValidation && secondValidation && thirdValidation && fourthValidation &&
     fifthValidation && sixthValidation && seventhValidation && eighthValidation && ninthValidation;
   return { result: finalValidation, messageState: message };
 }
 
 export function viewPublicLaboralExperienceValidation(parameters: any) {
-  const finalValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const finalValidation = TypeValidations.validateTokenPayload(parameters);
   const message = (!finalValidation) ? "Nombre de usuario faltante o invalido" : "";
   return { result: finalValidation, messageState: message };
 }

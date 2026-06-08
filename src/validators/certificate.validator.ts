@@ -63,7 +63,7 @@ export function manageUserCertificateValidation(
 export function modifyUserCertificateValidation(parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateId(parameters);
-  message = (firstValidation) ? "Id de certificado invalido." : message;
+  message = (!firstValidation) ? "Id de certificado invalido." : message;
 
   const secondValidation = TypeValidations.validateOptionalParameterType(parameters.description, "string");
   message = (!secondValidation) ? "Descripción del certificado invalida" : message;

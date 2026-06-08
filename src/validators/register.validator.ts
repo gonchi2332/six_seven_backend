@@ -15,7 +15,7 @@ export function handlePersonalInfoRequestValidation(
   const secondValidation = ObjectValidations.validateObjectKeys(parameters);
   message = (!secondValidation) ? "Parametros de informacion personal del usuario insuficientes." : message;
 
-  const thirdValidation = (parameters.phone) && RegexValidations.validatePhoneFormat(parameters.phone);
+  const thirdValidation = (!parameters.phone) || RegexValidations.validatePhoneFormat(parameters.phone);
   message = (!thirdValidation) ? "No se pudo registrar o modificar la informacion, numero de telefono invalido." : message;
 
   const fourthValidation = TypeValidations.validateOptionalParameterType(parameters.names, "string") ||
@@ -23,10 +23,10 @@ export function handlePersonalInfoRequestValidation(
     TypeValidations.validateOptionalParameterType(parameters.secondSurname, "string");
   message = (!fourthValidation) ? "No se pudo registrar o modificar la informacion, campos invalidos." : message;
 
-  const fifthValidation = (parameters.contactEmail) && RegexValidations.validateEmailFormat(parameters.contactEmail);
+  const fifthValidation = (!parameters.contactEmail) || RegexValidations.validateEmailFormat(parameters.contactEmail);
   message = (!fifthValidation) ? "No se pudo registrar o modificar la informacion, correo de contacto invalido." : message;
 
-  const sixthValidation = (parameters.secondaryRegistrationEmail) && RegexValidations.validateEmailFormat(parameters.secondaryRegistrationEmail);
+  const sixthValidation = (!parameters.secondaryRegistrationEmail) || RegexValidations.validateEmailFormat(parameters.secondaryRegistrationEmail);
   message = (!sixthValidation) ? "No se pudo registrar o modificar la informacion, correo de registro secundario invalido." : message;
 
   const seventhValidation = TypeValidations.validateOptionalParameterType(parameters.residenceCity, "string");

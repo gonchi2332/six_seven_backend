@@ -6,7 +6,8 @@ export function registerUserValidations(parameters: any) {
   const { password, secondSurname, mainRegistrationEmail } = parameters;
 
   let message = "";
-  const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const parameterArray = [parameters.username, parameters.password, parameters.names];
+  const firstValidation = TypeValidations.validateArrayParameterType(parameterArray, "string");
   message = (!firstValidation) ? "Faltan campos obligatorios." : message;
 
   const secondValidation = TypeValidations.validateOptionalParameterType(secondSurname, "string");
@@ -18,7 +19,6 @@ export function registerUserValidations(parameters: any) {
   const fourthValidation = RegexValidations.validateEmailFormat(mainRegistrationEmail as string);
   message = (!fourthValidation) ? "Formato de correo electronico invalido." : message;
 
-  const parameterArray = [parameters.username, parameters.password, parameters.names];
   const fifthValidation = TypeValidations.validateArrayParameterType(parameterArray, "string");
   message = (!fifthValidation) ? "Datos de entrada invalidos o incompletos." : message;
 
@@ -48,7 +48,7 @@ export function resetPasswordValidation(parameters: any) {
   message = (!firstValidation) ? "Faltan campos obligatorios." : message;
 
   const secondValidation = StringValidations.validateStringMinLength(password as string, 8);
-  message = (!firstValidation) ? "La contraseña debe tener al menos 8 caracteres." : message;
+  message = (!secondValidation) ? "La contraseña debe tener al menos 8 caracteres." : message;
 
   const finalValidation = firstValidation && secondValidation;
   return {
