@@ -1,0 +1,2710 @@
+openapi: 3.0.3
+info:
+  title: Six Seven - API
+  description: |
+    API REST del Sistema Generador de Portafolios Digitales de Proyectos de Software.
+    Desarrollado por Six Seven Software Services SRL bajo contrato CPTIS-2302-2026.
+
+    ## Autenticación
+    La mayoría de los endpoints requieren un token JWT de acceso enviado en el header `Authorization` como `Bearer <token>`.
+    El token se obtiene al hacer login o al registrar credenciales.
+
+    ## Versionado
+    - `/api/v2/auth` — Autenticación y credenciales
+    - `/api/v2/register` — Información personal del usuario
+    - `/api/v2/verification` — Verificación de correo electrónico
+    - `/api/v1/profile` — Perfil público y listado de usuarios
+    - `/api/v1/skills` — Habilidades técnicas y blandas
+    - `/api/v1/platforms` — Plataformas externas (LinkedIn, GitHub)
+    - `/api/v1/portfolio` — Portafolio (experiencia laboral, proyectos, educación, certificados)
+    - `/api/v1/reports` — Analítica e informes
+  version: 2.0.0
+  contact:
+    name: Six Seven Software Services SRL
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desarrollo local
+  - url: https://six-seven-backend.fly.dev
+    description: Servidor de producción (Fly.io)
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT de acceso obtenido al hacer login.
+
+  schemas:
+    # ─── Respuestas genéricas ────────────────────────────────────────────────
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+
+    # ─── Auth ───────────────────────────────────────────────────────────────
+    RegisterUserBody:
+      type: object
+      required: [username, password, names, firstSurname, mainRegistrationEmail]
+      properties:
+        username:
+          type: string
+          example: mario123
+        password:
+          type: string
+          minLength: 8
+          example: "Clave@1234"
+        names:
+          type: string
+          example: Mario Alberto
+        firstSurname:
+          type: string
+          example: Gonzalez
+        secondSurname:
+          type: string
+          example: Perez
+        mainRegistrationEmail:
+          type: string
+          format: email
+          example: mario@email.com
+
+    LoginBody:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: mario123
+        password:
+          type: string
+          example: "Clave@1234"
+
+    ForgotPasswordBody:
+      type: object
+      required: [username]
+      properties:
+        username:
+          type: string
+          example: mario123
+
+    VerifyCodeBody:
+      type: object
+      required: [username, code]
+      properties:
+        username:
+          type: string
+          example: mario123
+        code:
+          type: string
+          example: "045310"
+
+    ResetPasswordBody:
+      type: object
+      required: [username, newPassword, verificationCode]
+      properties:
+        username:
+          type: string
+          example: mario123
+        newPassword:
+          type: string
+          minLength: 8
+          example: "NuevaClave@5678"
+        verificationCode:
+          type: string
+          example: "045310"
+
+    RefreshTokenBody:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LogoutBody:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # ─── Register / Información personal ───────────────────────────────────
+    PersonalInfoBody:
+      type: object
+      description: Todos los campos son opcionales excepto en el primer registro.
+      properties:
+        names:
+          type: string
+          example: Mario Alberto
+        firstSurname:
+          type: string
+          example: Gonzalez
+        secondSurname:
+          type: string
+          example: Perez
+        phone:
+          type: string
+          example: "+59171234567"
+        residenceCity:
+          type: string
+          example: Cochabamba
+        residenceCountry:
+          type: string
+          example: Bolivia
+        contactEmail:
+          type: string
+          format: email
+          example: mario@contacto.com
+        secondaryRegistrationEmail:
+          type: string
+          format: email
+          example: mario.alt@email.com
+        profilePicture:
+          type: string
+          format: binary
+          description: Imagen de perfil (multipart/form-data). Proporcional 1:1, mínimo 100x100px.
+
+    VisibilityPersonalInfoBody:
+      type: object
+      description: |
+        Mapa de campos de visibilidad. Solo se actualizan los campos enviados.
+        Campos permitidos: `show_name`, `show_contact_email`, `show_phone`, `show_residence`.
+      properties:
+        visibilities:
+          type: object
+          additionalProperties:
+            type: boolean
+          example:
+            show_name: true
+            show_contact_email: false
+            show_phone: true
+            show_residence: true
+
+    PersonalInfoResponse:
+      type: object
+      properties:
+        username:
+          type: string
+        names:
+          type: string
+        first_surname:
+          type: string
+        second_surname:
+          type: string
+        phone_number:
+          type: string
+        main_registration_email:
+          type: string
+        contact_email:
+          type: string
+        residence_city_name:
+          type: string
+        residence_country_name:
+          type: string
+        profile_picture:
+          type: string
+          description: Imagen codificada en base64 con prefijo data:image/jpeg;base64,...
+        is_new:
+          type: boolean
+        show_name:
+          type: boolean
+        show_contact_email:
+          type: boolean
+        show_phone:
+          type: boolean
+        show_residence:
+          type: boolean
+
+    # ─── Verification ───────────────────────────────────────────────────────
+    # (sin body — todos son GET/POST/PATCH con datos en query o token)
+
+    # ─── Skills ─────────────────────────────────────────────────────────────
+    RegisterExistingSkillBody:
+      type: object
+      required: [skillName]
+      properties:
+        skillName:
+          type: string
+          example: JavaScript
+        punctuation:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Solo requerido para hard skills.
+          example: 8
+
+    RegisterNewSkillBody:
+      type: object
+      required: [skillName]
+      properties:
+        skillName:
+          type: string
+          example: Rust
+        punctuation:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Solo requerido para new-hard-skill.
+          example: 7
+
+    ModifyHardSkillBody:
+      type: object
+      required: [skillName, newPunctuation]
+      properties:
+        skillName:
+          type: string
+          example: JavaScript
+        newPunctuation:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 9
+
+    DeleteSkillBody:
+      type: object
+      required: [skillName]
+      properties:
+        skillName:
+          type: string
+          example: JavaScript
+
+    SkillVisibilityBody:
+      type: object
+      required: [visibilities]
+      properties:
+        visibilities:
+          type: object
+          description: Mapa de skill_id (numérico como string) a booleano de visibilidad.
+          additionalProperties:
+            type: boolean
+          example:
+            "1": true
+            "3": false
+            "12": true
+
+    HardSkillPublic:
+      type: object
+      properties:
+        name:
+          type: string
+          example: JavaScript
+        punctuation:
+          type: integer
+          example: 8
+
+    SoftSkillPublic:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Liderazgo
+
+    HardSkillPrivate:
+      type: object
+      properties:
+        skill_id:
+          type: integer
+        name:
+          type: string
+        punctuation:
+          type: integer
+        visible:
+          type: boolean
+
+    SoftSkillPrivate:
+      type: object
+      properties:
+        skill_id:
+          type: integer
+        name:
+          type: string
+        visible:
+          type: boolean
+
+    # ─── Plataformas externas ────────────────────────────────────────────────
+    SaveLinkedinBody:
+      type: object
+      required: [linkedinUsername]
+      properties:
+        linkedinUsername:
+          type: string
+          example: leonel-zeballos-aldunate
+
+    SaveGithubBody:
+      type: object
+      required: [githubUsername]
+      properties:
+        githubUsername:
+          type: string
+          example: gonchi2332
+
+    # ─── Experiencia laboral ─────────────────────────────────────────────────
+    LaboralExperienceBody:
+      type: object
+      required: [position, companyName, description, startDate]
+      properties:
+        position:
+          type: string
+          example: Desarrollador Backend
+        companyName:
+          type: string
+          example: Six Seven Software Services SRL
+        description:
+          type: string
+          example: Desarrollo de APIs REST con Node.js y PostgreSQL.
+        startDate:
+          type: string
+          format: date
+          example: "2023-01-15"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          description: Dejar vacío o no enviar si el trabajo es actual. Enviar string vacío para limpiar la fecha.
+          example: "2024-06-30"
+
+    LaboralExperienceResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        position:
+          type: string
+        company_name:
+          type: string
+        description:
+          type: string
+        visible:
+          type: boolean
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+
+    LaboralExperienceVisibilityBody:
+      type: object
+      required: [visibilities]
+      properties:
+        visibilities:
+          type: object
+          additionalProperties:
+            type: boolean
+          example:
+            "51": true
+            "52": false
+
+    # ─── Proyectos ────────────────────────────────────────────────────────────
+    ProjectBody:
+      type: object
+      description: Enviado como multipart/form-data.
+      required: [name, description, topic, role, status, links]
+      properties:
+        name:
+          type: string
+          example: Panda Tracker
+        description:
+          type: string
+          example: Aplicación de seguimiento de tareas similar a Trello.
+        topic:
+          type: string
+          example: Frontend
+        role:
+          type: string
+          example: Desarrollador Full Stack
+        status:
+          type: string
+          example: En proceso
+        links:
+          type: string
+          description: JSON string de array de objetos con `label` y `url`. Ej. `[{"label":"Repo","url":"https://github.com/..."}]`
+          example: '[{"label":"Repositorio","url":"https://github.com/user/proyecto"}]'
+        image:
+          type: string
+          format: binary
+          description: Imagen de portada del proyecto (opcional).
+
+    ModifyProjectBody:
+      type: object
+      description: Enviado como multipart/form-data. El campo `name` no se puede modificar.
+      required: [description, topic, role, status, links]
+      properties:
+        description:
+          type: string
+        topic:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+        links:
+          type: string
+          description: JSON string de array de objetos `{label, url}`.
+        image:
+          type: string
+          format: binary
+          description: Nueva imagen de portada (opcional).
+
+    ProjectResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        topic:
+          type: string
+        status:
+          type: string
+        role:
+          type: string
+        image:
+          type: string
+          nullable: true
+          description: Imagen codificada en base64.
+        links:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              url:
+                type: string
+        visible:
+          type: boolean
+
+    ProjectVisibilityBody:
+      type: object
+      required: [visibilities]
+      properties:
+        visibilities:
+          type: object
+          additionalProperties:
+            type: boolean
+          example:
+            "100": true
+            "101": false
+
+    # ─── Educación ────────────────────────────────────────────────────────────
+    EducationBody:
+      type: object
+      required: [title, academyDegreeId, institution, startDate, educationState]
+      properties:
+        title:
+          type: string
+          example: Ingeniería de Sistemas
+        academyDegreeId:
+          type: integer
+          description: ID del grado académico. Obtener de GET /api/v1/portfolio/education_degree.
+          example: 2
+        institution:
+          type: string
+          example: Universidad Mayor de San Simón
+        startDate:
+          type: string
+          format: date
+          example: "2019-03-01"
+        educationState:
+          type: string
+          enum: [Cursando, Egresado]
+          example: Cursando
+
+    ModifyEducationBody:
+      type: object
+      description: Todos los campos son opcionales — solo se actualizan los enviados.
+      properties:
+        title:
+          type: string
+        academyDegreeId:
+          type: integer
+        institution:
+          type: string
+        startDate:
+          type: string
+          format: date
+        educationState:
+          type: string
+          enum: [Cursando, Egresado]
+
+    EducationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        institution:
+          type: string
+        academicDegree:
+          type: string
+        visible:
+          type: boolean
+        start_date:
+          type: string
+          format: date
+        education_state:
+          type: string
+          enum: [Cursando, Egresado]
+
+    EducationVisibilityBody:
+      type: object
+      required: [visibilities]
+      properties:
+        visibilities:
+          type: object
+          additionalProperties:
+            type: boolean
+          example:
+            "64": true
+            "65": false
+
+    # ─── Certificados ──────────────────────────────────────────────────────────
+    CertificateBody:
+      type: object
+      description: Enviado como multipart/form-data.
+      required: [title, description, area, issueDate, coverImage]
+      properties:
+        title:
+          type: string
+          example: AWS Certified Developer
+        description:
+          type: string
+          example: Certificación de desarrollador en servicios de nube AWS.
+        area:
+          type: string
+          example: Cloud Computing
+        issueDate:
+          type: string
+          format: date
+          example: "2023-11-20"
+        coverImage:
+          type: string
+          format: binary
+          description: Imagen del certificado (requerida). Se analiza con IA para verificar autenticidad.
+
+    ModifyCertificateBody:
+      type: object
+      description: Enviado como multipart/form-data. El campo `title` no se puede modificar.
+      properties:
+        description:
+          type: string
+        area:
+          type: string
+        issueDate:
+          type: string
+          format: date
+        coverImage:
+          type: string
+          format: binary
+
+    CertificateResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        area:
+          type: string
+        issue_date:
+          type: string
+          format: date
+        visible:
+          type: boolean
+        file:
+          type: string
+          nullable: true
+          description: Imagen codificada en base64.
+
+    CertificateVisibilityBody:
+      type: object
+      required: [visibilities]
+      properties:
+        visibilities:
+          type: object
+          additionalProperties:
+            type: boolean
+          example:
+            "1": true
+            "2": false
+
+    # ─── Reports ──────────────────────────────────────────────────────────────
+    ReportRow:
+      type: object
+      properties:
+        interfaceId:
+          type: integer
+          example: 1
+        interfaceName:
+          type: string
+          example: Información Personal
+        timeAxis:
+          type: string
+          example: Lunes
+        totalViews:
+          type: integer
+          example: 14
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PATHS
+# ═══════════════════════════════════════════════════════════════════════════════
+paths:
+
+  # ─── Health ─────────────────────────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Sistema]
+      summary: Health check del servidor
+      description: Verifica que el servidor esté activo y respondiendo correctamente.
+      responses:
+        "200":
+          description: Servidor funcionando correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+                  message:
+                    type: string
+                    example: Servidor Backend funcionando corretamente...
+
+  # ─── AUTH ────────────────────────────────────────────────────────────────────
+  /api/v2/auth/users/credentials-info:
+    post:
+      tags: [Autenticación]
+      summary: Registrar credenciales de nuevo usuario
+      description: |
+        Crea una cuenta nueva con credenciales básicas (username, contraseña, nombre, apellido, email).
+        Devuelve el usuario creado y un access token JWT.
+        El usuario queda en estado `unverified` hasta completar la verificación de correo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUserBody"
+      responses:
+        "201":
+          description: Usuario registrado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Usuario registrado correctamente
+                  user:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      state:
+                        type: string
+                        example: unverified
+                      names:
+                        type: string
+                      first_surname:
+                        type: string
+                      main_registration_email:
+                        type: string
+                  token:
+                    type: string
+                    description: Access token JWT.
+        "400":
+          description: Datos de entrada inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "409":
+          description: El nombre de usuario ya está en uso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/auth/users/login:
+    post:
+      tags: [Autenticación]
+      summary: Iniciar sesión
+      description: |
+        Autentica al usuario con username y contraseña.
+        Devuelve el access token y el refresh token.
+        La foto de perfil se devuelve codificada en base64.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Inicio de sesión exitoso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      state:
+                        type: string
+                      names:
+                        type: string
+                      first_surname:
+                        type: string
+                      main_registration_email:
+                        type: string
+                  profilePicture:
+                    type: string
+                    nullable: true
+                    description: Imagen base64.
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+        "400":
+          description: Datos de entrada inválidos.
+        "401":
+          description: Usuario o contraseña incorrectos.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/auth/users/forgot-password:
+    post:
+      tags: [Autenticación]
+      summary: Solicitar recuperación de contraseña
+      description: |
+        Genera un código de recuperación y lo envía al correo de registro del usuario
+        (principal y secundario si existe).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordBody"
+      responses:
+        "200":
+          description: Código de recuperación enviado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  verificationMails:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: Datos de entrada inválidos o error en el proceso.
+        "404":
+          description: El nombre de usuario no existe.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/auth/users/verify-code:
+    post:
+      tags: [Autenticación]
+      summary: Verificar código de recuperación
+      description: Valida que el código de recuperación ingresado sea correcto y no haya expirado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyCodeBody"
+      responses:
+        "200":
+          description: Código verificado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "400":
+          description: Datos inválidos o código incorrecto/expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/auth/users/reset-password:
+    patch:
+      tags: [Autenticación]
+      summary: Restablecer contraseña
+      description: |
+        Cambia la contraseña del usuario usando el código de verificación previamente validado.
+        La nueva contraseña no puede ser igual a la anterior.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordBody"
+      responses:
+        "200":
+          description: Contraseña actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: Datos inválidos.
+        "401":
+          description: Código de verificación inválido o expirado.
+        "409":
+          description: La nueva contraseña no puede ser igual a la anterior.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/auth/refresh:
+    post:
+      tags: [Autenticación]
+      summary: Renovar access token
+      description: |
+        Genera un nuevo access token a partir de un refresh token válido.
+        Si el refresh token expiró o es inválido, se devuelve 403 y el usuario debe hacer login nuevamente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenBody"
+      responses:
+        "200":
+          description: Access token renovado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  accessToken:
+                    type: string
+        "400":
+          description: Datos inválidos.
+        "403":
+          description: Refresh token inválido o expirado. Debe hacer login nuevamente.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/auth/logout:
+    delete:
+      tags: [Autenticación]
+      summary: Cerrar sesión
+      description: Invalida el refresh token del servidor, cerrando la sesión del usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutBody"
+      responses:
+        "200":
+          description: Sesión cerrada exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos.
+        "404":
+          description: El token no existe o ya fue eliminado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── REGISTER / INFORMACIÓN PERSONAL ─────────────────────────────────────────
+  /api/v2/register/users/personal-info:
+    post:
+      tags: [Información Personal]
+      summary: Registrar información personal del usuario
+      description: |
+        Registra la información personal del usuario autenticado por primera vez.
+        Enviado como `multipart/form-data` ya que puede incluir foto de perfil.
+        La imagen debe ser cuadrada (1:1), mínimo 100x100 px.
+        Si se envía foto de perfil, es analizada por IA para detectar contenido inapropiado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PersonalInfoBody"
+      responses:
+        "200":
+          description: Información personal registrada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos de entrada inválidos.
+        "401":
+          description: Token no proporcionado o expirado.
+        "403":
+          description: Token inválido.
+        "500":
+          description: Error interno del servidor.
+
+    put:
+      tags: [Información Personal]
+      summary: Actualizar información personal del usuario
+      description: |
+        Actualiza la información personal del usuario autenticado.
+        Todos los campos son opcionales — solo se actualizan los enviados.
+        Enviado como `multipart/form-data`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PersonalInfoBody"
+      responses:
+        "200":
+          description: Información personal actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos de entrada inválidos.
+        "401":
+          description: Token no proporcionado o expirado.
+        "403":
+          description: Token inválido.
+        "500":
+          description: Error interno del servidor.
+
+    get:
+      tags: [Información Personal]
+      summary: Obtener información personal privada del usuario autenticado
+      description: |
+        Devuelve toda la información personal del usuario autenticado,
+        incluyendo campos de visibilidad y foto de perfil en base64.
+        Los campos nulos son omitidos de la respuesta.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Información personal obtenida correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  userPersonalInfo:
+                    $ref: "#/components/schemas/PersonalInfoResponse"
+        "400":
+          description: Token inválido o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "403":
+          description: Token inválido.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/register/users/{username}/personal-info:
+    get:
+      tags: [Información Personal]
+      summary: Obtener información personal pública de un usuario
+      description: |
+        Devuelve la información pública de un usuario específico según su configuración de visibilidad.
+        No requiere autenticación.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Información pública obtenida correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  userPersonalInfo:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      profile_picture:
+                        type: string
+                        nullable: true
+                      names:
+                        type: string
+                      first_surname:
+                        type: string
+                      phone_number:
+                        type: string
+                      contact_email:
+                        type: string
+                      residence_city_name:
+                        type: string
+                      residence_country_name:
+                        type: string
+                      main_registration_email:
+                        type: string
+        "400":
+          description: Username inválido o usuario no encontrado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/register/users/personal-info/visibility:
+    patch:
+      tags: [Información Personal]
+      summary: Modificar visibilidad de campos de información personal
+      description: |
+        Actualiza la visibilidad de los campos de información personal del usuario autenticado.
+        Campos permitidos: `show_name`, `show_contact_email`, `show_phone`, `show_residence`.
+        Solo se actualizan los campos enviados con valor booleano explícito.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisibilityPersonalInfoBody"
+      responses:
+        "200":
+          description: Visibilidad actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "403":
+          description: Token inválido.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── VERIFICATION ─────────────────────────────────────────────────────────────
+  /api/v2/verification/users/mail:
+    get:
+      tags: [Verificación de Email]
+      summary: Obtener correo de registro del usuario autenticado
+      description: Devuelve el correo electrónico principal de registro del usuario autenticado.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Correo obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+        "400":
+          description: Token inválido o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/verification/users/verification-code:
+    post:
+      tags: [Verificación de Email]
+      summary: Enviar código de verificación al correo del usuario
+      description: |
+        Genera y envía un código de verificación al correo de registro del usuario.
+        Si ya existe un código vigente, lo invalida y genera uno nuevo.
+        El código se envía también al correo secundario si está configurado.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Código de verificación enviado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+        "400":
+          description: Usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v2/verification/users/compare-verification-code:
+    patch:
+      tags: [Verificación de Email]
+      summary: Comparar y validar código de verificación de email
+      description: |
+        Valida el código ingresado por el usuario contra el código enviado al correo.
+        Si el código es correcto, el estado del usuario cambia a `verified`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: currentCode
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "045310"
+      responses:
+        "200":
+          description: Verificación completada exitosamente. Usuario ahora en estado `verified`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Código incorrecto o no existe código pendiente.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── PROFILE ──────────────────────────────────────────────────────────────────
+  /api/v1/profile/users/public-link:
+    get:
+      tags: [Perfil]
+      summary: Obtener o generar enlace público del perfil
+      description: |
+        Devuelve el enlace público del perfil del usuario autenticado.
+        Si aún no tiene enlace generado, lo crea automáticamente con el formato `<hash>/<username>`.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Enlace público obtenido o generado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  userPublicLink:
+                    type: string
+                    example: http://localhost:3000/profile/a1b2c3/mario123
+        "400":
+          description: Usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/profile/users:
+    get:
+      tags: [Perfil]
+      summary: Listar todos los usuarios verificados
+      description: Devuelve la lista de usuarios con estado `verified`, ordenados por nombre.
+      responses:
+        "200":
+          description: Lista de usuarios obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                        names:
+                          type: string
+                        first_surname:
+                          type: string
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/profile/users/{username}/sections-visibility:
+    get:
+      tags: [Perfil]
+      summary: Obtener visibilidad de secciones del portafolio de un usuario
+      description: |
+        Indica qué secciones del portafolio de un usuario tienen contenido público visible.
+        Útil para el frontend para decidir qué pestañas renderizar en el perfil público.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Visibilidad de secciones obtenida correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  has_projects:
+                    type: boolean
+                  has_education:
+                    type: boolean
+                  has_certificates:
+                    type: boolean
+                  has_work_experience:
+                    type: boolean
+                  has_hard_skills:
+                    type: boolean
+                  has_soft_skills:
+                    type: boolean
+        "400":
+          description: Username inválido.
+        "404":
+          description: Usuario no encontrado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── SKILLS (sistema) ─────────────────────────────────────────────────────────
+  /api/v1/skills/system/all-hard-skills:
+    get:
+      tags: [Habilidades del Sistema]
+      summary: Listar todas las hard skills registradas en el sistema
+      description: Devuelve el catálogo completo de hard skills disponibles en la plataforma.
+      responses:
+        "200":
+          description: Hard skills obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/skills/system/all-soft-skills:
+    get:
+      tags: [Habilidades del Sistema]
+      summary: Listar todas las soft skills registradas en el sistema
+      description: Devuelve el catálogo completo de soft skills disponibles en la plataforma.
+      responses:
+        "200":
+          description: Soft skills obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+        "500":
+          description: Error interno del servidor.
+
+  # ─── SKILLS (usuario) ─────────────────────────────────────────────────────────
+  /api/v1/skills/users/{username}/hard-skills:
+    get:
+      tags: [Habilidades del Usuario]
+      summary: Obtener hard skills públicas de un usuario
+      description: Devuelve las hard skills visibles del usuario especificado con sus puntuaciones.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Hard skills obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  skills:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HardSkillPublic"
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/skills/users/hard-skills:
+    get:
+      tags: [Habilidades del Usuario]
+      summary: Obtener hard skills privadas del usuario autenticado
+      description: Devuelve todas las hard skills del usuario autenticado, incluyendo las no visibles.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Hard skills obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  skills:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HardSkillPrivate"
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    post:
+      tags: [Habilidades del Usuario]
+      summary: Asociar una hard skill existente al usuario autenticado
+      description: |
+        Asocia una hard skill ya registrada en el sistema al usuario autenticado.
+        Usar cuando la skill ya existe en el catálogo del sistema.
+        Para registrar una skill nueva, usar `/users/new-hard-skill`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterExistingSkillBody"
+      responses:
+        "201":
+          description: Hard skill asociada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos, skill no existe o usuario ya tiene esa skill.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    patch:
+      tags: [Habilidades del Usuario]
+      summary: Modificar puntuación de una hard skill del usuario autenticado
+      description: Actualiza la puntuación de autoevaluación de una hard skill asociada al usuario.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModifyHardSkillBody"
+      responses:
+        "200":
+          description: Hard skill modificada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o la puntuación es la misma.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    delete:
+      tags: [Habilidades del Usuario]
+      summary: Eliminar una hard skill del usuario autenticado
+      description: Desasocia una hard skill del usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteSkillBody"
+      responses:
+        "200":
+          description: Hard skill eliminada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o skill no asociada al usuario.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/skills/users/new-hard-skill:
+    post:
+      tags: [Habilidades del Usuario]
+      summary: Registrar una nueva hard skill y asociarla al usuario autenticado
+      description: |
+        Registra una hard skill que no existe aún en el sistema usando validación por IA (Groq).
+        Si la IA la valida como legítima, la crea en el sistema y la asocia al usuario.
+        Aplica fuzzy matching para detectar skills similares ya existentes.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterNewSkillBody"
+      responses:
+        "201":
+          description: Nueva hard skill registrada y asociada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Skill inválida (rechazada por IA, profanity, o ya existe asociada al usuario).
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/skills/users/{username}/soft-skills:
+    get:
+      tags: [Habilidades del Usuario]
+      summary: Obtener soft skills públicas de un usuario
+      description: Devuelve las soft skills visibles del usuario especificado.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Soft skills obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  skills:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SoftSkillPublic"
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/skills/users/soft-skills:
+    get:
+      tags: [Habilidades del Usuario]
+      summary: Obtener soft skills privadas del usuario autenticado
+      description: Devuelve todas las soft skills del usuario autenticado, incluyendo las no visibles.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Soft skills obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  skills:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SoftSkillPrivate"
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    post:
+      tags: [Habilidades del Usuario]
+      summary: Asociar una soft skill existente al usuario autenticado
+      description: Asocia una soft skill ya registrada en el sistema al usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [skillName]
+              properties:
+                skillName:
+                  type: string
+                  example: Liderazgo
+      responses:
+        "201":
+          description: Soft skill asociada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos, skill no existe o usuario ya tiene esa skill.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    delete:
+      tags: [Habilidades del Usuario]
+      summary: Eliminar una soft skill del usuario autenticado
+      description: Desasocia una soft skill del usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteSkillBody"
+      responses:
+        "200":
+          description: Soft skill eliminada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o skill no asociada al usuario.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/skills/users/new-soft-skill:
+    post:
+      tags: [Habilidades del Usuario]
+      summary: Registrar una nueva soft skill y asociarla al usuario autenticado
+      description: |
+        Registra una soft skill que no existe en el sistema usando validación por IA (Groq).
+        Si la IA la valida, la crea en el sistema y la asocia al usuario.
+        Aplica fuzzy matching para detectar skills similares ya existentes.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [skillName]
+              properties:
+                skillName:
+                  type: string
+                  example: Oratoria
+      responses:
+        "201":
+          description: Nueva soft skill registrada y asociada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Skill inválida (rechazada por IA, profanity, o ya existe asociada al usuario).
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/skills/users/skills/visibility:
+    patch:
+      tags: [Habilidades del Usuario]
+      summary: Modificar visibilidad de habilidades de forma masiva
+      description: |
+        Actualiza la visibilidad de múltiples habilidades (hard o soft) del usuario autenticado.
+        El mapa usa el `skill_id` numérico como clave.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkillVisibilityBody"
+      responses:
+        "200":
+          description: Visibilidad actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── PLATAFORMAS EXTERNAS ─────────────────────────────────────────────────────
+  /api/v1/platforms/users/linkedin:
+    put:
+      tags: [Plataformas Externas]
+      summary: Guardar o actualizar perfil de LinkedIn del usuario autenticado
+      description: |
+        Registra o actualiza el enlace/username de LinkedIn del usuario autenticado.
+        Si ya existe un registro, lo sobreescribe (upsert).
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveLinkedinBody"
+      responses:
+        "200":
+          description: Perfil de LinkedIn guardado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/platforms/users/{username}/linkedin:
+    get:
+      tags: [Plataformas Externas]
+      summary: Obtener perfil de LinkedIn de un usuario
+      description: Devuelve el username/enlace de LinkedIn registrado por el usuario especificado.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Perfil de LinkedIn obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  linkedinUsername:
+                    type: string
+                    nullable: true
+                    example: leonel-zeballos-aldunate
+        "400":
+          description: Username inválido.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/platforms/users/github:
+    put:
+      tags: [Plataformas Externas]
+      summary: Guardar o actualizar perfil de GitHub del usuario autenticado
+      description: Registra o actualiza el username/enlace de GitHub del usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveGithubBody"
+      responses:
+        "200":
+          description: Perfil de GitHub guardado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/platforms/users/{username}/github:
+    get:
+      tags: [Plataformas Externas]
+      summary: Obtener perfil de GitHub de un usuario
+      description: Devuelve el username/enlace de GitHub registrado por el usuario especificado.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Perfil de GitHub obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  githubUsername:
+                    type: string
+                    nullable: true
+                    example: gonchi2332
+        "400":
+          description: Username inválido.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── EXPERIENCIA LABORAL ──────────────────────────────────────────────────────
+  /api/v1/portfolio/users/laboral-experience:
+    post:
+      tags: [Experiencia Laboral]
+      summary: Registrar experiencia laboral
+      description: |
+        Registra una nueva experiencia laboral para el usuario autenticado.
+        El campo `position` es validado por IA (Groq) para verificar que sea un cargo
+        relacionado con el ámbito de TI/Software.
+        Si `endDate` no se envía, se asume que el trabajo es actual.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LaboralExperienceBody"
+      responses:
+        "200":
+          description: Experiencia laboral registrada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos, cargo rechazado por IA, o experiencia ya existente.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    patch:
+      tags: [Experiencia Laboral]
+      summary: Modificar experiencia laboral
+      description: |
+        Modifica una experiencia laboral existente del usuario autenticado.
+        Se identifica por el query param `id`.
+        Todos los campos son opcionales — solo se actualizan los enviados.
+        Enviar `endDate` como string vacío `""` para limpiar la fecha (marcar como trabajo actual).
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 51
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LaboralExperienceBody"
+      responses:
+        "200":
+          description: Experiencia laboral modificada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o experiencia no encontrada.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    get:
+      tags: [Experiencia Laboral]
+      summary: Obtener experiencias laborales privadas del usuario autenticado
+      description: Devuelve todas las experiencias laborales del usuario autenticado, incluyendo las no visibles.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Experiencias laborales obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  laboralExperiences:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LaboralExperienceResponse"
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    delete:
+      tags: [Experiencia Laboral]
+      summary: Eliminar experiencia laboral
+      description: Elimina una experiencia laboral del usuario autenticado identificada por `id`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 52
+      responses:
+        "200":
+          description: Experiencia laboral eliminada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: ID inválido o experiencia no encontrada.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/{username}/laboral-experience:
+    get:
+      tags: [Experiencia Laboral]
+      summary: Obtener experiencias laborales públicas de un usuario
+      description: Devuelve las experiencias laborales visibles del usuario especificado.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Experiencias laborales obtenidas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  laboralExperiences:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LaboralExperienceResponse"
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/laboral-experience/visibility:
+    patch:
+      tags: [Experiencia Laboral]
+      summary: Modificar visibilidad de experiencias laborales de forma masiva
+      description: Actualiza la visibilidad de múltiples experiencias laborales del usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LaboralExperienceVisibilityBody"
+      responses:
+        "200":
+          description: Visibilidad actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── PROYECTOS ────────────────────────────────────────────────────────────────
+  /api/v1/portfolio/users/projects:
+    post:
+      tags: [Proyectos]
+      summary: Registrar proyecto personal
+      description: |
+        Registra un nuevo proyecto para el usuario autenticado.
+        Enviado como `multipart/form-data`.
+        El campo `links` debe ser un JSON string de array con objetos `{label, url}`.
+        Si se envía imagen, se valida con IA para detectar contenido inapropiado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ProjectBody"
+      responses:
+        "201":
+          description: Proyecto registrado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o proyecto ya existe.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    patch:
+      tags: [Proyectos]
+      summary: Modificar proyecto personal
+      description: |
+        Modifica un proyecto existente del usuario autenticado identificado por `id` en query params.
+        El nombre del proyecto (`name`) no se puede modificar.
+        Enviado como `multipart/form-data`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 101
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ModifyProjectBody"
+      responses:
+        "200":
+          description: Proyecto modificado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o proyecto no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    delete:
+      tags: [Proyectos]
+      summary: Eliminar proyecto personal
+      description: Elimina un proyecto del usuario autenticado identificado por `id` en query params.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 100
+      responses:
+        "200":
+          description: Proyecto eliminado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: ID inválido o proyecto no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    get:
+      tags: [Proyectos]
+      summary: Obtener proyectos privados del usuario autenticado
+      description: Devuelve todos los proyectos del usuario autenticado, incluyendo los no visibles.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Proyectos obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  projects:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProjectResponse"
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/{username}/projects:
+    get:
+      tags: [Proyectos]
+      summary: Obtener proyectos públicos de un usuario
+      description: Devuelve los proyectos visibles del usuario especificado con sus links.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Proyectos obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  projects:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProjectResponse"
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/projects/visibility:
+    patch:
+      tags: [Proyectos]
+      summary: Modificar visibilidad de proyectos de forma masiva
+      description: Actualiza la visibilidad de múltiples proyectos del usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectVisibilityBody"
+      responses:
+        "200":
+          description: Visibilidad actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── EDUCACIÓN ────────────────────────────────────────────────────────────────
+  /api/v1/portfolio/education_degree:
+    get:
+      tags: [Educación]
+      summary: Obtener catálogo de grados académicos
+      description: Devuelve la lista de grados académicos disponibles en el sistema para usar como referencia al registrar educación.
+      responses:
+        "200":
+          description: Grados académicos obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  educationGrade:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        academicDegree:
+                          type: string
+                          example: Licenciatura
+        "404":
+          description: No se encontraron grados académicos.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/education:
+    post:
+      tags: [Educación]
+      summary: Registrar formación académica
+      description: |
+        Registra un nuevo registro de educación para el usuario autenticado.
+        El campo `title` es validado por IA (Groq) para verificar que sea un título
+        relacionado con el ámbito de TI/Software/Informática.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EducationBody"
+      responses:
+        "200":
+          description: Formación académica registrada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos, título rechazado por IA, o educación ya existente.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    patch:
+      tags: [Educación]
+      summary: Modificar formación académica
+      description: |
+        Modifica un registro de educación del usuario autenticado identificado por `id` en query params.
+        Todos los campos son opcionales.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 65
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModifyEducationBody"
+      responses:
+        "200":
+          description: Formación académica modificada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o registro no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    delete:
+      tags: [Educación]
+      summary: Eliminar formación académica
+      description: Elimina un registro de educación del usuario autenticado identificado por `id` en query params.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 64
+      responses:
+        "200":
+          description: Registro de educación eliminado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: ID inválido o registro no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    get:
+      tags: [Educación]
+      summary: Obtener formación académica privada del usuario autenticado
+      description: Devuelve todos los registros de educación del usuario autenticado, incluyendo los no visibles.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Registros de educación obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  education:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EducationResponse"
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/{username}/education:
+    get:
+      tags: [Educación]
+      summary: Obtener formación académica pública de un usuario
+      description: Devuelve los registros de educación visibles del usuario especificado.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Registros de educación obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  education:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EducationResponse"
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/education/visibility:
+    patch:
+      tags: [Educación]
+      summary: Modificar visibilidad de registros de educación de forma masiva
+      description: Actualiza la visibilidad de múltiples registros de educación del usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EducationVisibilityBody"
+      responses:
+        "200":
+          description: Visibilidad actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── CERTIFICADOS ─────────────────────────────────────────────────────────────
+  /api/v1/portfolio/users/certificates:
+    post:
+      tags: [Certificados]
+      summary: Registrar certificado
+      description: |
+        Registra un nuevo certificado para el usuario autenticado.
+        Enviado como `multipart/form-data`.
+        La imagen es validada por IA en dos pasos:
+        1. Detección de contenido NSFW (HuggingFace).
+        2. OCR + validación de que la imagen contiene texto característico de un certificado (OpenRouter).
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CertificateBody"
+      responses:
+        "201":
+          description: Certificado registrado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos, imagen rechazada por IA, o certificado ya existente.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    patch:
+      tags: [Certificados]
+      summary: Modificar certificado
+      description: |
+        Modifica un certificado existente del usuario autenticado identificado por `id` en query params.
+        El campo `title` no se puede modificar.
+        Enviado como `multipart/form-data`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 2
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ModifyCertificateBody"
+      responses:
+        "201":
+          description: Certificado modificado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o certificado no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    get:
+      tags: [Certificados]
+      summary: Obtener certificados privados del usuario autenticado
+      description: Devuelve todos los certificados del usuario autenticado, incluyendo los no visibles. Las imágenes se devuelven en base64.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Certificados obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  certificates:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CertificateResponse"
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+    delete:
+      tags: [Certificados]
+      summary: Eliminar certificado
+      description: Elimina un certificado del usuario autenticado identificado por `id` en query params.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Certificado eliminado correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: ID inválido o certificado no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/{username}/certificates:
+    get:
+      tags: [Certificados]
+      summary: Obtener certificados públicos de un usuario
+      description: Devuelve los certificados visibles del usuario especificado. Las imágenes se devuelven en base64.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          example: mario123
+      responses:
+        "200":
+          description: Certificados obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  certificates:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CertificateResponse"
+        "500":
+          description: Error interno del servidor.
+
+  /api/v1/portfolio/users/certificates/visibility:
+    patch:
+      tags: [Certificados]
+      summary: Modificar visibilidad de certificados de forma masiva
+      description: Actualiza la visibilidad de múltiples certificados del usuario autenticado.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateVisibilityBody"
+      responses:
+        "200":
+          description: Visibilidad actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Datos inválidos o usuario no encontrado.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+  # ─── REPORTS ──────────────────────────────────────────────────────────────────
+  /api/v1/reports/user:
+    get:
+      tags: [Reportes]
+      summary: Obtener reporte analítico del usuario autenticado
+      description: |
+        Devuelve datos analíticos de visitas a las secciones del portafolio del usuario autenticado.
+        Agrupa las visitas según el período solicitado.
+
+        **Interfaces disponibles:**
+        | ID | Nombre |
+        |----|--------|
+        | 1  | Información Personal |
+        | 2  | Habilidades Blandas |
+        | 3  | Habilidades Técnicas |
+        | 4  | Experiencia Laboral |
+        | 5  | Educación |
+        | 6  | Proyectos |
+        | 7  | Certificados |
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [day, month, year]
+          description: |
+            Período de agrupación. Si no se envía, se devuelven todos los datos sin agrupar por tiempo.
+            - `day`: agrupa por día de la semana (Lunes, Martes, ...)
+            - `month`: agrupa por mes (Enero, Febrero, ...)
+            - `year`: agrupa por año (2023, 2024, ...)
+          example: month
+      responses:
+        "200":
+          description: Reporte analítico obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  reports:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ReportRow"
+        "400":
+          description: Período inválido.
+        "401":
+          description: Token no proporcionado o expirado.
+        "500":
+          description: Error interno del servidor.
+
+tags:
+  - name: Sistema
+    description: Endpoints de infraestructura y salud del servidor.
+  - name: Autenticación
+    description: Registro, login, recuperación de contraseña, sesión y tokens JWT.
+  - name: Información Personal
+    description: Gestión de la información personal del portafolio (nombre, foto, contacto, residencia, visibilidad).
+  - name: Verificación de Email
+    description: Flujo de verificación del correo electrónico del usuario para activar la cuenta.
+  - name: Perfil
+    description: Enlace público del perfil y listado general de usuarios verificados.
+  - name: Habilidades del Sistema
+    description: Catálogo de hard skills y soft skills disponibles en la plataforma.
+  - name: Habilidades del Usuario
+    description: Gestión de las habilidades técnicas y blandas del portafolio de cada usuario.
+  - name: Plataformas Externas
+    description: Integración con LinkedIn y GitHub.
+  - name: Experiencia Laboral
+    description: CRUD de experiencia laboral con validación de cargo por IA.
+  - name: Proyectos
+    description: CRUD de proyectos personales con validación de imagen por IA.
+  - name: Educación
+    description: CRUD de formación académica con validación de título por IA.
+  - name: Certificados
+    description: CRUD de certificados con validación de imagen (NSFW + OCR) por IA.
+  - name: Reportes
+    description: Analítica de visitas al portafolio agrupadas por período.

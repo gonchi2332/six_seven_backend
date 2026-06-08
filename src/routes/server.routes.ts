@@ -1,4 +1,6 @@
 import { Router, Request, Response } from "express";
+import { swagger } from "../config/swagger.config";
+import swaggerUi from "swagger-ui-express";
 import RegisterRoutes from "./register.routes";
 import AuthRoutes from "./auth.routes";
 import VerificationRoutes from "./verification.routes";
@@ -24,6 +26,8 @@ router.get("/health", (req: Request, res: Response) => {
     message: "Servidor Backend funcionando corretamente..."
   });
 });
+
+router.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swagger));
 
 /**
  * Definición de prefijos de rutas para los diferentes módulos del sistema.
