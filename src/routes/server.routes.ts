@@ -27,6 +27,10 @@ router.get("/health", (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Endpoint de documentacion de la api del servidor para tener acceso a todos los endpoints.
+ * GET /health
+ */
 router.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swagger));
 
 /**
