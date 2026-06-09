@@ -101,7 +101,7 @@ export async function registerUserLaboralExperience(req: Request, res: Response)
  * funcion `manageUserLaboralExperience` con los parametros `req`, `res`, "modify" y `req.query`.
  */
 export async function modifyUserLaboralExperience(req: Request, res: Response) {
-  const validations = LaboralExpValidations.modifyUserLaboralExperienceValidation(req.query);
+  const validations = LaboralExpValidations.modifyUserLaboralExperienceValidation({...req.body, ...req.query});
   if (!validations.result) {
     return res.status(400).json({ success: false, message: validations.messageState });
   }
@@ -224,9 +224,9 @@ export async function modifyLaboralExperienceVisibility(req: Request, res: Respo
     if (!validations.result) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
-
     const response = await LaboralExpService.updateLaboralExperienceVisibility(
-      req.user as TokenTypes.TokenPayload, req.body);
+      req.user as TokenTypes.TokenPayload, req.body.visibilities); 
+    
     if (!response.result) {
       return res.status(400).json({ success: false, message: response.messageState });
     }

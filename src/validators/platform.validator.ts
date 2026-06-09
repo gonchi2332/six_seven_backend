@@ -13,7 +13,7 @@ export function saveLinkedinProfileValidation(tokenParameter: any, parameters: a
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido" : message;
 
-  const secondValidation = StringValidations.validateTrimedString(parameters);
+  const secondValidation = StringValidations.validateTrimedString(parameters.linkedinUsername);
   message = (!secondValidation) ? "El identificador de LinkedIn es obligatorio." : message;
 
   const thirdValidation = StringValidations.validateContentString(parameters.linkedinUsername.trim(), "linkedin.com");
@@ -35,7 +35,7 @@ export function saveGithubProfileValidation(tokenParameter: any, parameters: any
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido" : message;
 
-  const secondValidation = StringValidations.validateTrimedString(parameters);
+  const secondValidation = StringValidations.validateTrimedString(parameters.githubUsername);
   message = (!secondValidation) ? "El identificador de Github es obligatorio" : message;
 
   const thirdValidation = StringValidations.validateContentString(parameters.githubUsername.trim(), "github.com");

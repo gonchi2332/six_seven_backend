@@ -58,46 +58,46 @@ export async function createCertificate(
 }
 
 /**
- * Actualiza un certificado existente de forma dinámica.
- * Solo actualiza los campos proporcionados en `certificateInfo` o la imagen si se envía.
+ * Actualiza un certificado existente de forma dinámica y segura por usuario.
  * @param {string} username - Nombre de usuario.
- * @param {CertificateTypes.CertificateInfo} certificateInfo - Datos actualizados.
- * @param {Express.Multer.File} coverImage - Nueva imagen del certificado opcional.
+ * @param {Partial<CertificateTypes.CertificateInfo>} certificateInfo - Datos actualizados.
+ * @param {Express.Multer.File | undefined} coverImage - Nueva imagen del certificado opcional.
  * @param {number} id - ID del certificado a actualizar.
  */
 export async function updateCertificate(
   username: string,
-  certificateInfo: CertificateTypes.CertificateInfo,
-  coverImage: Express.Multer.File,
+  certificateInfo: Partial<CertificateTypes.CertificateInfo>,
+  coverImage: Express.Multer.File | undefined,
   id: number) {
   const { description, area, issueDate } = certificateInfo;
 
   const setParts: string[] = [];
   const values: unknown[] = [];
   let placeholderIndex = 1;
-  if (description) {
+
+  if (description !== undefined) {
     setParts.push(`description = $${placeholderIndex++}`);
     values.push(description);
   }
-  if (area) {
+  if (area !== undefined) {
     setParts.push(`area = $${placeholderIndex++}`);
     values.push(area);
   }
-  if (coverImage) {
+  if (coverImage !== undefined) {
     setParts.push(`file = $${placeholderIndex++}`);
     values.push(coverImage.buffer);
   }
-  if (issueDate) {
+  if (issueDate !== undefined) {
     setParts.push(`issue_date = $${placeholderIndex++}`);
     values.push(issueDate);
   }
-  setParts.push(`username = $${placeholderIndex++}`);
-  values.push(username);
-  setParts.push(`visible = $${placeholderIndex++}`);
-  values.push(true);
+
+  if (setParts.length === 0) return;
 
   values.push(id);
-  const whereQuery = `WHERE id = $${placeholderIndex}`;
+  values.push(username);
+  const whereQuery = `WHERE id = $${placeholderIndex++} AND username = $${placeholderIndex}`;
+  
   const updateQuery = `UPDATE "certificate" 
                        SET ${setParts.join(", ")}
                        ${whereQuery}`;
@@ -106,7 +106,6 @@ export async function updateCertificate(
 
 /**
  * Obtiene todos los certificados públicos de un usuario.
- * Convierte el archivo binario a formato base64 para su visualización.
  * @param {string} username - Nombre de usuario.
  * @returns Promesa con la lista de certificados públicos formateados.
  */
@@ -137,7 +136,6 @@ export async function getAllPublicUserCertificates(username: string) {
 
 /**
  * Obtiene todos los certificados (públicos y privados) de un usuario.
- * Convierte el archivo binario a formato base64 para su visualización.
  * @param {string} username - Nombre de usuario.
  * @returns Promesa con la lista completa de certificados formateados.
  */

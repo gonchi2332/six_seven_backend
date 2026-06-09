@@ -5,7 +5,7 @@ import * as ProjectService from "../services/project.service";
 
 /**
  * La función `registerProject` maneja el registro de un nuevo proyecto personal del usuario autenticado,
- * incluyendo validación de entradas y posible manejo de archivo adjunto.
+ * incluyendo validación de entradas y manejo de archivo adjunto.
  * @param {Request} req - Objeto de solicitud HTTP. Contiene el usuario en `req.user`, los datos
  * del proyecto en `req.body` y un archivo opcional en `req.file`.
  * @param {Response} res - Objeto de respuesta HTTP usado para enviar el resultado al cliente.
@@ -21,8 +21,13 @@ export async function registerProject(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
 
+    const projectData: any = { ...req.body };
+    if (req.file) {
+      projectData.imageBuffer = req.file.buffer;
+    }
+
     const ans = await ProjectService.registerPersonalProject(
-      req.user as TokenTypes.TokenPayload, req.body);
+      req.user as TokenTypes.TokenPayload, projectData);
     if (!ans.result) {
       return res.status(400).json({
         success: false,
@@ -52,14 +57,21 @@ export async function registerProject(req: Request, res: Response) {
  */
 export async function modifyProject(req: Request, res: Response) {
   try {
+    const validationData = { ...req.query, ...req.body };
+
     const validations = ProjectValidations.modifyProjectValidation(
-      req.user as TokenTypes.TokenPayload, req.query);
+      req.user as TokenTypes.TokenPayload, validationData);
     if (!validations.result) {
       return res.status(400).json({ success: false, message: validations.messageState });
     }
 
+    const projectData: any = { ...req.body };
+    if (req.file) {
+      projectData.imageBuffer = req.file.buffer;
+    }
+
     const response = await ProjectService.modifyPersonalProject(
-      req.user as TokenTypes.TokenPayload, req.query, req.body);
+      req.user as TokenTypes.TokenPayload, req.query, projectData);
     if (!response.result) {
       return res.status(400).json({
         success: false,

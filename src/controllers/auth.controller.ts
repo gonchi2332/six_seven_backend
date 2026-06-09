@@ -163,7 +163,7 @@ export async function forgotPassword(req: Request, res: Response) {
     if ((err as Error).name === "NotFoundError") {
       return res.status(404).json({
         success: false,
-        message: `Contraseña no recuoerada: ${(err as Error).message}`
+        message: `Contraseña no recuperada: ${(err as Error).message}`
       });
     }
     return res.status(500).json({

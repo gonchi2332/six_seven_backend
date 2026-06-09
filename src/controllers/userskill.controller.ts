@@ -168,15 +168,15 @@ async function viewSkillsBase(req: Request, res: Response, skillType: "hard" | "
     if (skillType === "hard") {
       ans = isPublic
         ? await UserSkillService.viewPublicUserHardSkills(
-          req.params || (req.user as TokenTypes.TokenPayload))
+          (Object.keys(req.params).length ? req.params : false) || (req.user as TokenTypes.TokenPayload))
         : await UserSkillService.viewPrivateUserHardSkills(
-          req.params || (req.user as TokenTypes.TokenPayload));
+          (Object.keys(req.params).length ? req.params : false) || (req.user as TokenTypes.TokenPayload));
     } else {
       ans = isPublic
         ? await UserSkillService.viewPublicUserSoftSkills(
-          req.params || (req.user as TokenTypes.TokenPayload))
+          (Object.keys(req.params).length ? req.params : false) || (req.user as TokenTypes.TokenPayload))
         : await UserSkillService.viewPrivateUserSoftSkills(
-          req.params || (req.user as TokenTypes.TokenPayload));
+          (Object.keys(req.params).length ? req.params : false) || (req.user as TokenTypes.TokenPayload));
     }
     const response = ans;
     if (!response.result) {

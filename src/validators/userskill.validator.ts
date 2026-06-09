@@ -45,10 +45,12 @@ export function registerNewSkillValidation(tokenParameter: any, parameters: any,
  */
 export function registerSkillValidation(tokenParameter: any, parameters: any, skillType: "hard" | "soft") {
   let message = "";
+  const { punctuation, ...restParams } = parameters;
+
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
-  const secondValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
+  const secondValidation = TypeValidations.validateManyRequiredParamerersType(restParams, "string");
   message = (!secondValidation) ? "El nombre de habilidad supera el limite de caracteres o es invalido." : message;
 
   const thirdValidation = StringValidations.isEmptyString(parameters.skillName);
@@ -57,7 +59,7 @@ export function registerSkillValidation(tokenParameter: any, parameters: any, sk
   const fourthValidation = StringValidations.validateStringMaxLength(parameters.skillName, 50);
   message = (!fourthValidation) ? "El nombre de habilidad supera el limite de caracteres o es invalido." : message;
 
-  const fifthValidation = (skillType === "soft") && RegexValidations.validateLatinAlphabetFormat(parameters.skillName);
+  const fifthValidation = (skillType === "soft" || skillType === "hard") && RegexValidations.validateLatinAlphabetFormat(parameters.skillName);
   message = (!fifthValidation) ? "Solo se permite caracteres del alfabeto latino." : message;
 
   const finalValidation = firstValidation && secondValidation;

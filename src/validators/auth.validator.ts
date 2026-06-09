@@ -59,13 +59,13 @@ export function loginUserValidation(parameters: any) {
  * @returns {Object} Resultado de la validación y mensaje de error.
  */
 export function resetPasswordValidation(parameters: any) {
-  const { password } = parameters;
+  const { newPassword } = parameters;
 
   let message = "";
   const firstValidation = TypeValidations.validateManyRequiredParamerersType(parameters, "string");
   message = (!firstValidation) ? "Faltan campos obligatorios." : message;
 
-  const secondValidation = StringValidations.validateStringMinLength(password as string, 8);
+  const secondValidation = StringValidations.validateStringMinLength(newPassword as string, 8);
   message = (!secondValidation) ? "La contraseña debe tener al menos 8 caracteres." : message;
 
   const finalValidation = firstValidation && secondValidation;

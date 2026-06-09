@@ -72,12 +72,14 @@ export async function createEducation(username: string, educacionInfo: Education
 
 /**
  * Actualiza un registro de formación académica existente de forma dinámica.
- * Solo actualiza los campos proporcionados en `educacionInfo`.
- * @param {EducationTypes.EducationInfo} educacionInfo - Datos actualizados.
+ * Solo actualiza los campos proporcionados en `educacionInfo` y exige que pertenezca al usuario.
+ * @param {string} username - Nombre de usuario.
+ * @param {Partial<EducationTypes.EducationInfo>} educacionInfo - Datos actualizados.
  * @param {number} id - ID del registro a actualizar.
  */
 export async function updateEducation(
-  educacionInfo: EducationTypes.EducationInfo,
+  username: string,
+  educacionInfo: Partial<EducationTypes.EducationInfo>,
   id: number) {
   const { title, institution, academyDegreeId, startDate, educationState } = educacionInfo;
 
@@ -85,30 +87,31 @@ export async function updateEducation(
   const values: unknown[] = [];
   let placeholderIndex = 1;
 
-  if (title) {
+  if (title !== undefined) {
     setParts.push(`name = $${placeholderIndex++}`);
     values.push(title);
   }
-  if (institution) {
+  if (institution !== undefined) {
     setParts.push(`institution = $${placeholderIndex++}`);
     values.push(institution);
   }
-  if (academyDegreeId) {
+  if (academyDegreeId !== undefined) {
     setParts.push(`academic_degree_id = $${placeholderIndex++}`);
     values.push(academyDegreeId);
   }
-  if (startDate) {
+  if (startDate !== undefined) {
     setParts.push(`start_date = $${placeholderIndex++}`);
     values.push(startDate);
   }
-  if (educationState) {
+  if (educationState !== undefined) {
     setParts.push(`education_state = $${placeholderIndex++}`);
     values.push(educationState);
   }
   if (setParts.length === 0) return;
 
   values.push(id);
-  const whereQuery = `WHERE id = $${placeholderIndex}`;
+  values.push(username);
+  const whereQuery = `WHERE id = $${placeholderIndex++} AND username = $${placeholderIndex}`;
 
   const updateQuery = `UPDATE "academic_training" 
                        SET ${setParts.join(", ")}
@@ -118,17 +121,18 @@ export async function updateEducation(
 }
 
 /**
- * Elimina un registro de formación académica por su ID.
+ * Elimina un registro de formación académica asegurando que pertenezca al usuario.
+ * @param {string} username - Nombre de usuario.
  * @param {number} educationId - ID del registro a eliminar.
  * @returns Promesa con el nombre del registro eliminado.
  */
-export async function deleteEducation(educationId: number) {
+export async function deleteEducation(username: string, educationId: number) {
   const deleteQuery = `
     DELETE FROM "academic_training"
-    WHERE id = $1
+    WHERE id = $1 AND username = $2
     RETURNING name
   `;
-  const deletedEducation = await processReturnQuery(deleteQuery, [educationId]);
+  const deletedEducation = await processReturnQuery(deleteQuery, [educationId, username]);
   return deletedEducation;
 }
 
@@ -195,4 +199,20 @@ export async function updateEducationVisibilityBulk(username: string, visibiliti
     return processReturnQuery(query, values);
   });
   await Promise.all(queries);
+}
+
+/**
+ * Busca un registro de formación académica por su ID y nombre de usuario.
+ * Ignora la visibilidad del registro.
+ * @param {string} username - Nombre de usuario.
+ * @param {number} id - ID del registro de educación.
+ * @returns Promesa con el ID del registro si existe y pertenece al usuario.
+ */
+export async function getEducationByIdAndUser(username: string, id: number) {
+  const selectQuery = `
+    SELECT id FROM "academic_training" 
+    WHERE id = $1 AND username = $2
+  `;
+  const foundEducation = await processReturnQuery(selectQuery, [id, username]);
+  return foundEducation;
 }

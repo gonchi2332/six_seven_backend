@@ -29,38 +29,60 @@ function validateLinks(links: any) {
  * Realiza validaciones comunes para la creación y modificación de proyectos.
  * Verifica descripción, área, rol, estado y enlaces.
  * @param {any} parameters - Objeto con los datos del proyecto.
+ * @param {boolean} isModify - Bandera para indicar si es una actualización parcial (campos opcionales).
  * @returns {Object} Resultado de la validación y mensaje de error.
  */
-function commonProjectValidations(parameters: any) {
-  let message = "";
-  const firstValidation = StringValidations.validateTrimedString(parameters.description);
-  message = (!firstValidation) ? "La descripción es requerida" : message;
+function commonProjectValidations(parameters: any, isModify: boolean = false) {
+  if (!isModify || parameters.description !== undefined) {
+    if (!StringValidations.validateTrimedString(parameters.description)) {
+      return { result: false, messageState: "La descripción es requerida" };
+    }
+    if (!StringValidations.validateStringMaxLength(parameters.description, 200)) {
+      return { result: false, messageState: "La descripción supera el límite de 200 caracteres." };
+    }
+  }
 
-  const secondValidation = StringValidations.validateStringMaxLength(parameters.description, 200);
-  message = (!secondValidation) ? "La descripción supera el límite de 200 caracteres." : message;
+  if (!isModify || parameters.topic !== undefined) {
+    if (!StringValidations.validateTrimedString(parameters.topic)) {
+      return { result: false, messageState: "El área es requerida" };
+    }
+  }
 
-  const thirdValidation = StringValidations.validateTrimedString(parameters.topic);
-  message = (!thirdValidation) ? "El área es requerida" : message;
+  if (!isModify || parameters.role !== undefined) {
+    if (!StringValidations.validateTrimedString(parameters.role)) {
+      return { result: false, messageState: "El rol es requerido" };
+    }
+    if (!StringValidations.validateStringMaxLength(parameters.role, 50)) {
+      return { result: false, messageState: "El rol supera el límite de 50 caracteres." };
+    }
+  }
 
-  const fourthValidation = StringValidations.validateTrimedString(parameters.role);
-  message = (!fourthValidation) ? "El rol es requerido" : message;
+  if (!isModify || parameters.status !== undefined) {
+    const content = ["En proceso", "Finalizado", "Cancelado"];
+    if (!ArrayValidations.validateArrayContent(parameters.status, content)) {
+      return { result: false, messageState: "Estado del proyecto inválido." };
+    }
+  }
 
-  const fifthValidation = StringValidations.validateStringMaxLength(parameters.role, 50);
-  message = (!fifthValidation) ? "El rol supera el límite de 50 caracteres." : message;
+  if (!isModify || parameters.links !== undefined) {
+    let parsedLinks;
+    try {
+      parsedLinks = typeof parameters.links === "string" ? JSON.parse(parameters.links) : parameters.links;
+    } catch (e) {
+      return { result: false, messageState: "El formato de los enlaces es inválido." };
+    }
 
-  const content = ["En proceso", "Finalizado", "Cancelado"];
-  const sixthValidation = ArrayValidations.validateArrayContent(parameters.status, content);
-  message = (!sixthValidation) ? "Estado del proyecto inválido." : message;
+    if (!ArrayValidations.validateArray(parsedLinks)) {
+      return { result: false, messageState: "Al menos un enlace es requerido" };
+    }
+    
+    const linksValidation = validateLinks(parsedLinks);
+    if (!linksValidation.result) {
+      return linksValidation;
+    }
+  }
 
-  const seventhValidation = ArrayValidations.validateArray(parameters.links);
-  message = (!seventhValidation) ? "Al menos un enlace es requerido" : message;
-
-  const eighthValidation = validateLinks(parameters.links);
-  message = (!eighthValidation.result) ? eighthValidation.messageState : message;
-
-  const finalValidation = firstValidation && secondValidation && thirdValidation && fourthValidation &&
-    fifthValidation && sixthValidation && seventhValidation && eighthValidation.result;
-  return { result: finalValidation, messageState: message };
+  return { result: true, messageState: "Validación exitosa" };
 }
 
 /**
@@ -71,25 +93,23 @@ function commonProjectValidations(parameters: any) {
  * @returns {Object} Resultado de la validación y mensaje de error.
  */
 export function registerProjectValidation(tokenParameter: any, parameters: any, imageParameter: any) {
-  let message = "";
-  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
-  message = (!firstValidation) ? "Nombre de usuario invalido." : message;
+  if (!TypeValidations.validateTokenPayload(tokenParameter)) {
+    return { result: false, messageState: "Nombre de usuario invalido." };
+  }
 
-  const secondValidation = ImageValidations.imageExists(imageParameter);
-  message = (!secondValidation) ? "La imagen del proyecto es requerida" : message;
+  if (!ImageValidations.imageExists(imageParameter)) {
+    return { result: false, messageState: "La imagen del proyecto es requerida" };
+  }
 
-  const thirdValidation = commonProjectValidations(parameters);
-  message = (!thirdValidation.result) ? thirdValidation.messageState : message;
+  if (!StringValidations.validateTrimedString(parameters.name)) {
+    return { result: false, messageState: "El nombre del proyecto es requerido" };
+  }
+  
+  if (!StringValidations.validateStringMaxLength(parameters.name, 50)) {
+    return { result: false, messageState: "El nombre del proyecto supera el límite de 50 caracteres." };
+  }
 
-  const fourthValidation = StringValidations.validateTrimedString(parameters.name);
-  message = (!fourthValidation) ? "El nombre del proyecto es requerido" : message;
-
-  const fifthValidation = StringValidations.validateStringMaxLength(parameters.name, 50);
-  message = (!fifthValidation) ? "El nombre del proyecto supera el límite de 50 caracteres." : message;
-
-  const finalValidation = firstValidation && secondValidation && thirdValidation && fourthValidation &&
-    fifthValidation;
-  return { result: finalValidation, messageState: message };
+  return commonProjectValidations(parameters, false);
 }
 
 /**
@@ -99,18 +119,15 @@ export function registerProjectValidation(tokenParameter: any, parameters: any, 
  * @returns {Object} Resultado de la validación y mensaje de error.
  */
 export function modifyProjectValidation(tokenParameter: any, parameters: any) {
-  let message = "";
-  const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
-  message = (!firstValidation) ? "Nombre de usuario invalido." : message;
+  if (!TypeValidations.validateTokenPayload(tokenParameter)) {
+    return { result: false, messageState: "Nombre de usuario invalido." };
+  }
 
-  const secondValidation = TypeValidations.validateId(parameters);
-  message = (!secondValidation) ? "ID de proyecto inválido." : message;
+  if (!TypeValidations.validateId(parameters)) {
+    return { result: false, messageState: "ID de proyecto inválido." };
+  }
 
-  const thirdValidation = commonProjectValidations(parameters);
-  message = (!thirdValidation.result) ? thirdValidation.messageState : message;
-
-  const finalValidation = firstValidation && secondValidation && thirdValidation;
-  return { result: finalValidation, messageState: message };
+  return commonProjectValidations(parameters, true);
 }
 
 /**

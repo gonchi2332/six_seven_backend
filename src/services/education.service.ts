@@ -9,45 +9,59 @@ import * as AIService from "../services/ai.service";
  * Función interna que centraliza el registro o modificación de un registro de educación.
  * Verifica existencia del usuario, duplicados, valida el título con IA y crea/actualiza el registro.
  * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
- * @param {EducationTypes.EducationInfo} educationInfo - Datos de la formación académica.
+ * @param {Partial<EducationTypes.EducationInfo>} educationInfo - Datos de la formación académica.
  * @param {"register" | "modify"} action - Acción: "register" o "modify".
  * @param {number} [id] - ID del registro (solo para "modify").
  * @returns Objeto con `result` y `messageState`.
  */
 async function manageEducation(
   tokenInfo: TokenTypes.TokenPayload,
-  educationInfo: EducationTypes.EducationInfo,
+  educationInfo: Partial<EducationTypes.EducationInfo>,
   action: "register" | "modify",
   id?: number) {
   try {
     const { username } = tokenInfo;
-    const { title } = educationInfo;
+    const { title, institution } = educationInfo;
 
     const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
       return { result: false, messageState: "El usuario no existe" };
     }
+    
     const educationAction = getEducationAction(action);
-    const educationExists = await EducationReporitory.educationExists(educationInfo, username, action);
-    if (educationExists) {
-      return { result: false, messageState: "La formación académica ya existe y está asociada a este usuario" };
-    }
-    if (action === "modify") {
-      const foundEducation = await EducationReporitory.getEducation(id!);
+    
+    if (action === "register") {
+      const educationExists = await EducationReporitory.educationExists(educationInfo as EducationTypes.EducationInfo, username, action);
+      if (educationExists) {
+        return { result: false, messageState: "La formación académica ya existe y está asociada a este usuario" };
+      }
+    } else {
+      const foundEducation = await EducationReporitory.getEducationByIdAndUser(username, id!);
       if (!foundEducation || foundEducation.length === 0) {
-        return { result: false, messageState: "La educacion educacion consultada no existe" };
+        return { result: false, messageState: "La educacion consultada no existe o no tienes permiso para editarla" };
+      }
+      if (title && institution) {
+        const educationExists = await EducationReporitory.educationExists(educationInfo as EducationTypes.EducationInfo, username, action);
+        if (educationExists) {
+          return { result: false, messageState: "La formación académica ya existe y está asociada a este usuario" };
+        }
       }
     }
-    const response = await AIService.academicTitleValidation(title);
-    if (!response.valid) {
-      return { result: false, messageState: response.reason };
+
+    if (title) {
+      const response = await AIService.academicTitleValidation(title);
+      if (!response.valid) {
+        return { result: false, messageState: response.reason };
+      }
     }
 
     if (action === "register") {
-      await EducationReporitory.createEducation(username, educationInfo);
+      await EducationReporitory.createEducation(username, educationInfo as EducationTypes.EducationInfo);
     } else {
-      await EducationReporitory.updateEducation(educationInfo, id!);
+      // FIX: Pasar el username para la seguridad del UPDATE (IDOR)
+      await EducationReporitory.updateEducation(username, educationInfo, id!);
     }
+
     return { result: true, messageState: `Educacion ${educationAction.singleWord} exitosamente` };
   } catch (err) {
     return { result: false, messageState: `Error interno del servidor: ${(err as Error).message}` };
@@ -69,20 +83,20 @@ export async function registerEducation(
 /**
  * Modifica un registro de formación académica existente. Delega en `manageEducation` con acción "modify".
  * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
- * @param {EducationTypes.EducationInfo} educationInfo - Datos actualizados.
+ * @param {Partial<EducationTypes.EducationInfo>} educationInfo - Datos actualizados.
  * @param {any} idInfo - Objeto con el `id` del registro.
  * @returns Resultado de `manageEducation`.
  */
 export async function modifyEducation(
   tokenInfo: TokenTypes.TokenPayload,
-  educationInfo: EducationTypes.EducationInfo,
+  educationInfo: Partial<EducationTypes.EducationInfo>,
   idInfo: any) {
   const parsedId = idInfo.id ? parseInt(idInfo.id as string, 10) : undefined;
   return await manageEducation(tokenInfo, educationInfo, "modify", parsedId);
 }
 
 /**
- * Función interna que elimina un registro de educación. Verifica existencia del usuario y registro.
+ * Función interna que elimina un registro de educación. Verifica existencia del usuario y registro seguro.
  * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
  * @param {number} [id] - ID del registro a eliminar.
  * @returns Objeto con `result` y `messageState`.
@@ -97,11 +111,13 @@ async function handleEducation(
     if (!userExists) {
       return { result: false, messageState: "El usuario no existe" };
     }
-    const educationExperience = await EducationReporitory.getEducation(id!);
+    
+    const educationExperience = await EducationReporitory.getEducationByIdAndUser(username, id!);
     if (!educationExperience || educationExperience.length === 0) {
-      return { result: false, messageState: "La educacion consultada no existe" };
+      return { result: false, messageState: "La educacion consultada no existe o no tienes permiso para eliminarla" };
     }
-    const deletedEducation = await EducationReporitory.deleteEducation(id!);
+    
+    const deletedEducation = await EducationReporitory.deleteEducation(username, id!);
     if (deletedEducation.length === 0) {
       return {
         result: false,
@@ -168,8 +184,7 @@ export async function deleteEducation(tokenInfo: TokenTypes.TokenPayload, idInfo
 }
 
 /**
- * Obtiene los grados académicos disponibles en el sistema (Licenciatura, Maestría, etc.)
- * para usarlos como opciones en formularios.
+ * Obtiene los grados académicos disponibles en el sistema para usarlos como opciones en formularios.
  * @returns Objeto con `result`, `messageState` y `educationGrade`.
  */
 export async function viewAcademicGrade() {
@@ -191,8 +206,7 @@ export async function viewAcademicGrade() {
 /**
  * Actualiza la visibilidad (público/privado) de múltiples registros de educación de forma masiva.
  * @param {TokenTypes.TokenPayload} tokenInfo - Token del usuario autenticado.
- * @param {EducationTypes.UpdateEducationVisibilityInfo} updateEducationVisibilityInfo - Mapa de
- * IDs y sus nuevos estados de visibilidad.
+ * @param {EducationTypes.UpdateEducationVisibilityInfo} updateEducationVisibilityInfo - Mapa de visibilidades.
  * @returns Objeto con `result` y `messageState`.
  */
 export async function updateEducationVisibility(

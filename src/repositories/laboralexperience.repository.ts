@@ -168,9 +168,11 @@ export async function getAllUserLaboralExperiences(username: string) {
  */
 export async function updateLaboralExperiencesVisibilityBulk(username: string, visibilities: Record<string, boolean>) {
   const updates = Object.entries(visibilities).map(([id, visible]) => {
+    const idNum = parseInt(id, 10);
+    const isVisible = Boolean(visible); 
     return processReturnQuery(
       "UPDATE \"laboral_experience\" SET visible = $1 WHERE id = $2 AND username = $3",
-      [visible, parseInt(id, 10), username]
+      [isVisible, idNum, username]
     );
   });
   await Promise.all(updates);

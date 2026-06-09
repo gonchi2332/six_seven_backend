@@ -9,7 +9,7 @@ import * as AIService from "../services/ai.service";
  * Parsea los enlaces del proyecto, valida la existencia del usuario, verifica si el proyecto ya existe
  * y realiza una validación NSFW de la imagen de portada si se proporciona.
  * @param {TokenTypes.TokenPayload} toknInfo - Información del token del usuario autenticado.
- * @param {ProjectTypes.ProjectInfo} projectInfo - Datos del proyecto a registrar (nombre, descripción, links, imagen, etc.).
+ * @param {ProjectTypes.ProjectInfo} projectInfo - Datos del proyecto a registrar.
  * @returns Objeto con `result` (booleano) y `messageState` indicando el éxito o error de la operación.
  */
 export async function registerPersonalProject(
@@ -50,8 +50,9 @@ export async function registerPersonalProject(
     if (formatedProjectInfo.imageBuffer) {
       const response = await AIService.NSFWImageValidation(projectInfo.imageBuffer!);
       if (!response.valid) {
-        if (response.reason)
+        if (response.reason) {
           return { result: false, messageState: response.reason };
+        }
         return { result: false, messageState: "La foto de portada del proyecto contiene contenido obseno" };
       }
     }
@@ -65,50 +66,40 @@ export async function registerPersonalProject(
 
 /**
  * La función `modifyPersonalProject` actualiza la información de un proyecto personal existente.
- * Valida la existencia del usuario, comprueba si el proyecto ya existe (para evitar duplicados),
- * verifica que el proyecto pertenezca al usuario y realiza validación NSFW de la nueva imagen si se proporciona.
+ * Valida la existencia del usuario, comprueba si el proyecto pertenece al usuario y realiza 
+ * validación NSFW de la nueva imagen si se proporciona.
  * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
  * @param {any} projectIdInfo - Objeto que contiene el `id` del proyecto a modificar.
- * @param {ProjectTypes.ProjectInfo} projectInfo - Datos actualizados del proyecto.
+ * @param {Partial<ProjectTypes.ProjectInfo>} projectInfo - Datos actualizados del proyecto.
  * @returns Objeto con `result` (booleano) y `messageState` indicando el éxito o error de la operación.
  */
 export async function modifyPersonalProject(
   tokenInfo: TokenTypes.TokenPayload,
   projectIdInfo: any,
-  projectInfo: ProjectTypes.ProjectInfo) {
+  projectInfo: Partial<ProjectTypes.ProjectInfo>) {
   try {
     const { username } = tokenInfo;
     const { links } = projectInfo;
     const projectId = projectIdInfo.id ? parseInt(projectIdInfo.id as string, 10) : undefined;
 
-    let parsedLinks: ProjectTypes.ProjectLink[] = [];
-    if (links) {
+    const formatedProjectInfo: Partial<ProjectTypes.ProjectInfo> = {};
+    if (projectInfo.description !== undefined) formatedProjectInfo.description = projectInfo.description;
+    if (projectInfo.status !== undefined) formatedProjectInfo.status = projectInfo.status;
+    if (projectInfo.topic !== undefined) formatedProjectInfo.topic = projectInfo.topic;
+    if (projectInfo.role !== undefined) formatedProjectInfo.role = projectInfo.role;
+    if (projectInfo.imageBuffer !== undefined) formatedProjectInfo.imageBuffer = projectInfo.imageBuffer;
+
+    if (links !== undefined) {
       try {
-        parsedLinks = Array.isArray(links) ? links : JSON.parse(links);
+        formatedProjectInfo.links = Array.isArray(links) ? links : JSON.parse(links as unknown as string);
       } catch {
-        parsedLinks = [];
+        formatedProjectInfo.links = [];
       }
     }
-    const formatedProjectInfo: ProjectTypes.ProjectInfo = {
-      name: "",
-      description: projectInfo.description,
-      status: projectInfo.status,
-      topic: projectInfo.topic,
-      role: projectInfo.role,
-      links: parsedLinks,
-      imageBuffer: projectInfo.imageBuffer ? projectInfo.imageBuffer : undefined
-    };
 
     const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
       return { result: false, messageState: "El usuario no existe." };
-    }
-    const projectExists = await ProjectRepository.projectExists(formatedProjectInfo, username);
-    if (projectExists) {
-      return {
-        result: false,
-        messageState: "El proyecto que trata de ser modificado ya existe y esta asociado a este usuario."
-      };
     }
     const project = await ProjectRepository.getProjectByIdAndUser(username, projectId!);
     if (!project || project.length === 0) {
@@ -118,13 +109,14 @@ export async function modifyPersonalProject(
     if (formatedProjectInfo.imageBuffer) {
       const response = await AIService.NSFWImageValidation(formatedProjectInfo.imageBuffer);
       if (!response.valid) {
-        if (response.reason)
+        if (response.reason) {
           return { result: false, messageState: response.reason };
+        }
         return { result: false, messageState: "La foto de portada del proyecto contiene contenido obseno" };
       }
     }
 
-    await ProjectRepository.updatePersonalProject(username, projectId!, projectInfo);
+    await ProjectRepository.updatePersonalProject(username, projectId!, formatedProjectInfo);
     return { result: true, messageState: "Proyecto personal modificado exitosamente." };
   } catch (err) {
     return { result: false, messageState: `Error interno: ${(err as Error).message}` };
@@ -133,7 +125,6 @@ export async function modifyPersonalProject(
 
 /**
  * La función `deletePersonalProject` elimina un proyecto personal del usuario autenticado.
- * Verifica la existencia del usuario y que el proyecto le pertenezca antes de eliminarlo.
  * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
  * @param {any} projectIdInfo - Objeto que contiene el `id` del proyecto a eliminar.
  * @returns Objeto con `result` (booleano) y `messageState` indicando el éxito o error de la operación.
@@ -160,16 +151,15 @@ export async function deletePersonalProject(tokenInfo: TokenTypes.TokenPayload, 
 }
 
 /**
- * La función `getPublicPersonalProjects` recupera todos los proyectos marcados como públicos de un usuario específico.
- * Registra una vista de interfaz para fines analíticos.
+ * La función `getPublicPersonalProjects` recupera todos los proyectos marcados como públicos de un usuario.
  * @param {any} publicPersonProjectsInfo - Objeto que contiene el `username` del usuario a consultar.
  * @returns Objeto con `result`, `messageState` y `data` (lista de proyectos públicos).
  */
 export async function getPublicPersonalProjects(publicPersonProjectsInfo: any) {
   try {
     const { username } = publicPersonProjectsInfo;
-
     const interfaceId = 6;
+
     const userExists = await CommonRepository.userExists(username);
     if (!userExists) {
       return { result: false, messageState: "El usuario no existe" };
@@ -200,9 +190,9 @@ export async function getPrivatePersonalProjects(tokenInfo: TokenTypes.TokenPayl
 }
 
 /**
- * La función `updateProjectsVisibility` actualiza la visibilidad (público/privado) de múltiples proyectos de forma masiva.
+ * La función `updateProjectsVisibility` actualiza la visibilidad (público/privado) de múltiples proyectos.
  * @param {TokenTypes.TokenPayload} tokenInfo - Información del token del usuario autenticado.
- * @param {ProjectTypes.UpdateProjectsVisibilityInfo} updateProjectsVisibilityInfo - Objeto con `visibilities`, un mapa de IDs y estados.
+ * @param {ProjectTypes.UpdateProjectsVisibilityInfo} updateProjectsVisibilityInfo - Mapa de IDs y estados.
  * @returns Objeto con `result` (booleano) y `messageState`.
  */
 export async function updateProjectsVisibility(

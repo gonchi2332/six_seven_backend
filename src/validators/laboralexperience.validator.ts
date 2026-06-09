@@ -135,18 +135,18 @@ export function viewPrivateLaboralExperienceValidation(parameters: any) {
 }
 
 /**
- * Valida la solicitud para modificar la visibilidad de registros de experiencia laboral de forma masiva.
- * @param {any} tokenParameter - Payload del token decodificado.
- * @param {any} parameters - Mapa de visibilidades.
- * @returns {Object} Resultado de la validación y mensaje de error.
- */
+  * Valida la solicitud para modificar la visibilidad de registros de experiencia laboral de forma masiva.
+  * @param {any} tokenParameter - Payload del token decodificado.
+  * @param {any} parameters - Mapa de visibilidades.
+  * @returns {Object} Resultado de la validación y mensaje de error.
+  */
 export function modifyLaboralExperienceVisibilityValidation(tokenParameter: any, parameters: any) {
   let message = "";
   const firstValidation = TypeValidations.validateTokenPayload(tokenParameter);
   message = (!firstValidation) ? "Nombre de usuario faltante o invalido." : message;
 
-  const secondValidation = ArrayValidations.validateObjectArray(parameters);
-  message = (!secondValidation) ? "Formato de visibilidad inválido. Se esperaba un objeto." : message;
+  const secondValidation = parameters.visibilities && typeof parameters.visibilities === "object";
+  message = (!secondValidation) ? "Formato inválido. Se esperaba un objeto con la llave 'visibilities'." : message;
 
   const finalValidation = firstValidation && secondValidation;
   return { result: finalValidation, messageState: message };

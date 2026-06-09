@@ -22,7 +22,7 @@ export async function projectExists(projectInfo: ProjectTypes.ProjectInfo, usern
 
 /**
  * Crea un nuevo proyecto personal para un usuario en una transacción.
- * Inserta el proyecto y sus enlaces asociados en las tablas "project", "link" y "project_link".
+ * Inserta el proyecto y sus enlaces asociados en las tablas correspondientes.
  * @param {string} username - Nombre de usuario.
  * @param {ProjectTypes.ProjectInfo} projectInfo - Datos del proyecto y lista de enlaces.
  */
@@ -66,42 +66,66 @@ export async function getProjectByIdAndUser(username: string, projectId: number)
 }
 
 /**
- * Actualiza un proyecto personal existente en una transacción.
- * Actualiza los datos básicos del proyecto y reemplaza todos sus enlaces.
+ * Actualiza un proyecto personal existente en una transacción de forma dinámica.
  * @param {string} username - Nombre de usuario.
  * @param {number} projectId - ID del proyecto a actualizar.
- * @param {ProjectTypes.ProjectInfo} projectInfo - Datos actualizados del proyecto y nuevos enlaces.
+ * @param {Partial<ProjectTypes.ProjectInfo>} projectInfo - Datos actualizados del proyecto.
  */
-export async function updatePersonalProject(username: string, projectId: number, projectInfo: ProjectTypes.ProjectInfo) {
+export async function updatePersonalProject(username: string, projectId: number, projectInfo: Partial<ProjectTypes.ProjectInfo>) {
   const { description, topic, status, role, imageBuffer, links } = projectInfo;
 
   await processTransaction(async (client: PoolClient) => {
-    if (imageBuffer) {
+    const setParts: string[] = [];
+    const values: any[] = [];
+    let placeholderIndex = 1;
+
+    if (description !== undefined) {
+      setParts.push(`description = $${placeholderIndex++}`);
+      values.push(description);
+    }
+    if (topic !== undefined) {
+      setParts.push(`topic = $${placeholderIndex++}`);
+      values.push(topic);
+    }
+    if (status !== undefined) {
+      setParts.push(`status = $${placeholderIndex++}`);
+      values.push(status);
+    }
+    if (role !== undefined) {
+      setParts.push(`role = $${placeholderIndex++}`);
+      values.push(role);
+    }
+    if (imageBuffer !== undefined) {
+      setParts.push(`image = $${placeholderIndex++}`);
+      values.push(imageBuffer);
+    }
+
+    if (setParts.length > 0) {
+      values.push(projectId);
+      values.push(username);
       const query = `
         UPDATE "project"
-        SET description = $1, topic = $2, status = $3, role = $4, image = $5
-        WHERE id = $6 AND username = $7
+        SET ${setParts.join(", ")}
+        WHERE id = $${placeholderIndex++} AND username = $${placeholderIndex}
       `;
-      await client.query(query, [description, topic, status, role, imageBuffer, projectId, username]);
-    } else {
-      const query = `
-        UPDATE "project"
-        SET description = $1, topic = $2, status = $3, role = $4
-        WHERE id = $5 AND username = $6
-      `;
-      await client.query(query, [description, topic, status, role, projectId, username]);
+      await client.query(query, values);
     }
-    const oldLinksQuery = "SELECT link_id FROM \"project_link\" WHERE project_id = $1";
-    const oldLinksRes = await client.query(oldLinksQuery, [projectId]);
-    const oldLinkIds = oldLinksRes.rows.map(r => r.link_id);
-    if (oldLinkIds.length > 0) {
-      await client.query("DELETE FROM \"project_link\" WHERE project_id = $1", [projectId]);
-      await client.query("DELETE FROM \"link\" WHERE id = ANY($1::int[])", [oldLinkIds]);
-    }
-    for (const item of links) {
-      const linkRes = await client.query("INSERT INTO \"link\" (label, link) VALUES ($1, $2) RETURNING id", [item.label, item.url]);
-      const linkId = linkRes.rows[0].id;
-      await client.query("INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)", [projectId, linkId]);
+
+    if (links !== undefined) {
+      const oldLinksQuery = "SELECT link_id FROM \"project_link\" WHERE project_id = $1";
+      const oldLinksRes = await client.query(oldLinksQuery, [projectId]);
+      const oldLinkIds = oldLinksRes.rows.map(r => r.link_id);
+      
+      if (oldLinkIds.length > 0) {
+        await client.query("DELETE FROM \"project_link\" WHERE project_id = $1", [projectId]);
+        await client.query("DELETE FROM \"link\" WHERE id = ANY($1::int[])", [oldLinkIds]);
+      }
+      
+      for (const item of links) {
+        const linkRes = await client.query("INSERT INTO \"link\" (label, link) VALUES ($1, $2) RETURNING id", [item.label, item.url]);
+        const linkId = linkRes.rows[0].id;
+        await client.query("INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)", [projectId, linkId]);
+      }
     }
   });
 }
@@ -125,7 +149,6 @@ export async function deletePersonalProject(projectId: number) {
 
 /**
  * Obtiene todos los proyectos públicos de un usuario, incluyendo sus enlaces.
- * Convierte la imagen binaria a formato base64.
  * @param {string} username - Nombre de usuario.
  * @returns Promesa con la lista de proyectos públicos formateados.
  */
@@ -163,7 +186,6 @@ export async function getPublicProjects(username: string) {
 
 /**
  * Obtiene todos los proyectos (públicos y privados) de un usuario, incluyendo sus enlaces.
- * Convierte la imagen binaria a formato base64.
  * @param {string} username - Nombre de usuario.
  * @returns Promesa con la lista completa de proyectos formateados.
  */

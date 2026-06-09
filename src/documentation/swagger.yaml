@@ -405,17 +405,18 @@ components:
           format: date
           nullable: true
 
-    LaboralExperienceVisibilityBody:
-      type: object
-      required: [visibilities]
-      properties:
-        visibilities:
-          type: object
-          additionalProperties:
-            type: boolean
+  LaboralExperienceVisibilityBody:
+    type: object
+    required: [visibilities]
+    properties:
+      visibilities:
+        type: object
+        description: Mapa de IDs de experiencia laboral a estados de visibilidad.
+        additionalProperties:
+          type: boolean
           example:
-            "51": true
-            "52": false
+            "23": true
+            "24": false
 
     # ─── Proyectos ────────────────────────────────────────────────────────────
     ProjectBody:
@@ -447,13 +448,12 @@ components:
           format: binary
           description: Imagen de portada del proyecto (opcional).
 
-    ModifyProjectBody:
-      type: object
-      description: Enviado como multipart/form-data. El campo `name` no se puede modificar.
-      required: [description, topic, role, status, links]
-      properties:
-        description:
-          type: string
+  ModifyProjectBody:
+    type: object
+    description: Enviado como multipart/form-data. El campo `name` no se puede modificar. Todos los campos son opcionales.
+    properties:
+      description:
+        type: string
         topic:
           type: string
         role:
