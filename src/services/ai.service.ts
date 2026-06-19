@@ -188,26 +188,27 @@ export async function academicTitleValidation(title: string) {
   try {
     const prompt = `Nombre del Título: "${title}"`;
 
-    const systemPrompt = `Eres un validador estricto de títulos académicos para un portafolio profesional de tecnología.
-      Tu tarea es analizar si el nombre de un título académico es coherente con el ámbito de la informática y si corresponde a un título real.
+    const systemPrompt = `Eres un validador estricto de títulos académicos y educativos para una plataforma de portafolios profesionales.
+      Tu tarea es analizar si el texto ingresado corresponde a un título, carrera, curso, diplomado o grado académico real y coherente (de CUALQUIER área de estudio: Medicina, Derecho, Arte, Ingeniería, Idiomas, Ciencias, etc.).
+      
       Responde ÚNICAMENTE con un objeto JSON válido. Sin texto adicional ni backticks.
 
       Estructura del JSON:
       {"valid": true/false, "reason": "..."}
 
       REGLAS PARA "valid":
-      - true: Es un titulo de grado o certificación reconocible en Computación, Software, Informática, Sistemas o TI, tambien cuentan titulos referidos a educacion o conocimiento tecnico sobre disenio de interfaces como UI/UX, Frontend, etc.
-      - Ejemplos válidos: Lic. en Ingeniería de Sistemas, Mgrt. en Ciencias de la Computación, Dr. en Análisis de Sistemas, Licencitura en Desarrollo de Software, Ing. en Programación Web, Ingenieria en Ciberseguridad, Diplomado en Redes y Telecomunicaciones, PhD. en Inteligencia Artificial, Tecnico medio en UI/UX, etc.
+      - true: Es un título de grado, carrera universitaria, técnica, certificación, curso o diplomado reconocible y coherente de cualquier disciplina.
+        Ejemplos válidos: "Lic. en Psicología", "Ingeniería Civil", "Técnico en Gastronomía", "Médico Cirujano", "Fullstack Developer".
 
-      - false: La carrera no pertenece al ámbito tecnológico (ej. Medicina, Derecho, Chef), son palabras sin sentido, insultos o el título es demasiado genérico/ficticio.
+      - false: El texto es incoherente, palabras sin sentido, insultos, spam, caracteres aleatorios (ej. "asdasd"), o claramente no representa ninguna forma de educación o estudio formal/informal.
 
       REGLAS PARA EL TEXTO DE "reason" (Usa EXACTAMENTE estos):
 
       CASO 1 - Título válido:
-      {"valid": true, "reason": "Título académico válido dentro del ámbito de las ciencias de la computación e informática."}
+      {"valid": true, "reason": "Título académico o formación educativa válida y coherente."}
 
       CASO 2 - Título inválido:
-      {"valid": false, "reason": "El título introducido no está relacionado con el ámbito de las ciencias de la computación, desarrollo de software o informática."}`;
+      {"valid": false, "reason": "El texto introducido no corresponde a un título o formación educativa válida."}`;
 
     const response = await groq.chat.completions.create({
       model: env.GROQ_AI_MODEL,
