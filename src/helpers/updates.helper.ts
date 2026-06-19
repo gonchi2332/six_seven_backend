@@ -121,7 +121,7 @@ export async function updateEducation(
 }
 
 
-export async function updatePersonalProject(username: string, projectId: number, projectInfo: ProjectTypes.ProjectInfo) {
+export async function updatePersonalProject(username: string, projectId: number, projectInfo: Partial<ProjectTypes.ProjectInfo>) {
   const { description, topic, status, role, imageBuffer, links } = projectInfo;
 
   await processTransaction(async (client: PoolClient) => {
@@ -140,17 +140,19 @@ export async function updatePersonalProject(username: string, projectId: number,
       `;
       await client.query(query, [description, topic, status, role, projectId, username]);
     }
-    const oldLinksQuery = "SELECT link_id FROM \"project_link\" WHERE project_id = $1";
-    const oldLinksRes = await client.query(oldLinksQuery, [projectId]);
-    const oldLinkIds = oldLinksRes.rows.map(r => r.link_id);
-    if (oldLinkIds.length > 0) {
-      await client.query("DELETE FROM \"project_link\" WHERE project_id = $1", [projectId]);
-      await client.query("DELETE FROM \"link\" WHERE id = ANY($1::int[])", [oldLinkIds]);
-    }
-    for (const item of links) {
-      const linkRes = await client.query("INSERT INTO \"link\" (label, link) VALUES ($1, $2) RETURNING id", [item.label, item.url]);
-      const linkId = linkRes.rows[0].id;
-      await client.query("INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)", [projectId, linkId]);
+    if (links) {
+      const oldLinksQuery = "SELECT link_id FROM \"project_link\" WHERE project_id = $1";
+      const oldLinksRes = await client.query(oldLinksQuery, [projectId]);
+      const oldLinkIds = oldLinksRes.rows.map(r => r.link_id);
+      if (oldLinkIds.length > 0) {
+        await client.query("DELETE FROM \"project_link\" WHERE project_id = $1", [projectId]);
+        await client.query("DELETE FROM \"link\" WHERE id = ANY($1::int[])", [oldLinkIds]);
+      }
+      for (const item of links) {
+        const linkRes = await client.query("INSERT INTO \"link\" (label, link) VALUES ($1, $2) RETURNING id", [item.label, item.url]);
+        const linkId = linkRes.rows[0].id;
+        await client.query("INSERT INTO \"project_link\" (project_id, link_id) VALUES ($1, $2)", [projectId, linkId]);
+      }
     }
   });
 }
