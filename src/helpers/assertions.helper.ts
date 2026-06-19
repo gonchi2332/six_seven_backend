@@ -45,7 +45,7 @@ export async function currentlyWorkingLaboralExperience(username: string) {
 
   const count = parseInt(result[0].total, 10);
   
-  return count > 5;
+  return count > 3;
 }
 
 export async function projectExists(projectInfo: ProjectTypes.ProjectInfo, username: string) {

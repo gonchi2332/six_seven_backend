@@ -54,7 +54,7 @@ async function manageUserLaboralExperience(
     if (currentlyWorking && !endDate) {
       return {
         result: false,
-        messageState: "Existe ya cinco experiencias laborales que se esta trabajando actualmente, no se pueden registrar más experiencias que se trabaje actualmente"
+        messageState: "Existen ya cuatro experiencias laborales que se esta trabajando actualmente, no se pueden registrar más experiencias laborales que se trabajen actualmente"
       };
     }
 

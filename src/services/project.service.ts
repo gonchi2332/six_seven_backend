@@ -33,18 +33,20 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
         messageState: validationResult.messageState
       };
     }
-    const { valid, reason } = await AIService.NSFWImageValidation(projectInfo.imageBuffer!);
-    if (!valid) {
-      if (reason) {
+    if (projectInfo.imageBuffer) {
+      const { valid, reason } = await AIService.NSFWImageValidation(projectInfo.imageBuffer);
+      if (!valid) {
+        if (reason) {
+          return {
+            result: false,
+            messageState: reason
+          };
+        }
         return {
           result: false,
-          messageState: reason
+          messageState: "La foto de portada del proyecto contiene contenido obseno"
         };
       }
-      return {
-        result: false,
-        messageState: "La foto de portada del proyecto contiene contenido obseno"
-      };
     }
 
     await Inserts.createPersonalProject(username, projectInfo);
