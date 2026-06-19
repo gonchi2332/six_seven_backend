@@ -14,7 +14,7 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -22,7 +22,7 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
     if (projectExists) {
       return {
         result: false,
-        messageState: "El proyecto ya existe y está asociado a este usuario"
+        messageState: "El proyecto ya existe"
       };
     }
 
@@ -33,24 +33,26 @@ export async function registerPersonalProject(username: string, projectInfo: Pro
         messageState: validationResult.messageState
       };
     }
-    const { valid, reason } = await AIService.NSFWImageValidation(projectInfo.imageBuffer!);
-    if (!valid) {
-      if (reason) {
+    if (projectInfo.imageBuffer) {
+      const { valid, reason } = await AIService.NSFWImageValidation(projectInfo.imageBuffer);
+      if (!valid) {
+        if (reason) {
+          return {
+            result: false,
+            messageState: reason
+          };
+        }
         return {
           result: false,
-          messageState: reason
+          messageState: "La foto de portada del proyecto contiene contenido obseno"
         };
       }
-      return {
-        result: false,
-        messageState: "La foto de portada del proyecto contiene contenido obseno"
-      };
     }
 
     await Inserts.createPersonalProject(username, projectInfo);
     return {
       result: true,
-      messageState: "Proyecto personal registrado exitosamente."
+      messageState: "Proyecto personal registrado exitosamente"
     };
   } catch (err) {
     return {
@@ -65,7 +67,7 @@ export async function modifyPersonalProject(username: string, projectId: number,
     if (!(await Assertions.userExists(username))) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -73,7 +75,7 @@ export async function modifyPersonalProject(username: string, projectId: number,
     if (projectExists) {
       return {
         result: false,
-        messageState: "El proyecto que trata de ser modificado ya existe y esta asociado a este usuario."
+        messageState: "El proyecto que trata de ser modificado ya existe"
       };
     }
 
@@ -81,7 +83,7 @@ export async function modifyPersonalProject(username: string, projectId: number,
     if (!project || project.length === 0) {
       return {
         result: false,
-        messageState: "El proyecto no existe o no tienes permiso para editarlo."
+        messageState: "El proyecto no existe o no tienes permiso para editarlo"
       };
     }
     const validation = await modifyProjectValidations(projectInfo);

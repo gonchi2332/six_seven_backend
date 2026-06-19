@@ -32,13 +32,13 @@ async function processUserPersonalInfoAction(
     if (userFounded.length === 0) {
       return {
         result: false,
-        messageState: "Usuario no encontrado."
+        messageState: "Usuario no encontrado"
       };
     }
     if (userFounded.length > 1) {
       return {
         result: false,
-        messageState: "Existen muchos usuarios con la misma identificacion."
+        messageState: "Existen muchos usuarios con la misma identificacion"
       };
     }
 
@@ -57,7 +57,7 @@ async function processUserPersonalInfoAction(
     if (phone && !phoneRegex.test(phone)) {
       return {
         result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, numero de telefono invalido.`
+        messageState: `No se pudo ${actionLabel}r la informacion, numero de telefono invalido`
       };
     }
     if ((names && typeof names !== "string") ||
@@ -65,20 +65,20 @@ async function processUserPersonalInfoAction(
       (secondSurname && typeof secondSurname !== "string")) {
       return {
         result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos.`
+        messageState: `No se pudo ${actionLabel}r la informacion, campos invalidos`
       };
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (contactEmail && !emailRegex.test(contactEmail)) {
       return {
         result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, correo de contacto invalido.`
+        messageState: `No se pudo ${actionLabel}r la informacion, correo de contacto invalido`
       };
     }
     if (secondaryRegistrationEmail && !emailRegex.test(secondaryRegistrationEmail)) {
       return {
         result: false,
-        messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido.`
+        messageState: `No se pudo ${actionLabel}r la informacion, correo de registro secundario invalido`
       };
     }
     if (profilePicture) {
@@ -129,7 +129,7 @@ async function processUserPersonalInfoAction(
         if (typeof residenceCountry !== "string") {
           return {
             return: false,
-            messageState: `No se pudo ${actionLabel}r la informacion, pais de residencia invalido.`
+            messageState: `No se pudo ${actionLabel}r la informacion, pais de residencia invalido`
           };
         }
         checkQuery = `
@@ -250,7 +250,7 @@ async function processUserPersonalInfoAction(
     });
     return {
       result: true,
-      messageState: `Datos de informacion personal del usuario ${actionLabel}dos exitosamente.`
+      messageState: `Datos de informacion personal del usuario ${actionLabel}dos exitosamente`
     };
   } catch (err) {
     return {

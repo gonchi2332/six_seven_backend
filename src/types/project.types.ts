@@ -10,6 +10,6 @@ export interface ProjectInfo {
   role: string;
   //visible: boolean;
   status: string;
-  links: ProjectLink[];
+  links?: ProjectLink[];
   imageBuffer?: Buffer;
 }

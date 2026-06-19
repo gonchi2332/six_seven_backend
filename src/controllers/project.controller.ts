@@ -20,15 +20,9 @@ export async function registerProject(req: Request, res: Response) {
       status: req.body.status,
       topic: req.body.topic,
       role: req.body.role,
-      links: parsedLinks
+      links: parsedLinks,
+      imageBuffer: req.file ? req.file.buffer : undefined
     };
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "La imagen del proyecto es requerida"
-      });
-    }
-    projectInfo.imageBuffer = req.file.buffer;
 
     const ans = await ProjectService.registerPersonalProject(username, projectInfo);
     if (!ans.result) {
