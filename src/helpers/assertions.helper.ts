@@ -32,6 +32,22 @@ export async function laboralExperienceExists(
   return !(foundLaboralExperience.length === 0);
 }
 
+export async function currentlyWorkingLaboralExperience(username: string) {
+  const checkQuery = `
+    SELECT COUNT(*) as total
+    FROM laboral_experience 
+    WHERE end_date IS NULL 
+    AND username = $1;
+  `;
+  
+  const values = [username];
+  const result = await processReturnQuery(checkQuery, values);
+
+  const count = parseInt(result[0].total, 10);
+  
+  return count > 5;
+}
+
 export async function projectExists(projectInfo: ProjectTypes.ProjectInfo, username: string) {
   const { name } = projectInfo;
   

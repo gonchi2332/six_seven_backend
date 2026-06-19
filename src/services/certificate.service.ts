@@ -214,7 +214,7 @@ export async function deleteUserCertificate(username: string, id: number) {
     if (!deletedCertificate) {
       return {
         result: false,
-        messageState: "El certificado a eliminar no esta asociado a este usuario o no existe"
+        messageState: "El certificado a eliminar no existe"
       };
     }
     return {

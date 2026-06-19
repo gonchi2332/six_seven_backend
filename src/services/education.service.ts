@@ -37,7 +37,7 @@ async function manageEducation(
     if (educationExists) {
       return {
         result: false,
-        messageState: "La formación académica ya existe y está asociada a este usuario"
+        messageState: "La formación académica ya existe"
       };
     }
 
@@ -46,7 +46,7 @@ async function manageEducation(
       if (!foundEducation || foundEducation.length === 0) {
         return {
           result: false,
-          messageState: "La educacion educacion consultada no existe"
+          messageState: "La formación académica consultada no existe"
         };
       }
     }
@@ -137,7 +137,7 @@ async function handleEducation(
     if (deletedEducation.length === 0) {
       return {
         result: false,
-        messageState: "El registro de educacion a eliminar no esta asociada a este usuario o no existe"
+        messageState: "El registro de educacion a eliminar no existe"
       };
     }
     return {
