@@ -49,14 +49,6 @@ async function manageUserLaboralExperience(
         messageState: "La experiencia laboral ya existe"
       };
     }
-    
-    const currentlyWorking = await Assertions.currentlyWorkingLaboralExperience(username);
-    if (currentlyWorking && !endDate) {
-      return {
-        result: false,
-        messageState: "Existen ya cuatro experiencias laborales que se esta trabajando actualmente, no se pueden registrar más experiencias laborales que se trabajen actualmente"
-      };
-    }
 
     if (action === "modify") {
       const foundLaboralExperience = await Selects.getLaboralExperience(username, id!);
