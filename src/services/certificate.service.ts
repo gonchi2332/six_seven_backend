@@ -163,7 +163,7 @@ export async function viewPublicCertificates(username: string) {
     const userExists = await Assertions.userExists(username);
     if (!userExists) return {
       result: false,
-      messageState: "El usuario no existe."
+      messageState: "El usuario no existe"
     };
     const certificates = await Selects.getAllPublicUserCertificates(username);
     await Inserts.insertInterfaceView(username, interfaceId);
@@ -235,7 +235,7 @@ export async function updateCertificatesVisibility(username: string, visibilitie
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
     await Updates.updateCertificatesVisibilityBulk(username, visibilities);
