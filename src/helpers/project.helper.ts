@@ -11,7 +11,7 @@ async function commonProjectValidations(projectInfo: ProjectTypes.ProjectInfo) {
   if (description.length > 200) {
     return {
       result: false,
-      messageState: "La descripción supera el límite de 200 caracteres."
+      messageState: "La descripción supera el límite de 200 caracteres"
     };
   }
   if (!topic || typeof topic !== "string" || topic.trim() === "") {
@@ -29,37 +29,34 @@ async function commonProjectValidations(projectInfo: ProjectTypes.ProjectInfo) {
   if (role.length > 50) {
     return {
       result: false,
-      messageState: "El rol supera el límite de 50 caracteres."
+      messageState: "El rol supera el límite de 50 caracteres"
     };
   }
   const validStatuses = ["En proceso", "Finalizado", "Cancelado"];
   if (!status || !validStatuses.includes(status)) {
     return {
       result: false,
-      messageState: "Estado del proyecto inválido."
+      messageState: "Estado del proyecto inválido"
     };
   }
-  if (!links || !Array.isArray(links) || links.length === 0) {
-    return {
-      result: false,
-      messageState: "Al menos un enlace es requerido"
-    };
-  }
-  const domainRegex = /^((https?:\/\/)?(www\.)?)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/.*)?$/;
-  for (const item of links) {
-    if (!item.label || typeof item.label !== "string" || item.label.trim() === "") {
-      return {
-        result: false,
-        messageState: "Todos los enlaces deben tener una etiqueta."
-      };
-    }
-    if (!item.url || !domainRegex.test(item.url)) {
-      return {
-        result: false,
-        messageState: `El enlace '${item.url || "vacío"}' no cumple con el formato válido (dominio.extension).`
-      };
+  if (links || Array.isArray(links)) {
+    const domainRegex = /^((https?:\/\/)?(www\.)?)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/.*)?$/;
+    for (const item of links) {
+      if (!item.label || typeof item.label !== "string" || item.label.trim() === "") {
+        return {
+          result: false,
+          messageState: "Todos los enlaces deben tener una etiqueta"
+        };
+      }
+      if (!item.url || !domainRegex.test(item.url)) {
+        return {
+          result: false,
+          messageState: `El enlace '${item.url || "vacío"}' no cumple con el formato válido (dominio.extension)`
+        };
+      }
     }
   }
+  
   return {
     result: true,
     messageState: "Validación exitosa"
@@ -77,7 +74,7 @@ export async function registerProjectValidations(projectInfo: ProjectTypes.Proje
   if (name.length > 50) {
     return {
       result: false,
-      messageState: "El nombre del proyecto supera el límite de 50 caracteres."
+      messageState: "El nombre del proyecto supera el límite de 50 caracteres"
     };
   }
   return await commonProjectValidations(projectInfo);

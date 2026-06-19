@@ -17,7 +17,7 @@ async function manageUserLaboralExperience(
       if (isNaN(laboralExperienceInfo.startDate.getTime())) {
         return {
           result: false,
-          messageState: "La fecha de inicio es inválida."
+          messageState: "La fecha de inicio es inválida"
         };
       }
     }
@@ -26,7 +26,7 @@ async function manageUserLaboralExperience(
       if (isNaN((laboralExperienceInfo.endDate as Date).getTime())) {
         return {
           result: false,
-          messageState: "La fecha de fin es inválida." 
+          messageState: "La fecha de fin es inválida" 
         };
       }
     }
@@ -37,7 +37,7 @@ async function manageUserLaboralExperience(
     if (!userExists) {
       return {
         result: false,
-        messageState: "El usuario no existe."
+        messageState: "El usuario no existe"
       };
     }
 
@@ -46,7 +46,7 @@ async function manageUserLaboralExperience(
     if (laboralExperienceExits) {
       return {
         result: false,
-        messageState: "La experiencia laboral ya existe y está asociada a este usuario"
+        messageState: "La experiencia laboral ya existe"
       };
     }
 
@@ -55,7 +55,7 @@ async function manageUserLaboralExperience(
       if (!foundLaboralExperience || foundLaboralExperience.length === 0) {
         return {
           result: false,
-          messageState: "La experiencia laboral consultada no existe."
+          messageState: "La experiencia laboral consultada no existe"
         };
       }
       if (endDate) {
@@ -103,13 +103,6 @@ async function manageUserLaboralExperience(
         messageState: validationResult.messageState
       };
     }
-
-    //if (visible && typeof visible !== "boolean") {
-    //  return {
-    //    result: false,
-    //    messageState: "Parametro de visibilidad invalido."
-    //  };
-    //}
 
     if (action === "register") {
       await Inserts.createLaboralExperience(username, laboralExperienceInfo);
@@ -221,7 +214,7 @@ export async function deleteUserLaboralExperience(username: string, id: number) 
     if (deletedLaboralExperience.length === 0) {
       return {
         result: false,
-        messageState: "La experiencia laboral a eliminar no esta asociada a este usuario o no existe"
+        messageState: "La experiencia laboral a eliminar no existe"
       };
     }
     return {
